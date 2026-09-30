@@ -1,0 +1,367 @@
+/* =====================================================================
+   Feb · tokens.css — 全站設計語言唯一來源（A×B 融合定案 · rev B 去框化）
+   =====================================================================
+   依據：docs/adr/ADR-0002-single-design-language.md（2026-08-31 裁定）
+
+   融合裁定：
+   > 「我覺得可以把A跟B融合，我覺得A資訊的呈現方式我很喜歡
+   >   不過缺少湖面玻璃的效果。」
+   資訊層全取 A（夜航儀表：mono 讀數、眉標紀律、去飽和結構色）；
+   表面層全取 B（湖面玻璃：7%/14% 液態玻璃＋內光、aurora 氛圍場）。
+   C（藍曬）不參與融合。
+
+   去框化裁定（rev B 的存在理由）：
+   > 「你使用太多框框了，我希望可以多增加一些創意」
+   ★ 框是例外，不是預設。頁面內容直接活在 aurora 場上；
+   ★ 結構用字階、留白、縮排、單一髮絲線、色彩、z 深度表達；
+   ★ 四邊框＋圓角面板（.glass）只給「真正浮起」的 overlay：
+     modal、播放器控制列、今日複習條。其他一律不准框。
+   ★ 簽名元素允許出血貫穿全寬；表格用行線不用外框；
+     section 分隔＝mono 眉標＋一條髮絲線，或純留白。
+
+   規則：全站只准用此檔變數上色／定字／定距。
+   量化紀律（字階五級、圓角三級、按鈕三高）之「值」不可改——
+   出自 .scratch/redesign/direction/_specimen-contract.md，為既有紀律萃取。
+   ===================================================================== */
+
+:root{
+
+  /* ---------------- 底色（取 B）----------------
+     B 的 #0B0D12 比 A 的 #0A0C10 帶一絲藍紫，湖面 aurora 疊上去
+     不會發灰；raise 面同理取 #12151D，與 --glass 疊出的有效亮度
+     （約 #1C1E23）拉開一級，平面與玻璃才分得出誰浮誰沉。 */
+  --bg:#0B0D12;
+  --bg-raise:#12151D;
+
+  /* ---------------- 墨階（取 A）----------------
+     A 的三級灰帶冷藍調（不是純白降透明度），在 aurora 色場上
+     不會被染色。實測對比（vs --bg #0B0D12）：
+     ink 15.9:1 · ink-dim 7.8:1 · ink-faint 4.9:1 —— 三級全過 4.5:1。
+     ★ 玻璃例外：--glass 疊上 bg 的有效底約 #1C1E23，faint 在其上
+     只剩 4.2:1（A 沒有這種面，這是融合才出現的坑）。
+     規則：faint 限平面（--bg／--bg-raise）上的眉標／註記；
+     玻璃面上的最小可讀墨階是 --ink-dim。 */
+  --ink:#E9EDF4;
+  --ink-dim:#A3ADC2;
+  --ink-faint:#75809E;
+
+  /* ---------------- Ember 雙階（A 的對比解法）----------------
+     同一團火，兩種用途，絕不互換：
+     --accent = ember lit，餘燼被吹亮的那一面。給「可讀文字」：
+       讀數、倒數、熱點標記。實測 6.4:1 on --bg、5.5:1 on glass
+       （glass 疊 bg 有效底 #1C1E23）——雙面都過 4.5:1。
+     --warm = ember core，火心本體。只給「正在燒的東西」：
+       today 刻度、熱度格、選中章的側軌、glow 光暈。
+       永遠不當 body text（3.9:1，故意不及格，擋你手滑）。 */
+  --accent:#E07840;
+  --warm:#C25E2E;
+
+  /* ---------------- 髮絲線（取 A）----------------
+     A 用「冷藍灰 146,162,188 降透明度」而非純白：分隔線要退到
+     內容後面，純白線在暗底會搶。12% 是「看得見但數不出來」的
+     臨界；28% 給需要被摸到邊界的元件（輸入框、ghost 鈕）。
+     去框化之後，髮絲線是結構的主力：一條線＝一個分隔，
+     兩條線圍不成框——圍成框就回去讀檔頭。 */
+  --line:rgba(146,162,188,.12);
+  --line-strong:rgba(146,162,188,.28);
+
+  /* ---------------- 湖面玻璃（取 B）----------------
+     白 7% 是 blur(14px) 下「有材質感又不吃對比」的實測值；
+     邊線 14% 恰好是 fill 的兩倍，折射邊比面亮一級。
+     內光 inset 0 1px 0 白10%：頂緣一條受光線，玻璃像從湖面下
+     被點亮——這條線就是 B 的靈魂，省略等於沒融合。 */
+  --glass:rgba(255,255,255,.07);
+  --glass-line:rgba(255,255,255,.14);
+  --glass-inner:inset 0 1px 0 rgba(255,255,255,.10);
+  /* 無 blur 環境的替代填色（見檔尾 fallback 區）：
+     glass 沒了模糊就只剩一層白霧，改用近實心 raise 底保住對比。 */
+  --glass-fallback:rgba(18,21,29,.92);
+
+  /* ---------------- 學科色 · 雙階（A×B 融合核心）----------------
+     結構階（取 A，去飽和）：脊線、underline、chip、靜置狀態。
+       學科色在 rest 是「導航資訊」不是「裝飾」，降飽和才不會
+       五色打架；亮度全數壓在 vs --bg 4.5:1 以上，可直接當小字。
+     活性階 -hi（取 B，全飽和）：只給「當下選中／進行中」那一個
+       項目，配 B 的柔光外暈（--glow 配方）。全頁同時最多一個
+       -hi——亮起來的東西多於一個，就等於沒有東西亮。 */
+  --sc-elec:#D2A377;   --sc-elec-hi:#E8A75C;
+  --sc-math:#6FB5B0;   --sc-math-hi:#57C7C0;
+  --sc-la:#7FA3C9;     --sc-la-hi:#6FA8E8;
+  --sc-ctrl:#9F94CF;   --sc-ctrl-hi:#9D8DF1;
+  --sc-toeic:#8FBD9F;  --sc-toeic-hi:#86CF9E;
+  /* B 的柔光配方（套在 -hi 元素的 box-shadow）：
+     0 0 30px -6px color-mix(in srgb, var(--sc-X-hi) 42%, transparent)
+     42% 是「暈得出來但讀數不糊」的上限。 */
+
+  /* ---------------- 狀態色（T04 新增，reserved-for-state）----------------
+     只給「判定狀態」：verdict 脊線／狀態字。★ 永不當資料序列色用
+     （dataviz 法：status 色冒充 series 是違規），也永不反過來拿學科色
+     表狀態。三色刻意與五學科色錯開（OKLab ΔE 最近鄰 ≥10.4/11.4，
+     good 不是 --sc-toeic 綠：#27BD68 vs #8FBD9F/#86CF9E）。
+     對比實測 vs --bg #0B0D12：good 7.9:1 · warn 12.2:1 · bad 6.5:1
+     ——三色全過「脊線 ≥3:1、狀態文字 ≥4.5:1」門檻。
+     狀態永遠配 glyph＋文字，不准 color-alone。 */
+  --status-good:#27BD68;
+  --status-warn:#EDCB37;
+  --status-bad:#F16A6A;
+
+  /* ---------------- 字階五級（契約固定值，禁止內插）----------------
+     字的大小只有這五格，沒有 1.2rem 也沒有 0.85rem。
+     要「介於中間」的字，代表資訊層級沒想清楚。
+     （超大讀數＝title 的 calc 整數倍，是展示位不是第六級。） */
+  --w-title:2.5rem;      /* 大讀數／頁題（D-154、章題） */
+  --w-sub:1.0625rem;     /* 小節題／清單題 */
+  --w-body:.9375rem;     /* 正文 */
+  --w-meta:.8125rem;     /* 讀數列、表格、chip 文字 */
+  --w-tag:.6875rem;      /* 眉標／代號，配 --ls-tag 撐開 */
+  --ls-title:-.035em;    /* 大字收緊：2.5rem 以上不收會散 */
+  --ls-tag:.16em;        /* 眉標撐開：小字全大寫需要呼吸 */
+
+  /* ---------------- 圓角三級（契約固定值）----------------
+     18 浮層 / 12 卡件 / 9 元件。去框化後圓角只出現在
+     「真正浮起」的東西與元件（鈕、chip）身上——
+     頁面結構本身沒有角可圓。 */
+  --r-lg:18px;
+  --r-md:12px;
+  --r-sm:9px;
+
+  /* ---------------- 按鈕三高（契約固定值）----------------
+     視覺高 32/28/24；命中區一律用 .hit 外擴到 ≥44px（iPad 指腹）。 */
+  --btn-h:32px;
+  --btn-h-sm:28px;
+  --btn-h-xs:24px;
+
+  /* ---------------- 動效（契約固定值＋出場規則）----------------
+     320ms + (.22,1,.36,1)：快出發、長剎車，玻璃「凝結」感的來源。
+     出場 208ms = 進場的 65%——離開的東西不值得看完整段。 */
+  --dur:320ms;
+  --dur-exit:208ms;      /* = 320 × 0.65，取到 8ms 格 */
+  --ease:cubic-bezier(.22,1,.36,1);
+  --stagger:38ms;        /* B 的編排步距：清單逐項凝結 */
+
+  /* ---------------- 字體 ----------------
+     UI：Inter 撐英數、Noto Sans TC 撐漢字。
+     Mono：Geist Mono（T14b／ADR-0008 細節調模四：2026 熱門榜實查換新，
+     IBM Plex Mono 降為後備）——所有讀數／眉標／代號一律 mono，
+     且 tabular-nums 強制（跳動的數字不准位移，見 .mono）。
+     Geist Mono 是等寬字型且預設 lining figures，tabular-nums 照常成立。 */
+  --font-ui:'Inter','Noto Sans TC',system-ui,-apple-system,sans-serif;
+  --font-mono:'Geist Mono','IBM Plex Mono','Noto Sans TC',Consolas,ui-monospace,monospace;
+
+  /* ---------------- 強度儀預設（= full，見下方檔位區）---------- */
+  --aurora-opacity:1;
+  --ambient-play:running;
+  /* 修訂三 #3（ADR-0002，2026-09-01 晚）：gentle-ambient 白名單檔位。
+     場景 ambient（aurora 漂移、天氣、星霧）吃 --ambient-play；
+     study 白名單慢環境循環（脊柱餘燼漂移／燃點呼吸／站號水印呼吸／
+     河道流線微流）改吃 --gentle-play——quiet 檔也 running（loop 是預設）。
+     page-hidden／modal-open 在 body 層把它改 paused（app.css 省電段）；
+     reduced-motion 由檔尾全滅規則凌駕一切。 */
+  --gentle-play:running;
+}
+
+/* =====================================================================
+   強度儀 MODE INTENSITY DIAL（ADR-0002 授權裁量）
+   ---------------------------------------------------------------------
+   契約：html[data-intensity="full" | "mid" | "quiet"]
+   對照：home=full（氛圍門面全開）· exam=mid（居中）· study=quiet
+        （背景近無、動效只留功能回饋——備考的人不該被湖面分心）。
+   quiet 時 blur「留著」（玻璃材質是身份，不是動效），
+   但 ambient 動畫凍結、aurora 壓到 8%（省電同時保住空間感）。
+   修訂三 #3：quiet 另開 gentle-ambient 白名單（--gentle-play 照 running）
+   ——S5 由「study 零無限動畫」修訂為「study 僅白名單 ambient loop
+   （全吃 play-state 變數且 reduced-motion 全滅），互動動效 60fps
+   transform/opacity only」。
+   選擇器同時容許掛在子樹上：design-system.html 的「度」區
+   用它做三檔並列的局部實演。
+   ===================================================================== */
+[data-intensity="full"]{
+  --aurora-opacity:1;
+  --ambient-play:running;
+}
+[data-intensity="mid"]{
+  --aurora-opacity:.45;
+  --ambient-play:running;
+}
+[data-intensity="quiet"]{
+  --aurora-opacity:.08;
+  --ambient-play:paused;   /* 場景 ambient 照舊凍結（aurora 維持 8%） */
+  --gentle-play:running;   /* 修訂三：白名單慢循環在 study 也活著 */
+}
+
+/* =====================================================================
+   調色 PALETTES（T15 design-expansion）
+   ---------------------------------------------------------------------
+   契約：body[data-pal="indigo" | "pine"]（預設 ember＝無屬性，即現況雙階）。
+   只重繫 ember 雙階 --accent／--warm——所有 glow 皆由這兩個變數
+   color-mix 導出（app.css 已去 hardcode），故整條光路一起換色。
+   ★ 學科色 --sc-*、狀態色 --status-* 是 reserved semantics，調色永不碰。
+   ★ 雙階紀律照舊：--accent 給可讀文字、--warm 只給正在燒的東西。
+   對比實測（WCAG，contrast.py 驗算）：
+     靛夜 accent #97A4F5 → aurora 8.3 · chalk 6.9 · ink 8.1 · vellum步 #4B4FC8 5.5 · kraft步 #3A3E9E 4.5
+     松青 accent #45C9A2 → aurora 9.4 · chalk 7.8 · ink 9.2 · vellum步 #146B54 5.5 · kraft步 #0C4F3F 4.9
+   全部 ≥4.5:1（warm 階與 ember 同理「故意不當 body text」）。
+   specificity 階梯：body[data-pal]（0,1,1）＜ body.lt[data-pal]（0,2,1）
+   ＜ body.lt[data-theme="kraft"][data-pal]（0,3,1）——亮地與牛皮紙的
+   重繫塊在 app.css（同 vellum S-08 模式），靠 specificity 蓋回來，
+   與檔案載入順序無關。
+   ===================================================================== */
+/* 靛夜 indigo：冷藍紫。夜航儀表的另一種燈色。 */
+body[data-pal="indigo"]{ --accent:#97A4F5; --warm:#7B7BE8 }
+/* 松青 pine：深綠松石。與 --status-good（#27BD68 純綠）、--sc-toeic
+   （#8FBD9F 灰綠）刻意錯開色相往 teal 靠，語意不打架。 */
+body[data-pal="pine"]{ --accent:#45C9A2; --warm:#2E9E7E }
+/* 亮地步階（vellum；勝過 app.css body.lt 的 ember 重繫） */
+body.lt[data-pal="indigo"]{ --accent:#4B4FC8; --warm:#4340B4 }
+body.lt[data-pal="pine"]{ --accent:#146B54; --warm:#0F5B47 }
+/* 牛皮紙步階（地面更深，再壓一步；勝過 app.css 的 kraft 地面重繫） */
+body.lt[data-theme="kraft"][data-pal="indigo"]{ --accent:#3A3E9E; --warm:#34378F }
+body.lt[data-theme="kraft"][data-pal="pine"]{ --accent:#0C4F3F; --warm:#0C4A3B }
+
+/* ---- curated 配對細調（ADR-0002 修訂三 #1，2026-09-01 晚）----
+   使用者裁定 15 組合僅「描圖紙×餘燼」「夜湖×松青」存活——調色改為
+   每片地面出廠帶定製燈色：夜湖→松青、描圖紙→餘燼（兩組錨點原樣）、
+   黑板→松青粉綠步、墨水→靛夜墨藍步、牛皮紙→餘燼深褐步（＝app.css 的
+   kraft 重繫）。配對邏輯在 02-settings.js（feb-set.pal='auto' 隨地面，
+   點實名盤才成為覆蓋）。下方兩步是替地面客製的調色細調，
+   specificity（0,2,1）蓋過 body[data-pal]（0,1,1），與載入順序無關。 */
+/* 黑板×松青：拉向粉筆綠白——綠板上的粉筆字，不是霓虹 teal。
+   實測 vs chalk 地 #16241F：accent 8.6（raise 7.8）· warm 5.0
+   （warm 照舊「故意不當 body text」）。 */
+body[data-theme="chalk"][data-pal="pine"]{ --accent:#5FD1AC; --warm:#38A182 }
+/* 墨水×靛夜：往鋼青銀藍靠——硯池裡的靛，不是紫羅蘭。
+   實測 vs ink 地 #0A0F1E：accent 9.1（raise 8.3）· warm 5.7。 */
+body[data-theme="ink"][data-pal="indigo"]{ --accent:#9DB1F6; --warm:#7186E8 }
+
+/* =====================================================================
+   工具類（全站共用，僅此數個——其餘樣式住在各頁）
+   ===================================================================== */
+
+/* 鍵盤焦點（品質底線，全站統一，不准各頁自創）：
+   ember lit 外框 2px、外推 2px——在玻璃與平面上都 ≥3:1。 */
+:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+  border-radius:4px;
+}
+
+/* 讀數字體：所有數字、代號、眉標。tabular-nums 是硬規定——
+   時鐘、倒數、百分比跳動時不准橫向位移。 */
+.mono{
+  font-family:var(--font-mono);
+  font-variant-numeric:tabular-nums;
+}
+
+/* 眉標（A 的紀律，全站 section 分隔的一半——另一半是髮絲線）。 */
+.eyebrow{
+  font-family:var(--font-mono);
+  font-size:var(--w-tag);
+  font-weight:500;
+  letter-spacing:var(--ls-tag);
+  text-transform:uppercase;
+  color:var(--ink-faint);
+  font-variant-numeric:tabular-nums;
+}
+
+/* =====================================================================
+   ★★★ 去框化法 DE-BOXING LAW ——玻璃只給「浮起」的東西 ★★★
+   ---------------------------------------------------------------------
+   .glass / .glass-quiet 是全站唯二的「四邊框＋圓角面板」配方，
+   保留給真正浮在頁面之上的 overlay：
+     · modal
+     · 播放器控制列
+     · 今日複習條（浮層形態）
+   頁面內容【不准】包進玻璃。章節列表、情報表、色票、字階、
+   元件示範——全部直接站在 aurora 場上，用眉標＋髮絲線＋留白
+   ＋縮排＋字階分層。
+   你正要把一段頁面內容包進 .glass？先回答：它浮嗎？
+   不浮，就不准框。（出處：ADR-0002 去框化原則，使用者裁定。）
+   ===================================================================== */
+
+/* ---- 湖面玻璃配方（B 的表面層，逐字照抄勿改）----
+   四件組：fill 白7% ＋ 邊線 白14% ＋ 內光頂緣 白10% ＋ blur 14px。
+   14px 是「後景 aurora 化成色霧、前景文字不受累」的實測值。 */
+.glass{
+  background:var(--glass);
+  border:1px solid var(--glass-line);
+  border-radius:var(--r-lg);
+  -webkit-backdrop-filter:blur(14px);
+  backdrop-filter:blur(14px);
+  box-shadow:var(--glass-inner);
+}
+
+/* 安靜玻璃：study 情境的次級浮層（仍限浮層！）。fill 減半、
+   無內光，blur 收到 8px——同一種材質，退後一步站。 */
+.glass-quiet{
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--line);
+  border-radius:var(--r-md);
+  -webkit-backdrop-filter:blur(8px);
+  backdrop-filter:blur(8px);
+}
+
+/* ---- 無模糊 fallback（原版 Feb 的 iPad 省電規則）----
+   1) 引擎不支援 backdrop-filter：glass 只剩白霧 → 改近實心底。 */
+@supports not ((backdrop-filter:blur(14px)) or (-webkit-backdrop-filter:blur(14px))){
+  .glass,.glass-quiet{
+    background:var(--glass-fallback);
+  }
+}
+/* 2) 觸控主力裝置（iPad）：backdrop blur 是 GPU 常駐開銷，
+   長時讀書頁面會啃電池——一律降級為實心面。 */
+@media (hover:none){
+  .glass,.glass-quiet{
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+    background:var(--glass-fallback);
+  }
+}
+
+/* ---- 觸控命中區外擴：視覺照三高 token，命中 ≥44px ---- */
+.hit{position:relative}
+.hit::after{
+  content:"";
+  position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  width:max(100%,44px);
+  height:max(100%,44px);
+}
+
+/* ---- Aurora 氛圍場（湖面之下；受強度儀管）----
+   容器 .aurora 固定滿版沉底，光斑 <i> 由各頁自配色與 keyframes；
+   opacity 與 play-state 一律吃強度儀變數，各頁不得自行 hardcode。
+   去框化之後 aurora 不是「背景圖」，是頁面內容直接站立的地面。 */
+.aurora{
+  position:fixed;inset:-25%;z-index:0;
+  pointer-events:none;overflow:hidden;
+  opacity:var(--aurora-opacity);
+  transition:opacity var(--dur) var(--ease);
+}
+.aurora i{
+  position:absolute;display:block;border-radius:50%;
+  will-change:transform;
+  animation-play-state:var(--ambient-play);
+}
+
+/* =====================================================================
+   Reduced motion：全滅（品質底線，凌駕一切檔位）
+   凝結進場（opacity+blur）與 scaleX 條在各頁需自備「靜止即完成態」
+   fallback——此處的全域殺只保證不再動，不保證你沒把內容藏在 0%。
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation:none !important;
+    transition:none !important;
+  }
+  .aurora{opacity:calc(var(--aurora-opacity) * .5)}
+}
+
+/* ── 架構師裁決（T04，dataviz validator）────────────────────────────
+   --sc-la 與 --sc-ctrl（兩階）低於 normal-vision floor（8.9/5.8 < 15）。
+   保留不改：學科色是「實體釉彩」（entity accent），永遠伴隨文字標籤，
+   不得作為圖表系列色使用。任何未來圖表若需 categorical 系列，
+   必須另建一組過 validator 的系列色，不准挪用 --sc-*。
+   （量值：熱度=sequential ember、長條=單色相，本站現無 categorical 圖表。）*/
+
+/* ── 值夜 stamp 2026-09-01（v42）：curated 配對細調兩步（黑板×松青粉綠、
+   墨水×靛夜墨藍）入列 PALETTES 段（ADR-0002 修訂三 #1）。 ── */

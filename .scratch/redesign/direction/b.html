@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>方向B · 湖面玻璃</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============ TOKENS（契約：變數名固定） ============ */
+:root{
+  --bg:#0B0D12;
+  --bg-raise:#12151D;
+  --ink:#F4F6F8;
+  --ink-dim:rgba(244,246,248,.66);
+  --ink-faint:rgba(244,246,248,.5);
+  --accent:#F2E8DA;
+  --warm:#C25E2E;
+  --line:rgba(255,255,255,.10);
+  --line-strong:rgba(255,255,255,.22);
+  --glass:rgba(255,255,255,.07);
+  --glass-line:rgba(255,255,255,.14);
+  --sc-elec:#E8A75C; --sc-math:#57C7C0; --sc-la:#6FA8E8; --sc-ctrl:#9D8DF1; --sc-toeic:#86CF9E;
+  --w-title:2.5rem; --w-sub:1.0625rem; --w-body:.9375rem; --w-meta:.8125rem; --w-tag:.6875rem;
+  --ls-title:-.035em; --ls-tag:.16em;
+  --r-lg:18px; --r-md:12px; --r-sm:9px;
+  --btn-h:32px; --btn-h-sm:28px; --btn-h-xs:24px;
+  --dur:320ms; --ease:cubic-bezier(.22,1,.36,1);
+}
+
+/* ============ BASE ============ */
+*{box-sizing:border-box;margin:0;padding:0}
+html{color-scheme:dark}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:Inter,"Noto Sans TC",-apple-system,sans-serif;
+  font-size:var(--w-body); line-height:1.65;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  min-height:100vh;
+}
+::selection{background:color-mix(in srgb,var(--accent) 26%,transparent)}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+.mn{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,monospace;font-variant-numeric:tabular-nums}
+.warm-txt{color:color-mix(in srgb,var(--warm) 72%,var(--ink))}
+
+/* ============ AURORA（湖面之下） ============ */
+.aurora{position:fixed;inset:-25%;z-index:0;pointer-events:none;overflow:hidden}
+.aurora i{
+  position:absolute;border-radius:50%;will-change:transform;display:block;
+  transition:opacity var(--dur) var(--ease);
+}
+.au-a{
+  width:78vmax;height:78vmax;left:-18vmax;top:-24vmax;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--sc-la) 20%,transparent),transparent 68%);
+  animation:drift-a 84s var(--ease) infinite alternate;
+}
+.au-b{
+  width:64vmax;height:64vmax;right:-16vmax;bottom:-20vmax;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--warm) 15%,transparent),transparent 70%);
+  animation:drift-b 112s var(--ease) infinite alternate;
+}
+@keyframes drift-a{to{transform:translate3d(11vw,9vh,0) scale(1.14)}}
+@keyframes drift-b{to{transform:translate3d(-10vw,-8vh,0) scale(1.09)}}
+/* 氛圍轉盤：進入讀書段落，湖面近乎靜止 */
+body.mode-study .aurora i{opacity:.3;animation-play-state:paused}
+
+/* ============ LAYOUT ============ */
+.wrap{
+  position:relative;z-index:1;max-width:1200px;margin:0 auto;
+  padding:56px 32px 120px;
+  display:flex;flex-direction:column;gap:72px;
+}
+section{display:flex;flex-direction:column;gap:16px}
+.eyebrow{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:var(--w-tag);font-weight:500;line-height:1;
+  letter-spacing:var(--ls-tag);text-transform:uppercase;
+  color:var(--ink-faint);font-variant-numeric:tabular-nums;
+}
+.eyebrow b{color:var(--ink-dim);font-weight:600}
+
+/* 玻璃面板：內側頂光，像從湖面下被點亮 */
+.panel{
+  background:var(--glass);
+  border:1px solid var(--glass-line);
+  border-radius:var(--r-lg);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--ink) 10%,transparent);
+}
+
+/* ============ 簽名動效：玻璃自光暈中凝結 ============ */
+.cd{
+  opacity:0;
+  transform:translateY(16px) scale(.986);
+  filter:blur(12px);
+  transition:
+    opacity var(--dur) var(--ease),
+    transform var(--dur) var(--ease),
+    filter var(--dur) var(--ease);
+  transition-delay:calc(var(--i,0) * 38ms);
+}
+.in .cd{opacity:1;transform:none;filter:blur(0)}
+
+/* ============ BUTTONS ============ */
+.btn{
+  --bh:var(--btn-h);
+  position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  height:var(--bh);padding:0 16px;border-radius:var(--r-sm);
+  border:1px solid transparent;
+  font-size:var(--w-meta);font-weight:600;line-height:1;
+  transition:border-color 150ms var(--ease),background-color 150ms var(--ease),
+             transform 150ms var(--ease),box-shadow 150ms var(--ease),color 150ms var(--ease);
+}
+.btn:active{transform:translateY(1px)}
+/* hit-area 外擴到 ≥44px */
+.btn::after{
+  content:"";position:absolute;
+  left:min(0px,calc((var(--bh) - 44px)/2));
+  right:min(0px,calc((var(--bh) - 44px)/2));
+  top:min(0px,calc((var(--bh) - 44px)/2));
+  bottom:min(0px,calc((var(--bh) - 44px)/2));
+}
+/* 漣漪容器（clip 在按鈕形狀內，不吃掉 hit-area） */
+.btn .fx{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none}
+.ripple{
+  position:absolute;border-radius:50%;
+  background:color-mix(in srgb,var(--ink) 22%,transparent);
+  transform:translate(-50%,-50%) scale(0);opacity:.5;
+  animation:rip var(--dur) var(--ease) forwards;
+}
+@keyframes rip{to{transform:translate(-50%,-50%) scale(1);opacity:0}}
+
+.ui-solid{background:var(--accent);color:var(--bg);font-weight:700}
+.ui-solid:hover{transform:translateY(-1px);box-shadow:0 6px 28px -10px color-mix(in srgb,var(--accent) 45%,transparent)}
+.ui-solid .ripple{background:color-mix(in srgb,var(--bg) 20%,transparent)}
+.ui-ghost{
+  background:color-mix(in srgb,var(--ink) 4%,transparent);
+  border-color:var(--line-strong);
+}
+.ui-ghost:hover{border-color:color-mix(in srgb,var(--ink) 40%,transparent);background:color-mix(in srgb,var(--ink) 7%,transparent)}
+.ui-seg{
+  display:inline-flex;align-items:center;padding:3px;gap:2px;
+  background:color-mix(in srgb,var(--ink) 4%,transparent);
+  border:1px solid var(--line);border-radius:var(--r-sm);
+}
+.ui-seg .btn{
+  height:calc(var(--bh) - 8px);padding:0 13px;border-radius:calc(var(--r-sm) - 3px);
+  color:var(--ink-dim);font-weight:500;
+}
+.ui-seg .btn.is-on{
+  background:color-mix(in srgb,var(--ink) 13%,transparent);color:var(--ink);font-weight:600;
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--ink) 12%,transparent);
+}
+.b-sm{--bh:var(--btn-h-sm);padding:0 13px}
+.b-xs{--bh:var(--btn-h-xs);padding:0 10px;font-size:var(--w-tag)}
+.b-hero{--bh:52px;padding:0 30px;font-size:var(--w-sub);border-radius:var(--r-md)}
+
+/* ============ 1 · SPEC-HEAD ============ */
+.spec-head{gap:14px}
+.spec-head h1{
+  font-size:var(--w-title);font-weight:700;letter-spacing:var(--ls-title);line-height:1.1;
+}
+.spec-head h1 .en{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:var(--w-meta);font-weight:500;letter-spacing:var(--ls-tag);
+  color:var(--ink-faint);text-transform:uppercase;margin-left:14px;vertical-align:middle;
+}
+.thesis{font-size:var(--w-sub);color:var(--ink-dim);max-width:34em}
+
+/* ============ 2 · S-HOME 待機 ============ */
+.home-panel{
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  padding:72px 32px 56px;gap:22px;
+}
+.clock{
+  font-size:clamp(4.5rem,12vw,8.5rem);
+  font-weight:800;letter-spacing:var(--ls-title);line-height:1;
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 0 90px color-mix(in srgb,var(--accent) 22%,transparent);
+}
+.home-meta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center}
+.home-date{font-size:var(--w-sub);color:var(--ink-dim)}
+.home-date .mn{color:var(--ink)}
+.wx{
+  display:inline-flex;align-items:center;gap:7px;
+  height:var(--btn-h-sm);padding:0 12px;border-radius:999px;
+  border:1px solid var(--glass-line);background:var(--glass);
+  font-size:var(--w-meta);color:var(--ink-dim);
+}
+.wx svg{color:var(--sc-elec)}
+.countdown{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;justify-content:center}
+.dday{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;
+  font-size:1.375rem;font-weight:600;
+}
+.cd-label{font-size:var(--w-meta);color:var(--ink-dim)}
+.cd-label .mn{color:var(--ink)}
+.home-actions{display:flex;gap:14px;margin-top:12px;flex-wrap:wrap;justify-content:center}
+
+/* ============ 3 · S-WORKBENCH 工作台 ============ */
+.wb-bar{
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  border-radius:var(--r-md);padding:10px 16px;
+}
+.wb-bar .mn{font-size:var(--w-meta)}
+.wb-sep{width:1px;height:16px;background:var(--line-strong)}
+.wb-prog{display:flex;align-items:center;gap:10px}
+.pbar{width:64px;height:3px;border-radius:2px;background:color-mix(in srgb,var(--ink) 12%,transparent);overflow:hidden}
+.pbar i{display:block;height:100%;width:var(--k);border-radius:2px;background:var(--accent);
+  transform-origin:left;transform:scaleX(0);transition:transform var(--dur) var(--ease) 240ms}
+.in .pbar i{transform:scaleX(1)}
+.wb-search{
+  position:relative;margin-left:auto;display:flex;align-items:center;gap:8px;
+  height:var(--btn-h);padding:0 12px;
+  border:1px solid var(--line);border-radius:var(--r-sm);
+  background:color-mix(in srgb,var(--bg) 42%,transparent);
+  color:var(--ink-faint);cursor:text;
+}
+.wb-search::after{content:"";position:absolute;inset:-6px}
+.wb-search input{
+  background:none;border:0;color:var(--ink);width:150px;
+  font-size:var(--w-meta);font-family:inherit;caret-color:var(--accent);
+}
+.wb-search input::placeholder{color:var(--ink-faint)}
+.wb-search input:focus{outline:none}
+.wb-search:focus-within{border-color:color-mix(in srgb,var(--ink) 38%,transparent)}
+
+.wb-grid{display:grid;grid-template-columns:5fr 4fr;gap:16px;align-items:start}
+.wm-list{display:flex;flex-direction:column;gap:10px}
+.wm-item{
+  --sc:var(--ink);
+  position:relative;display:block;width:100%;text-align:left;
+  background:color-mix(in srgb,var(--ink) 3%,transparent);
+  border:1px solid var(--line);border-radius:var(--r-md);
+  padding:14px 16px 15px 22px;
+  transition:border-color 150ms var(--ease),background-color 150ms var(--ease),
+             transform 150ms var(--ease),box-shadow var(--dur) var(--ease);
+}
+.wm-item::before{
+  content:"";position:absolute;left:0;top:13px;bottom:13px;width:3px;border-radius:2px;
+  background:color-mix(in srgb,var(--sc) 70%,transparent);
+}
+.wm-item:hover{border-color:var(--line-strong);transform:translateY(-1px)}
+/* 柔光只給進行中的那一章 */
+.wm-item.is-active{
+  background:color-mix(in srgb,var(--sc) 8%,transparent);
+  border-color:color-mix(in srgb,var(--sc) 42%,transparent);
+  box-shadow:0 0 30px -6px color-mix(in srgb,var(--sc) 42%,transparent),
+             inset 0 1px 0 color-mix(in srgb,var(--ink) 8%,transparent);
+}
+.wm-item.is-active::before{background:var(--sc)}
+.wm-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:5px}
+.wm-sub{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;
+  font-size:var(--w-tag);letter-spacing:var(--ls-tag);color:var(--ink-faint);
+}
+.wm-title{display:block;font-size:var(--w-sub);font-weight:600}
+.st{
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:var(--w-tag);letter-spacing:.06em;white-space:nowrap;
+}
+.st-done{color:var(--sc)}
+.st-doing{color:var(--sc)}
+.st-todo{color:var(--ink-faint)}
+.kbar{height:3px;margin-top:11px;border-radius:2px;background:color-mix(in srgb,var(--ink) 9%,transparent);overflow:hidden}
+.kbar i{display:block;height:100%;width:var(--k);border-radius:2px;
+  background:color-mix(in srgb,var(--sc) 62%,transparent);
+  transform-origin:left;transform:scaleX(0);
+  transition:transform var(--dur) var(--ease) calc(var(--i,0) * 38ms + 160ms)}
+.is-active .kbar i{background:var(--sc)}
+.in .kbar i{transform:scaleX(1)}
+
+.wm-detail{padding:22px 24px 24px;display:flex;flex-direction:column;gap:14px}
+.wm-detail h3{font-size:var(--w-title);font-weight:700;letter-spacing:var(--ls-title);line-height:1.15}
+.d-label{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:var(--w-tag);letter-spacing:var(--ls-tag);text-transform:uppercase;
+  color:var(--ink-faint);margin-top:6px;
+}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+  --bh:var(--btn-h-sm);
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;
+  font-size:var(--w-meta);font-weight:500;
+  background:color-mix(in srgb,var(--ink) 4%,transparent);
+  border-color:var(--glass-line);
+}
+.chip .dot{width:6px;height:6px;border-radius:50%;background:var(--sc,var(--ink-faint))}
+.chip .len{color:var(--ink-faint);font-weight:400}
+.chip:hover{border-color:color-mix(in srgb,var(--ink) 36%,transparent)}
+.chip.is-on{
+  border-color:color-mix(in srgb,var(--sc) 55%,transparent);
+  background:color-mix(in srgb,var(--sc) 9%,transparent);
+  box-shadow:0 0 18px -4px color-mix(in srgb,var(--sc) 40%,transparent);
+}
+.xlinks{display:flex;flex-direction:column}
+.xlink{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  min-height:44px;padding:0 4px;border-bottom:1px solid var(--line);
+  font-size:var(--w-body);color:var(--ink-dim);
+  transition:color 150ms var(--ease);
+}
+.xlink:last-child{border-bottom:0}
+.xlink:hover{color:var(--ink)}
+.xlink .mn{color:var(--ink)}
+.xlink svg{color:var(--ink-faint);flex:none}
+
+.review{margin-top:16px;padding:16px 20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;border-radius:var(--r-md)}
+.rv-head{display:flex;flex-direction:column;gap:4px;min-width:72px}
+.rv-n{font-size:var(--w-meta);color:var(--ink-dim)}
+.rv-item{
+  --sc:var(--ink);
+  position:relative;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:10px 14px 10px 20px;border-radius:var(--r-sm);
+  border:1px solid var(--line);background:color-mix(in srgb,var(--ink) 3%,transparent);
+}
+.rv-item::before{
+  content:"";position:absolute;left:0;top:9px;bottom:9px;width:3px;border-radius:2px;
+  background:var(--sc);
+}
+.rv-code{font-size:var(--w-body);font-weight:600}
+.rv-src{font-size:var(--w-meta);color:var(--ink-dim)}
+.rv-btns{display:flex;gap:6px}
+.b-grade{min-width:48px;font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:500}
+.rv-item.is-queue{opacity:.68}
+.rv-wait{font-size:var(--w-tag);letter-spacing:var(--ls-tag);color:var(--ink-faint);text-transform:uppercase}
+
+/* ============ 4 · S-EXAM 情報表 ============ */
+.exam-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px;align-items:stretch}
+.exam-tblwrap{padding:8px 20px;overflow-x:auto}
+.exam-tbl{min-width:520px;display:flex;flex-direction:column}
+.ex-row{
+  display:grid;grid-template-columns:1.5fr .7fr 1.3fr .7fr;gap:12px;align-items:center;
+  min-height:52px;padding:6px 4px;border-bottom:1px solid var(--line);
+}
+.ex-row:last-child{border-bottom:0}
+.ex-head{min-height:40px}
+.ex-head span{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:var(--w-tag);letter-spacing:var(--ls-tag);text-transform:uppercase;
+  color:var(--ink-faint);
+}
+.ex-school{font-weight:600;font-size:var(--w-body)}
+.ex-school small{display:block;font-size:var(--w-tag);font-weight:400;color:var(--ink-faint);letter-spacing:.04em}
+.ex-date{font-size:var(--w-meta);color:var(--ink)}
+.ex-date.is-none{color:var(--ink-faint)}
+.ex-subj{font-size:var(--w-meta);color:var(--ink-dim)}
+.ex-n{font-size:var(--w-meta);color:var(--ink);text-align:right}
+.ex-n .u{color:var(--ink-faint)}
+.ex-row.is-next .ex-date{color:color-mix(in srgb,var(--warm) 72%,var(--ink));font-weight:600}
+.heat{padding:20px;display:flex;flex-direction:column;gap:12px;justify-content:center}
+.heat-cells{display:flex;gap:6px;align-items:center}
+.heat-cells i{
+  width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--line);
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:var(--w-tag);color:var(--ink);
+}
+.h1{background:color-mix(in srgb,var(--warm) 10%,transparent)}
+.h2{background:color-mix(in srgb,var(--warm) 24%,transparent)}
+.h3{background:color-mix(in srgb,var(--warm) 40%,transparent)}
+.h4{background:color-mix(in srgb,var(--warm) 60%,transparent)}
+.h5{background:color-mix(in srgb,var(--warm) 84%,transparent);border-color:color-mix(in srgb,var(--warm) 70%,transparent)}
+.heat-scale{display:flex;justify-content:space-between;font-size:var(--w-tag);color:var(--ink-faint);letter-spacing:var(--ls-tag)}
+.heat-cap{font-size:var(--w-meta);color:var(--ink-dim)}
+.heat-cap .mn{color:var(--ink)}
+
+/* ============ 5 · S-COMPONENTS ============ */
+.comp-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.comp-cell{padding:20px;display:flex;flex-direction:column;gap:14px}
+.comp-cell>.eyebrow{margin-bottom:2px}
+.brow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.brow .hnote{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;
+  font-size:var(--w-tag);color:var(--ink-faint);min-width:88px;
+}
+.pills{display:flex;gap:8px;flex-wrap:wrap}
+.pill{
+  --sc:var(--ink);
+  display:inline-flex;align-items:center;gap:7px;
+  height:var(--btn-h-sm);padding:0 13px;border-radius:999px;
+  border:1px solid var(--glass-line);background:var(--glass);
+  font-size:var(--w-meta);font-weight:500;color:var(--ink-dim);
+}
+.pill i{width:7px;height:7px;border-radius:50%;background:var(--sc)}
+.lights{display:flex;flex-direction:column;gap:2px}
+.light{display:flex;align-items:center;gap:10px;min-height:36px;font-size:var(--w-meta);color:var(--ink-dim)}
+.light .mn{color:var(--ink)}
+.ld{width:8px;height:8px;border-radius:50%;flex:none}
+.ld-ok{background:var(--sc-toeic);box-shadow:0 0 10px color-mix(in srgb,var(--sc-toeic) 45%,transparent)}
+.ld-sync{background:var(--accent);animation:pulse 2.4s var(--ease) infinite}
+.ld-miss{background:var(--warm)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.todo{
+  --sc:var(--sc-toeic);
+  position:relative;display:flex;align-items:center;gap:12px;
+  min-height:48px;padding:10px 16px 10px 22px;border-radius:var(--r-sm);
+  border:1px solid var(--line);background:color-mix(in srgb,var(--ink) 3%,transparent);
+}
+.todo::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:2px;background:var(--sc)}
+.todo b{font-weight:600}
+.todo .due{margin-left:auto;font-size:var(--w-meta);font-weight:600}
+
+/* ============ 6 · S-TOKENS ============ */
+.tok-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.tok-cell{padding:20px;display:flex;flex-direction:column;gap:14px}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px}
+.sw{display:flex;flex-direction:column;gap:6px}
+.sw i{display:block;height:44px;border-radius:var(--r-sm);border:1px solid var(--glass-line)}
+.sw .nm{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:var(--w-tag);color:var(--ink-dim);letter-spacing:.04em}
+.sw .vl{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:var(--w-tag);color:var(--ink-faint)}
+.trows{display:flex;flex-direction:column}
+.t-row{display:flex;align-items:baseline;gap:18px;padding:12px 0;border-bottom:1px solid var(--line)}
+.t-row:last-child{border-bottom:0}
+.t-meta{
+  flex:none;width:150px;
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;
+  font-size:var(--w-tag);color:var(--ink-faint);
+}
+.td-title{font-size:var(--w-title);font-weight:700;letter-spacing:var(--ls-title);line-height:1.15}
+.td-sub{font-size:var(--w-sub);font-weight:600}
+.td-body{font-size:var(--w-body);color:var(--ink-dim)}
+.td-meta{font-size:var(--w-meta);color:var(--ink-dim);font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.td-tag{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;
+  font-size:var(--w-tag);letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint);
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:860px){
+  .wrap{padding:36px 16px 88px;gap:56px}
+  .wb-grid,.exam-grid,.comp-grid,.tok-grid{grid-template-columns:1fr}
+  .wb-search{margin-left:0;flex:1 1 100%}
+  .wb-search input{width:100%;flex:1}
+  .home-panel{padding:56px 20px 44px}
+  .t-meta{width:118px}
+  .wm-detail h3{font-size:calc(var(--w-title) * .8)}
+}
+
+/* ============ REDUCED MOTION：全滅 ============ */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+    transition-delay:0ms !important;
+  }
+  .aurora i{animation:none !important}
+  .cd{opacity:1 !important;transform:none !important;filter:none !important}
+  .pbar i,.kbar i{transform:scaleX(1) !important}
+}
+</style>
+</head>
+<body>
+
+<div class="aurora" aria-hidden="true"><i class="au-a"></i><i class="au-b"></i></div>
+
+<div class="wrap">
+
+<!-- 1 ▸ SPEC-HEAD -->
+<header class="spec-head" data-reveal>
+  <p class="eyebrow cd">DIRECTION B · <b>FEB 2027</b> · 液態玻璃系</p>
+  <h1 class="cd">湖面玻璃<span class="en">Lakeglass</span></h1>
+  <p class="thesis cd">湖面之下夜色流動，湖面之上一切平靜——玻璃替你把夜馴服，你只管坐下，開始讀。</p>
+</header>
+
+<!-- 2 ▸ S-HOME 待機 -->
+<section class="s-home" data-reveal aria-label="待機畫面">
+  <p class="eyebrow cd">HOME 待機 · <b>AURORA 100%</b></p>
+  <div class="panel home-panel cd">
+    <p class="clock">21:47</p>
+    <div class="home-meta">
+      <p class="home-date"><span class="mn">2026-08-31</span> 週一</p>
+      <span class="wx">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        晴 <span class="mn">31°</span>
+      </span>
+    </div>
+    <p class="countdown">
+      <span class="dday warm-txt">D-154</span>
+      <span class="cd-label">距 <span class="mn">2027-02-01</span> 筆試</span>
+    </p>
+    <div class="home-actions">
+      <button type="button" class="btn ui-ghost b-hero">考古題</button>
+      <button type="button" class="btn ui-solid b-hero">讀書</button>
+    </div>
+  </div>
+</section>
+
+<!-- 3 ▸ S-WORKBENCH 工作台 -->
+<section class="s-workbench" id="wb" data-reveal aria-label="工作台">
+  <p class="eyebrow cd">WORKBENCH 工作台 · <b>AURORA 8%</b> · 入區後湖面自動靜止</p>
+
+  <div class="panel wb-bar cd">
+    <span class="mn warm-txt">D-154</span>
+    <span class="wb-sep" aria-hidden="true"></span>
+    <span class="wb-prog"><span class="mn">總進度 42%</span><span class="pbar"><i style="--k:42%"></i></span></span>
+    <span class="wb-sep" aria-hidden="true"></span>
+    <span class="mn">W2</span>
+    <label class="wb-search">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" placeholder="搜尋逐字稿" aria-label="搜尋逐字稿">
+    </label>
+  </div>
+
+  <div class="wb-grid">
+    <div class="wm-list" role="list">
+      <button type="button" role="listitem" class="wm-item cd" style="--sc:var(--sc-elec)">
+        <span class="wm-top"><span class="wm-sub">電子學 · 考點 80%</span>
+          <span class="st st-done"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 13l5 5L20 7"/></svg>已完成</span></span>
+        <span class="wm-title">BJT 與 FET</span>
+        <span class="kbar"><i style="--k:80%"></i></span>
+      </button>
+      <button type="button" role="listitem" class="wm-item is-active cd" style="--sc:var(--sc-math)" aria-current="true">
+        <span class="wm-top"><span class="wm-sub">工數 · 考點 95%</span><span class="st st-doing">進行中</span></span>
+        <span class="wm-title">拉普拉斯轉換</span>
+        <span class="kbar"><i style="--k:95%"></i></span>
+      </button>
+      <button type="button" role="listitem" class="wm-item cd" style="--sc:var(--sc-la)">
+        <span class="wm-top"><span class="wm-sub">線代 · 考點 60%</span><span class="st st-todo">未開始</span></span>
+        <span class="wm-title">特徵值與對角化</span>
+        <span class="kbar"><i style="--k:60%"></i></span>
+      </button>
+      <button type="button" role="listitem" class="wm-item cd" style="--sc:var(--sc-ctrl)">
+        <span class="wm-top"><span class="wm-sub">自動控制 · 考點 70%</span><span class="st st-todo">未開始</span></span>
+        <span class="wm-title">根軌跡</span>
+        <span class="kbar"><i style="--k:70%"></i></span>
+      </button>
+    </div>
+
+    <div class="panel wm-detail cd">
+      <p class="eyebrow">ME SERIES · <b>進行中</b> · 考點 95%</p>
+      <h3>拉普拉斯轉換</h3>
+      <p class="d-label">集數</p>
+      <div class="chips">
+        <button type="button" class="btn chip is-on" style="--sc:var(--sc-math)"><i class="dot" aria-hidden="true"></i>ME-E07<span class="len">169min</span></button>
+        <button type="button" class="btn chip" style="--sc:var(--sc-math)"><i class="dot" aria-hidden="true"></i>ME-E08<span class="len">142min</span></button>
+      </div>
+      <p class="d-label">考古題</p>
+      <div class="xlinks">
+        <a class="xlink" href="#台大113"><span><span class="mn">台大113</span> · 第3題</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></a>
+        <a class="xlink" href="#成大112"><span><span class="mn">成大112</span> · 第1題</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel review cd">
+    <div class="rv-head"><p class="eyebrow">今日複習</p><p class="mn rv-n">2 張</p></div>
+    <div class="rv-item" style="--sc:var(--sc-ctrl)">
+      <span class="rv-code mn">控001</span><span class="rv-src">GoodNotes <span class="mn">p.12</span></span>
+      <span class="rv-btns">
+        <button type="button" class="btn ui-ghost b-sm b-grade">pass</button>
+        <button type="button" class="btn ui-ghost b-sm b-grade">A</button>
+        <button type="button" class="btn ui-ghost b-sm b-grade">B</button>
+        <button type="button" class="btn ui-ghost b-sm b-grade">C</button>
+      </span>
+    </div>
+    <div class="rv-item is-queue" style="--sc:var(--sc-math)">
+      <span class="rv-code mn">數003</span><span class="rv-src"><span class="mn">p.31</span></span>
+      <span class="rv-wait">待複習</span>
+    </div>
+  </div>
+</section>
+
+<!-- 4 ▸ S-EXAM 情報表 -->
+<section class="s-exam" data-reveal aria-label="考試情報">
+  <p class="eyebrow cd">EXAM INTEL 情報 · <b>3 校</b></p>
+  <div class="exam-grid">
+    <div class="panel exam-tblwrap cd">
+      <div class="exam-tbl" role="table" aria-label="報考校系一覽">
+        <div class="ex-row ex-head" role="row">
+          <span role="columnheader">校系</span><span role="columnheader">筆試日</span>
+          <span role="columnheader">考科</span><span role="columnheader" style="text-align:right">考古題</span>
+        </div>
+        <div class="ex-row is-next" role="row">
+          <span class="ex-school" role="cell">台大電機<small>丙組</small></span>
+          <span class="ex-date mn" role="cell">2/1</span>
+          <span class="ex-subj" role="cell">工數A＋電子學</span>
+          <span class="ex-n mn" role="cell">10<span class="u"> 份</span></span>
+        </div>
+        <div class="ex-row" role="row">
+          <span class="ex-school" role="cell">成大電機<small>甲組</small></span>
+          <span class="ex-date mn" role="cell">2/3</span>
+          <span class="ex-subj" role="cell">工數＋電路</span>
+          <span class="ex-n mn" role="cell">7<span class="u"> 份</span></span>
+        </div>
+        <div class="ex-row" role="row">
+          <span class="ex-school" role="cell">中央電機</span>
+          <span class="ex-date is-none" role="cell">—</span>
+          <span class="ex-subj" role="cell">免筆試</span>
+          <span class="ex-n mn" role="cell">3<span class="u"> 份</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="panel heat cd">
+      <p class="eyebrow">熱度 · <b>拉氏轉換</b></p>
+      <div class="heat-cells" aria-hidden="true">
+        <i class="h1"></i><i class="h2"></i><i class="h3"></i><i class="h4"></i><i class="h5 mn">9</i>
+      </div>
+      <p class="heat-scale"><span>冷</span><span>熱</span></p>
+      <p class="heat-cap">台大近 <span class="mn">10</span> 份出現 <span class="mn">9</span> 次</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5 ▸ S-COMPONENTS 元件 -->
+<section class="s-components" data-reveal aria-label="元件">
+  <p class="eyebrow cd">COMPONENTS 元件 · <b>3 型 × 3 高</b></p>
+  <div class="comp-grid">
+    <div class="panel comp-cell cd">
+      <p class="eyebrow">按鈕 · ui-solid / ui-ghost / ui-seg</p>
+      <div class="brow"><span class="hnote">--btn-h · 32</span>
+        <button type="button" class="btn ui-solid">開始讀書</button>
+        <button type="button" class="btn ui-ghost">查逐字稿</button>
+        <span class="ui-seg" role="group" aria-label="範圍">
+          <button type="button" class="btn is-on">今日</button><button type="button" class="btn">本週</button><button type="button" class="btn">全部</button>
+        </span>
+      </div>
+      <div class="brow"><span class="hnote">--btn-h-sm · 28</span>
+        <button type="button" class="btn ui-solid b-sm">開始讀書</button>
+        <button type="button" class="btn ui-ghost b-sm">查逐字稿</button>
+        <span class="ui-seg" role="group" aria-label="範圍" style="--bh:var(--btn-h-sm)">
+          <button type="button" class="btn b-sm is-on">今日</button><button type="button" class="btn b-sm">本週</button><button type="button" class="btn b-sm">全部</button>
+        </span>
+      </div>
+      <div class="brow"><span class="hnote">--btn-h-xs · 24</span>
+        <button type="button" class="btn ui-solid b-xs">開始讀書</button>
+        <button type="button" class="btn ui-ghost b-xs">查逐字稿</button>
+        <span class="ui-seg" role="group" aria-label="範圍" style="--bh:var(--btn-h-xs)">
+          <button type="button" class="btn b-xs is-on">今日</button><button type="button" class="btn b-xs">本週</button><button type="button" class="btn b-xs">全部</button>
+        </span>
+      </div>
+    </div>
+    <div class="panel comp-cell cd">
+      <p class="eyebrow">學科 PILLS · 5 色</p>
+      <div class="pills">
+        <span class="pill" style="--sc:var(--sc-elec)"><i aria-hidden="true"></i>電子學</span>
+        <span class="pill" style="--sc:var(--sc-math)"><i aria-hidden="true"></i>工數</span>
+        <span class="pill" style="--sc:var(--sc-la)"><i aria-hidden="true"></i>線代</span>
+        <span class="pill" style="--sc:var(--sc-ctrl)"><i aria-hidden="true"></i>自控</span>
+        <span class="pill" style="--sc:var(--sc-toeic)"><i aria-hidden="true"></i>多益</span>
+      </div>
+      <p class="eyebrow" style="margin-top:6px">狀態燈 · 3 態</p>
+      <div class="lights">
+        <p class="light"><i class="ld ld-ok" aria-hidden="true"></i>離線就緒</p>
+        <p class="light"><i class="ld ld-sync" aria-hidden="true"></i>補檔中</p>
+        <p class="light"><i class="ld ld-miss" aria-hidden="true"></i>缺 <span class="mn">3</span></p>
+      </div>
+      <p class="eyebrow" style="margin-top:6px">TODO 條</p>
+      <div class="todo">
+        <b>多益報名</b>
+        <span class="due mn warm-txt">剩 4 天</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 ▸ S-TOKENS 令牌 -->
+<section class="s-tokens" data-reveal aria-label="設計令牌">
+  <p class="eyebrow cd">TOKENS 令牌 · <b>色 16 · 字 5 級</b></p>
+  <div class="tok-grid">
+    <div class="panel tok-cell cd">
+      <p class="eyebrow">色票</p>
+      <div class="swatches">
+        <div class="sw"><i style="background:var(--bg)"></i><span class="nm">--bg</span><span class="vl">#0B0D12</span></div>
+        <div class="sw"><i style="background:var(--bg-raise)"></i><span class="nm">--bg-raise</span><span class="vl">#12151D</span></div>
+        <div class="sw"><i style="background:var(--ink)"></i><span class="nm">--ink</span><span class="vl">#F4F6F8</span></div>
+        <div class="sw"><i style="background:var(--ink-dim)"></i><span class="nm">--ink-dim</span><span class="vl">ink 66%</span></div>
+        <div class="sw"><i style="background:var(--ink-faint)"></i><span class="nm">--ink-faint</span><span class="vl">ink 50%</span></div>
+        <div class="sw"><i style="background:var(--accent)"></i><span class="nm">--accent</span><span class="vl">#F2E8DA</span></div>
+        <div class="sw"><i style="background:var(--warm)"></i><span class="nm">--warm</span><span class="vl">#C25E2E</span></div>
+        <div class="sw"><i style="background:var(--line)"></i><span class="nm">--line</span><span class="vl">白 10%</span></div>
+        <div class="sw"><i style="background:var(--line-strong)"></i><span class="nm">--line-strong</span><span class="vl">白 22%</span></div>
+        <div class="sw"><i style="background:var(--glass)"></i><span class="nm">--glass</span><span class="vl">白 7%</span></div>
+        <div class="sw"><i style="background:var(--glass-line)"></i><span class="nm">--glass-line</span><span class="vl">白 14%</span></div>
+        <div class="sw"><i style="background:var(--sc-elec)"></i><span class="nm">--sc-elec</span><span class="vl">#E8A75C</span></div>
+        <div class="sw"><i style="background:var(--sc-math)"></i><span class="nm">--sc-math</span><span class="vl">#57C7C0</span></div>
+        <div class="sw"><i style="background:var(--sc-la)"></i><span class="nm">--sc-la</span><span class="vl">#6FA8E8</span></div>
+        <div class="sw"><i style="background:var(--sc-ctrl)"></i><span class="nm">--sc-ctrl</span><span class="vl">#9D8DF1</span></div>
+        <div class="sw"><i style="background:var(--sc-toeic)"></i><span class="nm">--sc-toeic</span><span class="vl">#86CF9E</span></div>
+      </div>
+    </div>
+    <div class="panel tok-cell cd">
+      <p class="eyebrow">字階 · 5 級</p>
+      <div class="trows">
+        <div class="t-row"><span class="t-meta">--w-title · 2.5rem</span><span class="td-title">拉普拉斯轉換</span></div>
+        <div class="t-row"><span class="t-meta">--w-sub · 1.0625rem</span><span class="td-sub">特徵值與對角化 · 未開始</span></div>
+        <div class="t-row"><span class="t-meta">--w-body · .9375rem</span><span class="td-body">今晚 21:47，距 2027-02-01 筆試還有 154 天。</span></div>
+        <div class="t-row"><span class="t-meta">--w-meta · .8125rem</span><span class="td-meta">ME-E07 · 169min</span></div>
+        <div class="t-row"><span class="t-meta">--w-tag · .6875rem</span><span class="td-tag">D-154 · W2 · WORKBENCH</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /wrap -->
+
+<script>
+(function(){
+  "use strict";
+  var rm = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  /* 漣漪容器注入每顆按鈕 */
+  document.querySelectorAll(".btn").forEach(function(b){
+    var f = document.createElement("span");
+    f.className = "fx"; f.setAttribute("aria-hidden","true");
+    b.appendChild(f);
+  });
+
+  /* 進場編排：面板自光暈中凝結（opacity + blur 收攏，38ms stagger） */
+  var sections = document.querySelectorAll("[data-reveal]");
+  sections.forEach(function(sec){
+    var kids = sec.querySelectorAll(".cd");
+    kids.forEach(function(el,i){ el.style.setProperty("--i", i); });
+  });
+  function revealAll(){ sections.forEach(function(s){ s.classList.add("in"); }); }
+  if (rm.matches || !("IntersectionObserver" in window)) {
+    revealAll();
+  } else {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); }
+      });
+    }, { threshold:.08, rootMargin:"0px 0px -5% 0px" });
+    sections.forEach(function(s){ io.observe(s); });
+    /* 保險：載入 1.8s 後未觸發者一律顯示 */
+    setTimeout(revealAll, 1800);
+  }
+
+  /* 氛圍轉盤：工作台在視野中 → 湖面近乎靜止（AURORA 8%） */
+  var wb = document.getElementById("wb");
+  if (wb && "IntersectionObserver" in window) {
+    new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        document.body.classList.toggle("mode-study", e.isIntersecting);
+      });
+    }, { threshold:.3 }).observe(wb);
+  }
+
+  /* 按壓漣漪：只動 transform/opacity，320ms var(--ease) */
+  document.addEventListener("pointerdown", function(e){
+    if (rm.matches) return;
+    var b = e.target.closest ? e.target.closest(".btn") : null;
+    if (!b) return;
+    var fx = b.querySelector(".fx");
+    if (!fx) return;
+    var r = b.getBoundingClientRect();
+    var d = Math.max(r.width, r.height) * 2.3;
+    var s = document.createElement("span");
+    s.className = "ripple";
+    s.style.width = s.style.height = d + "px";
+    s.style.left = (e.clientX - r.left) + "px";
+    s.style.top  = (e.clientY - r.top) + "px";
+    fx.appendChild(s);
+    s.addEventListener("animationend", function(){ s.remove(); });
+    setTimeout(function(){ if (s.parentNode) s.remove(); }, 600);
+  });
+})();
+</script>
+</body>
+</html>

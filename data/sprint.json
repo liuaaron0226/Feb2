@@ -1,0 +1,563 @@
+{
+ "start": "2026-08-20",
+ "deadline": "2026-09-12",
+ "note": "24 天（8/20–9/12）全部集數完整看完，順序照課本／上課原順序。hours＝2 倍速看完＋每章 1h 寫考古題。總量 118.8h，平均每天約 5 小時。",
+ "subjects": [
+  {
+   "id": "elec",
+   "name": "電子學",
+   "anaKeys": [
+    "ust-elec",
+    "ncu-elec",
+    "nckues-circ"
+   ],
+   "chapters": [
+    {
+     "id": "circuit0",
+     "name": "電子學：基本電路學（第零章）",
+     "week": 1,
+     "order": 1,
+     "hours": 4.4,
+     "mode": "full",
+     "watch": 3.4,
+     "why": "影片 6.8h，2 倍速看完約 3.4h，另抓 1h 寫考古題",
+     "match": [
+      "電路學基礎",
+      "其他"
+     ]
+    },
+    {
+     "id": "diode",
+     "name": "二極體電路",
+     "week": 1,
+     "order": 2,
+     "hours": 8.0,
+     "mode": "full",
+     "watch": 7.0,
+     "why": "影片 14.1h，2 倍速看完約 7.0h，另抓 1h 寫考古題",
+     "match": [
+      "二極體"
+     ]
+    },
+    {
+     "id": "bjt-dc",
+     "name": "BJT 直流偏壓",
+     "week": 2,
+     "order": 3,
+     "hours": 4.4,
+     "mode": "full",
+     "watch": 3.4,
+     "why": "影片 6.9h，2 倍速看完約 3.4h，另抓 1h 寫考古題",
+     "match": [
+      "BJT"
+     ]
+    },
+    {
+     "id": "bjt-ac",
+     "name": "BJT 小訊號放大器",
+     "week": 2,
+     "order": 4,
+     "hours": 9.9,
+     "mode": "full",
+     "watch": 8.9,
+     "why": "影片 17.7h，2 倍速看完約 8.9h，另抓 1h 寫考古題",
+     "match": [
+      "BJT"
+     ]
+    },
+    {
+     "id": "mos-dc",
+     "name": "MOSFET 特性與偏壓",
+     "week": 3,
+     "order": 5,
+     "hours": 3.6,
+     "mode": "full",
+     "watch": 2.6,
+     "why": "影片 5.2h，2 倍速看完約 2.6h，另抓 1h 寫考古題",
+     "match": [
+      "MOSFET",
+      "FET/MOSFET"
+     ]
+    },
+    {
+     "id": "mos-ac",
+     "name": "MOSFET 小訊號與 CMOS",
+     "week": 3,
+     "order": 6,
+     "hours": 2.8,
+     "mode": "full",
+     "watch": 1.8,
+     "why": "影片 3.6h，2 倍速看完約 1.8h，另抓 1h 寫考古題",
+     "match": [
+      "MOSFET",
+      "FET小訊號"
+     ]
+    },
+    {
+     "id": "diff",
+     "name": "差動與電流源",
+     "week": 3,
+     "order": 7,
+     "hours": 3.5,
+     "mode": "full",
+     "watch": 2.5,
+     "why": "影片 5.0h，2 倍速看完約 2.5h，另抓 1h 寫考古題",
+     "match": [
+      "差動",
+      "電流源",
+      "多級"
+     ]
+    },
+    {
+     "id": "freq",
+     "name": "頻率響應",
+     "week": 3,
+     "order": 8,
+     "hours": 3.7,
+     "mode": "full",
+     "watch": 2.7,
+     "why": "影片 5.3h，2 倍速看完約 2.7h，另抓 1h 寫考古題",
+     "match": [
+      "頻率響應"
+     ]
+    },
+    {
+     "id": "opamp",
+     "name": "運算放大器",
+     "week": 4,
+     "order": 9,
+     "hours": 3.4,
+     "mode": "full",
+     "watch": 2.4,
+     "why": "影片 4.8h，2 倍速看完約 2.4h，另抓 1h 寫考古題",
+     "match": [
+      "運算放大器",
+      "OP"
+     ]
+    },
+    {
+     "id": "feedback",
+     "name": "回授與穩定度",
+     "week": 4,
+     "order": 10,
+     "hours": 5.4,
+     "mode": "full",
+     "watch": 4.4,
+     "why": "影片 8.8h，2 倍速看完約 4.4h，另抓 1h 寫考古題",
+     "match": [
+      "回授"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "math",
+   "name": "工程數學",
+   "anaKeys": [
+    "ntu-math",
+    "ust-math",
+    "ncku-math",
+    "nckues-math",
+    "ncu-math",
+    "nsysu-math",
+    "ntust-math",
+    "ntut-math",
+    "nckues-la"
+   ],
+   "chapters": [
+    {
+     "id": "laplace",
+     "name": "拉氏轉換",
+     "week": 1,
+     "order": 1,
+     "hours": 6.5,
+     "mode": "full",
+     "watch": 5.5,
+     "why": "影片 11.0h，2 倍速看完約 5.5h，另抓 1h 寫考古題",
+     "match": [
+      "拉氏",
+      "Laplace"
+     ]
+    },
+    {
+     "id": "ode-1",
+     "name": "ODE：一階",
+     "week": 2,
+     "order": 2,
+     "hours": 7.9,
+     "mode": "full",
+     "watch": 6.9,
+     "why": "影片 13.8h，2 倍速看完約 6.9h，另抓 1h 寫考古題",
+     "match": [
+      "一階ODE",
+      "常微分"
+     ]
+    },
+    {
+     "id": "ode-n",
+     "name": "ODE：高階線性",
+     "week": 3,
+     "order": 3,
+     "hours": 10.1,
+     "mode": "full",
+     "watch": 9.1,
+     "why": "影片 18.1h，2 倍速看完約 9.1h，另抓 1h 寫考古題",
+     "match": [
+      "高階線性ODE",
+      "常微分"
+     ]
+    },
+    {
+     "id": "ode-sys",
+     "name": "ODE：聯立與應用",
+     "week": 3,
+     "order": 4,
+     "hours": 3.6,
+     "mode": "full",
+     "watch": 2.6,
+     "why": "影片 5.2h，2 倍速看完約 2.6h，另抓 1h 寫考古題",
+     "match": [
+      "常微分"
+     ]
+    },
+    {
+     "id": "fourier",
+     "name": "傅立葉級數與轉換",
+     "week": 4,
+     "order": 5,
+     "hours": 5.0,
+     "mode": "full",
+     "watch": 4.0,
+     "why": "影片 8.1h，2 倍速看完約 4.0h，另抓 1h 寫考古題",
+     "match": [
+      "傅立葉",
+      "Fourier"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "la",
+   "name": "線性代數",
+   "anaKeys": [
+    "ntu-math",
+    "ust-math",
+    "ncku-math",
+    "nckues-math",
+    "ncu-math",
+    "nsysu-math",
+    "ntust-math",
+    "ntut-math",
+    "nckues-la"
+   ],
+   "chapters": [
+    {
+     "id": "la-matrix",
+     "name": "矩陣運算與行列式",
+     "week": 1,
+     "order": 1,
+     "hours": 3.7,
+     "mode": "full",
+     "watch": 2.7,
+     "why": "影片 5.3h，2 倍速看完約 2.7h，另抓 1h 寫考古題",
+     "match": [
+      "矩陣",
+      "行列式",
+      "線性代數"
+     ]
+    },
+    {
+     "id": "la-space",
+     "name": "向量空間與四大子空間",
+     "week": 1,
+     "order": 2,
+     "hours": 17.1,
+     "mode": "full",
+     "watch": 16.1,
+     "why": "影片 32.2h，2 倍速看完約 16.1h，另抓 1h 寫考古題",
+     "match": [
+      "向量空間",
+      "線性代數"
+     ]
+    },
+    {
+     "id": "la-eigen",
+     "name": "特徵值與對角化",
+     "week": 2,
+     "order": 3,
+     "hours": 7.7,
+     "mode": "full",
+     "watch": 6.7,
+     "why": "影片 13.4h，2 倍速看完約 6.7h，另抓 1h 寫考古題",
+     "match": [
+      "特徵值",
+      "對角化",
+      "線性代數"
+     ]
+    },
+    {
+     "id": "la-inner",
+     "name": "內積空間與正交",
+     "week": 3,
+     "order": 4,
+     "hours": 5.7,
+     "mode": "full",
+     "watch": 4.7,
+     "why": "影片 9.4h，2 倍速看完約 4.7h，另抓 1h 寫考古題",
+     "match": [
+      "內積",
+      "正交",
+      "線性代數"
+     ]
+    },
+    {
+     "id": "la-svd",
+     "name": "SVD 與二次型",
+     "week": 4,
+     "order": 5,
+     "hours": 2.4,
+     "mode": "full",
+     "watch": 1.4,
+     "why": "影片 2.7h，2 倍速看完約 1.4h，另抓 1h 寫考古題",
+     "match": [
+      "SVD",
+      "二次型"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ctrl",
+   "name": "控制系統（9/13 起）",
+   "anaKeys": [
+    "ntu-control",
+    "ust-control",
+    "ncku-control",
+    "nckues-control",
+    "nsysu-control",
+    "nthupme-control",
+    "ntut-control"
+   ],
+   "phase2": true,
+   "chapters": [
+    {
+     "id": "c-model",
+     "name": "系統建模與方塊圖",
+     "week": 0,
+     "hours": 6,
+     "match": [
+      "建模",
+      "方塊圖"
+     ]
+    },
+    {
+     "id": "c-time",
+     "name": "時域響應與穩態誤差",
+     "week": 0,
+     "hours": 8,
+     "match": [
+      "時域",
+      "穩態誤差"
+     ]
+    },
+    {
+     "id": "c-routh",
+     "name": "穩定度（Routh）",
+     "week": 0,
+     "hours": 4,
+     "match": [
+      "Routh",
+      "穩定度"
+     ]
+    },
+    {
+     "id": "c-root",
+     "name": "根軌跡",
+     "week": 0,
+     "hours": 7,
+     "match": [
+      "根軌跡"
+     ]
+    },
+    {
+     "id": "c-freq",
+     "name": "頻域分析（Bode/Nyquist）",
+     "week": 0,
+     "hours": 9,
+     "match": [
+      "頻域",
+      "Bode",
+      "Nyquist"
+     ]
+    },
+    {
+     "id": "c-design",
+     "name": "控制器設計（PID/補償器）",
+     "week": 0,
+     "hours": 8,
+     "match": [
+      "控制器設計",
+      "PID",
+      "補償"
+     ]
+    },
+    {
+     "id": "c-state",
+     "name": "狀態空間",
+     "week": 0,
+     "hours": 9,
+     "match": [
+      "狀態空間"
+     ]
+    }
+   ],
+   "label": "控制系統・9/13 起"
+  },
+  {
+   "id": "toeic",
+   "name": "多益",
+   "phase2": true,
+   "label": "多益・9/20 應考（報名 9/4 截止）",
+   "anaKeys": [],
+   "chapters": [
+    {
+     "id": "toeic-intro",
+     "name": "入門與應試策略",
+     "week": 0,
+     "order": 1,
+     "hours": 1.8,
+     "mode": "full",
+     "watch": 1.3,
+     "why": "影片 2.6h，2 倍速約 1.3h，另抓 0.5h 刷題",
+     "match": []
+    },
+    {
+     "id": "toeic-vocab",
+     "name": "高頻詞彙文法與 96 式",
+     "week": 0,
+     "order": 2,
+     "hours": 2.5,
+     "mode": "full",
+     "watch": 2.0,
+     "why": "影片 4.0h，2 倍速約 2.0h，另抓 0.5h 刷題",
+     "match": []
+    },
+    {
+     "id": "toeic-listen",
+     "name": "聽力題型實戰",
+     "week": 0,
+     "order": 3,
+     "hours": 5.2,
+     "mode": "full",
+     "watch": 4.2,
+     "why": "影片 8.4h，2 倍速約 4.2h，另抓 1.0h 刷題",
+     "match": []
+    },
+    {
+     "id": "toeic-mix",
+     "name": "綜合回測解析",
+     "week": 0,
+     "order": 4,
+     "hours": 4.9,
+     "mode": "full",
+     "watch": 3.9,
+     "why": "影片 7.8h，2 倍速約 3.9h，另抓 1.0h 刷題",
+     "match": []
+    },
+    {
+     "id": "toeic-new",
+     "name": "新制聽力題庫",
+     "week": 0,
+     "order": 5,
+     "hours": 3.3,
+     "mode": "full",
+     "watch": 2.8,
+     "why": "影片 5.5h，2 倍速約 2.8h，另抓 0.5h 刷題",
+     "match": []
+    }
+   ],
+   "deadline": "2026-09-19",
+   "note": "【往年時程回推】台大 115 學年度甄試報名 10/1–10/8、書審上傳截止 10/9；中央同期為 9/30–10/7。多益 9/20 場成績 10/6 開放查詢，只剩 3 天緩衝但趕得上；10/18 場成績 11/2 才出，完全來不及。→ 必須報 9/20 場，9/4 前完成報名。課程 17.7h ÷ 30 天 ≈ 每天 35 分鐘。注意：若某校書審要求紙本成績單正本（測驗後 12–16 個工作天寄出），9/20 場會來不及。"
+  }
+ ],
+ "deferred": [
+  {
+   "name": "偏微分方程",
+   "why": "十年僅 4%，10 月補（成大/台聯大）"
+  },
+  {
+   "name": "複變、向量分析",
+   "why": "十年各約 1%，僅成大/台科；10 月補"
+  },
+  {
+   "name": "電子學：數位電子",
+   "why": "十年 1 題，跳過"
+  }
+ ],
+ "budget": {
+  "days": 24,
+  "needed": 118.8,
+  "perDayNeeded": 5.0,
+  "byWeek": {
+   "W1": {
+    "days": 7
+   },
+   "W2": {
+    "days": 7
+   },
+   "W3": {
+    "days": 7
+   },
+   "W4": {
+    "days": 3
+   }
+  },
+  "note": "使用者選擇全部看完並提高每日時數。各科內部順序維持課本／上課原順序，只重新分配週次讓 9/10–9/12 這 3 天不被塞進整週的量。"
+ },
+ "todo": [
+  {
+   "id": "toeic-reg",
+   "by": "2026-09-04",
+   "title": "報名多益 9/20 場",
+   "why": "唯一趕得上甄試書審的場次。10/18 場成績 11/2 才出，來不及。錯過沒有備案。",
+   "how": "多益官網線上報名，考完約兩週出成績"
+  },
+  {
+   "id": "transcript",
+   "by": "2026-09-10",
+   "title": "申請成績單＋班級／系排名證明",
+   "why": "北科等校的書審清單把它排在英文檢定前面，教務處作業要時間",
+   "how": "元智教務處線上申請"
+  },
+  {
+   "id": "offline-live",
+   "by": "2026-08-26",
+   "title": "關掉熱點實測一次離線",
+   "why": "狀態燈說就緒是程式自己講的。真的斷網開一次才算數，在咖啡廳才發現就來不及了。",
+   "how": "關熱點 → 主畫面圖示開 App → 看思考地圖、公式、板書圖"
+  },
+  {
+   "id": "nlm-login",
+   "by": "",
+   "title": "重新登入 NotebookLM 並跑 run_redo.bat",
+   "why": "憑證過期（token_fetch 失敗），看板的年份題號格因此補不上",
+   "how": "grad-exam-hub 資料夾裡雙擊 run_redo.bat"
+  },
+  {
+   "id": "brochure-116",
+   "by": "2026-10-01",
+   "title": "116 甄試簡章公告後給我",
+   "why": "目前甄試資料是照 115 版推的；116 版出來才能確定報名日期與門檻",
+   "how": "各校招生組網站，看到就丟給我"
+  },
+  {
+   "id": "ipad-test",
+   "by": "",
+   "title": "用 iPad 跑 iPad測試.html（已完成）",
+   "why": "已確認：webkitdirectory 可讀外接硬碟，不需要原生 App。離線改走 https:8796＋自簽憑證。",
+   "how": "LINE 傳桌面的 iPad測試.html 到 iPad，接上硬碟，跑七項測試後複製報告",
+   "owner": "你",
+   "done": "2026-08-23"
+  }
+ ]
+}

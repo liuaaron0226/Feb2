@@ -1,0 +1,107 @@
+{
+  "answer": "{\n  \"years\": [\n    106,\n    107,\n    108,\n    109,\n    110,\n    111,\n    112,\n    113,\n    114,\n    115\n  ],\n  \"chapters\": [\n    {\n      \"name\": \"拉氏轉換與數學基礎\",\n      \"years\": {},\n      \"qs\": {}\n    },\n    {\n      \"name\": \"系統建模與轉移函數\",\n      \"years\": {},\n      \"qs\": {}\n    },\n    {\n      \"name\": \"方塊圖與訊號流程圖\",\n      \"years\": {},\n      \"qs\": {}\n    },\n    {\n      \"name\": \"穩定度(Routh-Hurwitz)\",\n      \"years\": {\n        \"109\": 1,\n        \"113\": 1\n      },\n      \"qs\": {\n        \"109\": [\n          1\n        ],\n        \"113\": [\n          1\n        ]\n      }\n    },\n    {\n      \"name\": \"時域響應與暫態規格\",\n      \"years\": {\n        \"106\": 1,\n        \"108\": 1,\n        \"109\": 1,\n        \"110\": 1,\n        \"111\": 1,\n        \"112\": 1,\n        \"113\": 1,\n        \"114\": 1\n      },\n      \"qs\": {\n        \"106\": [\n          1\n        ],\n        \"108\": [\n          1\n        ],\n        \"109\": [\n          2\n        ],\n        \"110\": [\n          2\n        ],\n        \"111\": [\n          1\n        ],\n        \"112\": [\n          2\n        ],\n        \"113\": [\n          2\n        ],\n        \"114\": [\n          2\n        ]\n      }\n    },\n    {\n      \"name\": \"穩態誤差與誤差常數\",\n      \"years\": {},\n      \"qs\": {}\n    },\n    {\n      \"name\": \"根軌跡\",\n      \"years\": {\n        \"106\": 1,\n        \"107\": 1,\n        \"108\": 1,\n        \"110\": 1,\n        \"111\": 2,\n        \"112\": 1,\n        \"113\": 1,\n        \"115\": 1\n      },\n      \"qs\": {\n        \"106\": [\n          2\n        ],\n        \"107\": [\n          2\n        ],\n        \"108\": [\n          2\n        ],\n        \"110\": [\n          3\n        ],\n        \"111\": [\n          2,\n          4\n        ],\n        \"112\": [\n          1\n        ],\n        \"113\": [\n          3\n        ],\n        \"115\": [\n          2\n        ]\n      }\n    },\n    {\n      \"name\": \"頻{\"years\":,\"chapters\":[{\"name\":\"拉氏轉換與數學基礎\",\"years\":{},\"qs\":{}},{\"name\":\"系統建模與轉移函數\",\"years\":{},\"qs\":{}},{\"name\":\"方塊圖與訊號流程圖\",\"years\":{},\"qs\":{}},{\"name\":\"穩定度(Routh-Hurwitz)\",\"years\":{\"109\":1,\"113\":1},\"qs\":{\"109\":[1],\"113\":[1]}},{\"name\":\"時域響應與暫態規格\",\"years\":{\"106\":1,\"108\":1,\"109\":1,\"110\":1,\"111\":1,\"112\":1,\"113\":1,\"114\":1},\"qs\":{\"106\":[1],\"108\":[1],\"109\":[2],\"110\":[2],\"111\":[1],\"112\":[2],\"113\":[2],\"114\":[2]}},{\"name\":\"穩態誤差與誤差常數\",\"years\":{},\"qs\":{}},{\"name\":\"根軌跡\",\"years\":{\"106\":1,\"107\":1,\"108\":1,\"110\":1,\"111\":2,\"112\":1,\"113\":1,\"115\":1},\"qs\":{\"106\":[2],\"107\":[2],\"108\":[2],\"110\":[3],\"111\":[2, 4],\"112\":[1],\"113\":[3],\"115\":[2]}},{\"name\":\"頻率響應(Bode/極座標圖)\",\"years\":{\"107\":1,\"112\":1,\"114\":1},\"qs\":{\"107\":[3],\"112\":[4],\"114\":[4]}},{\"name\":\"頻域穩定(Nyquist)\",\"years\":{\"106\":1,\"107\":1,\"108\":1,\"109\":1,\"111\":1,\"112\":1,\"113\":1,\"114\":1,\"115\":1},\"qs\":{\"106\":[3],\"107\":[4],\"108\":[4],\"109\":[3],\"111\":[3],\"112\":[3],\"113\":[4],\"114\":[3],\"115\":[3]}},{\"name\":\"控制器設計(PID/相位超前落後補償)\",\"years\":{\"107\":1,\"115\":1},\"qs\":{\"107\":[1],\"115\":[4]}},{\"name\":\"狀態空間動態方程\",\"years\":{\"106\":1,\"110\":1,\"114\":1},\"qs\":{\"106\":[4],\"110\":[4],\"114\":[1]}},{\"name\":\"狀態轉移矩陣\",\"years\":{\"108\":1},\"qs\":{\"108\":[3]}},{\"name\":\"可控制性與可觀察性\",\"years\":{},\"qs\":{}},{\"name\":\"狀態回授與觀察器設計\",\"years\":{\"113\":1},\"qs\":{\"113\":[5]}},{\"name\":\"物理系統建模\",\"years\":{\"110\":1,\"115\":1},\"qs\":{\"110\":[1],\"115\":[1]}},{\"name\":\"數位控制(Z轉換)\",\"years\":{},\"qs\":{}},{\"name\":\"非線性系統分析\",\"years\":{},\"qs\":{}},{\"name\":\"其他\",\"years\":{},\"qs\":{}}],\"mustKnow\":[\"頻域穩定(Nyquist)：要求利用Nyquist穩定判準分析含正反回授或不穩定極點的閉迴路系統穩定性，並計算增益與相位邊際。\",\"根軌跡繪製與特徵計算：必考手繪完整根軌跡，並精確求取漸近線、實軸分離點與虛軸交點等關鍵特徵參數。\",\"時域規格與穩態誤差：常考根據二階暫態規格（如最大超越量、阻尼比）反推未知參數，並求取特定輸入下的穩態誤差。\",\"狀態空間與回授設計：考查從物理系統（如RLC電路或雙質量塊模型）建立狀態方程式，並設計極點配置之狀態回授控制器。\"],\"trend\":\"近年台聯大控制系統考題高度偏重於頻域穩定性分析（特別是複雜的Nyquist圖判別）與經典根軌跡繪製，兩者幾乎為每年的必考大題。同時，狀態空間分析（從RLC電路或質量系統建模，到狀態回授與狀態轉移矩陣計算）的佔比相當穩定且與時俱進。整體難度偏高，特別考驗考生的圖形理解、跨章節觀念整合以及大量的代數與微積分計算能力。\"}",
+  "conversation_id": "6159b296-54da-43a1-99b2-1aa12d774a8f",
+  "turn_number": 9,
+  "is_follow_up": true,
+  "references": [
+    {
+      "source_id": "50761620-b4d3-4139-a0ff-c0bac07727ce",
+      "citation_number": 1,
+      "cited_text": null,
+      "start_char": 0,
+      "end_char": 1,
+      "chunk_id": "f138ddfe-2f5a-4a1f-9ded-304879af8ada",
+      "passage_id": null,
+      "answer_start_char": 0,
+      "answer_end_char": 1,
+      "score": 0.15384615384615385,
+      "fragment_start_char": 0,
+      "fragment_end_char": 1,
+      "answer_anchor_start": 855,
+      "answer_anchor_end": 1074
+    },
+    {
+      "source_id": "50761620-b4d3-4139-a0ff-c0bac07727ce",
+      "citation_number": 2,
+      "cited_text": null,
+      "start_char": 1,
+      "end_char": 2,
+      "chunk_id": "7bda25b1-25c6-4baa-8141-3dd25a08453e",
+      "passage_id": null,
+      "answer_start_char": 1,
+      "answer_end_char": 2,
+      "score": 0.7692307692307693,
+      "fragment_start_char": 1,
+      "fragment_end_char": 2,
+      "answer_anchor_start": 1197,
+      "answer_anchor_end": 1204
+    },
+    {
+      "source_id": "247cf60f-4ab4-4493-bd56-0c19bc005fa3",
+      "citation_number": 3,
+      "cited_text": null,
+      "start_char": 0,
+      "end_char": 1,
+      "chunk_id": "3a12f39c-2e60-4ae8-9636-eb1f93e69be3",
+      "passage_id": null,
+      "answer_start_char": 0,
+      "answer_end_char": 1,
+      "score": 1.0,
+      "fragment_start_char": 0,
+      "fragment_end_char": 1,
+      "answer_anchor_start": 1396,
+      "answer_anchor_end": 1403
+    },
+    {
+      "source_id": "247cf60f-4ab4-4493-bd56-0c19bc005fa3",
+      "citation_number": 4,
+      "cited_text": null,
+      "start_char": 1,
+      "end_char": 2,
+      "chunk_id": "91cefac5-05b0-41db-95b4-2505b1dee812",
+      "passage_id": null,
+      "answer_start_char": 1,
+      "answer_end_char": 2,
+      "score": 0.38461538461538464,
+      "fragment_start_char": 1,
+      "fragment_end_char": 2,
+      "answer_anchor_start": 1403,
+      "answer_anchor_end": 1410
+    },
+    {
+      "source_id": "31486313-0d3b-40bb-ae92-eeb163f259ba",
+      "citation_number": 5,
+      "cited_text": null,
+      "start_char": 0,
+      "end_char": 1,
+      "chunk_id": "eed01f66-6897-4b0e-8b03-0b301c8d228b",
+      "passage_id": null,
+      "answer_start_char": 0,
+      "answer_end_char": 1,
+      "score": 0.6153846153846154,
+      "fragment_start_char": 0,
+      "fragment_end_char": 1,
+      "answer_anchor_start": 1907,
+      "answer_anchor_end": 2001
+    }
+  ],
+  "turn_key": {
+    "session_id": "6159b296-54da-43a1-99b2-1aa12d774a8f",
+    "turn_id": "2893ff86-fab5-442e-9702-bc145d3f982b",
+    "turn_code": 2332552997
+  },
+  "next_steps": [
+    {
+      "question": "How many questions are related to root locus in the 115 exam?",
+      "type_code": 9
+    },
+    {
+      "question": "What are the most common Nyquist diagram questions?",
+      "type_code": 9
+    },
+    {
+      "question": "Could you provide a few examples for state space modeling?",
+      "type_code": 9
+    }
+  ]
+}

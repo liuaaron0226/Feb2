@@ -1,0 +1,11 @@
+PASS 有 9 章 + 開場  → section.ch = 15
+PASS 深讀層數量  → 229 則
+PASS 公式卡  → 726 張
+PASS mermaid 區塊  → 133 張
+PASS 無殘留 ### 標題  → 0 處 []
+PASS 無殘留 **粗體** 標記  → 0 處 []
+PASS $ 分隔符成對  → 0 個 .md 區塊的 $ 數為奇數
+PASS 深讀層 key 全部對得上 batch  → 多出 0 個對不上的 key: []
+---- 深讀層進度：batch 需要 0 個，已收到 0 個，還缺 0 個
+PASS 內容區無注入風險字串
+PASS 檔案大小合理（< 8 MB）  → 2105.6 KB

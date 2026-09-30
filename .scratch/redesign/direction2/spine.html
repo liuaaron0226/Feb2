@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="zh-Hant-TW" data-intensity="quiet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Feb · 變體 S · 時間脊柱 TIME SPINE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../../site/css/tokens.css">
+<script>document.documentElement.classList.add('js')</script>
+<style>
+/* =====================================================================
+   spine.html — 變體 S「時間脊柱」TIME SPINE
+   ---------------------------------------------------------------------
+   結構論題：時間就是軸，衝刺就是頁面。design-system 的 D-n 倒數尺
+   轉成 90 度，變成貼著視窗左緣的全高脊柱——一夜一格，自 08/20 點火
+   直到 02/01 筆試。內容按時間掛在脊柱上：過去的夜壓縮暗掉（✓），
+   今夜撐到最大（章＋複習卡＋集數＋考古），未來收攏安靜。
+   捲動＝在衝刺時間軸上旅行；「今夜」錨點永遠帶你回到現在。
+   進度不是一條 bar——是脊柱燒掉了多少。母版-明細沒了，時間軸取代導航。
+   ---------------------------------------------------------------------
+   色/字/距一律走 ../../../site/css/tokens.css（ADR-0002 唯一來源）。
+   去框化法：全頁唯一四邊框浮層＝右下「今夜」錨點（真的浮，fixed）。
+   ===================================================================== */
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;color-scheme:dark}
+:root{
+  --spx:clamp(46px,6vw,80px);   /* 脊柱距視窗左緣 x */
+  --gut:clamp(26px,4vw,54px);   /* 脊柱到內容的溝 */
+}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:var(--font-ui);font-size:var(--w-body);line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:clip;min-height:100vh;
+}
+::selection{background:var(--warm);color:var(--bg)}
+a{color:var(--ink-dim)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+/* ---- aurora 靜地（quiet 檔 8%，tokens 管強度）---- */
+.au-a{width:78vmax;height:78vmax;left:-18vmax;top:-24vmax;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--sc-la-hi) 16%,transparent),transparent 68%);
+  animation:drift-a 84s var(--ease) infinite alternate}
+.au-b{width:64vmax;height:64vmax;right:-16vmax;bottom:-20vmax;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--warm) 13%,transparent),transparent 70%);
+  animation:drift-b 112s var(--ease) infinite alternate}
+@keyframes drift-a{to{transform:translate3d(11vw,9vh,0) scale(1.14)}}
+@keyframes drift-b{to{transform:translate3d(-10vw,-8vh,0) scale(1.09)}}
+
+.page{position:relative;z-index:1}
+
+/* ---- 內容吊掛帶：左錨定於脊柱，不再置中 ---- */
+.feed{margin-left:calc(var(--spx) + var(--gut));max-width:860px;
+  padding-right:clamp(20px,4vw,48px)}
+
+/* =====================================================================
+   脊柱本體：各 zone 用 ::before 畫自己那一段，疊起來就是連續的柱
+   已燒段＝餘燼；今夜段＝燃點交棒；未燃段＝素的引線
+   ===================================================================== */
+.zone{position:relative}
+.zone::before{content:"";position:absolute;top:0;bottom:0;width:2px;
+  left:calc(var(--spx) - 1px)}
+.z-past::before{background:linear-gradient(180deg,
+  color-mix(in srgb,var(--warm) 22%,transparent),
+  color-mix(in srgb,var(--warm) 46%,transparent) 55%,
+  color-mix(in srgb,var(--warm) 82%,transparent));
+  box-shadow:0 0 10px rgba(194,94,46,.14)}
+.z-today::before{background:linear-gradient(180deg,
+  var(--warm),
+  color-mix(in srgb,var(--warm) 38%,transparent) 34%,
+  var(--line) 62%,var(--line))}
+.z-future::before{background:var(--line)}
+
+/* 摺疊夜段：素線被 --bg 短柵切成密格，一格≈一夜的壓縮暗示 */
+.gap{position:relative;padding:26px 0}
+.gap::after{content:"";position:absolute;top:0;bottom:0;width:2px;
+  left:calc(var(--spx) - 1px);
+  background:repeating-linear-gradient(180deg,var(--bg) 0 5px,transparent 5px 9px)}
+.gap .g-lab{padding-left:calc(var(--spx) + var(--gut))}
+
+/* ---- 刻度：一夜一格，橫向短杠跨在脊柱上（row 內絕對定位）---- */
+.tk{position:absolute;left:calc(-1 * var(--gut) - 9px);top:50%;
+  width:18px;height:2px;margin-top:-1px;border-radius:1px;
+  background:color-mix(in srgb,var(--warm) 58%,transparent);opacity:var(--o,.75)}
+.tk.rest{width:10px;left:calc(-1 * var(--gut) - 5px);
+  background:var(--ink-faint);opacity:.35}
+.tk.st{width:30px;left:calc(-1 * var(--gut) - 15px);height:2px;
+  background:var(--line-strong);opacity:1}
+.z-past .tk.st{background:color-mix(in srgb,var(--warm) 70%,transparent)}
+.tk.warn{background:var(--status-warn);opacity:.9}
+.tk.now{width:34px;left:calc(-1 * var(--gut) - 17px);height:4px;margin-top:-2px;
+  border-radius:2px;background:var(--warm);
+  box-shadow:0 0 4px rgba(194,94,46,.9),0 0 20px rgba(194,94,46,.6)}
+.tk.now::after{content:"";position:absolute;inset:-7px;border-radius:6px;
+  background:radial-gradient(closest-side,rgba(194,94,46,.4),transparent 70%);
+  animation:emberpulse 2.4s var(--ease) infinite;
+  animation-play-state:var(--ambient-play)}
+@keyframes emberpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.35)}}
+
+/* ---- 起點蓋 / 終點環：脊柱的兩個端子 ---- */
+.cap{position:absolute;left:calc(-1 * var(--gut) - 5px);width:10px;height:10px;
+  border-radius:50%;background:var(--warm);top:50%;margin-top:-5px;
+  box-shadow:0 0 12px rgba(194,94,46,.5)}
+.term-node{position:absolute;left:calc(-1 * var(--gut) - 7px);top:50%;margin-top:-7px;
+  width:14px;height:14px;border-radius:50%;border:2px solid var(--accent);
+  background:var(--bg);box-shadow:0 0 22px rgba(224,120,64,.55)}
+
+/* =====================================================================
+   站牌 STATION：眉標＋向右出血髮絲線（week 標籤是脊柱上的車站）
+   ===================================================================== */
+.station{position:relative;display:flex;align-items:center;gap:14px;
+  padding:30px 0 12px;min-height:44px}
+.station .st-t{flex:none;font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint);
+  font-variant-numeric:tabular-nums}
+.station .st-t b{color:var(--ink-dim);font-weight:600}
+.station .ln{flex:1;height:1px;background:var(--line);margin-right:-60vw}
+.station.warn .st-t,.station.warn .st-t b{color:var(--status-warn)}
+.station.warn .ln{background:color-mix(in srgb,var(--status-warn) 30%,transparent)}
+
+/* =====================================================================
+   夜列 NIGHT：過去壓縮暗、未來收攏靜——一列一夜，掛在自己的刻度上
+   ===================================================================== */
+.night{position:relative;display:flex;align-items:baseline;gap:14px;
+  padding:7px 0;min-height:34px;
+  transition:background-color 150ms var(--ease)}
+.night:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
+.night:hover .tk{opacity:1}
+.night .nd{flex:none;width:96px;font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:.06em;color:var(--ink-faint);font-variant-numeric:tabular-nums}
+.night .nt{font-size:var(--w-meta);color:var(--ink-dim);min-width:0}
+.night .nt .sc{color:var(--c,var(--ink-faint))}
+.night .nh{margin-left:auto;flex:none;font-family:var(--font-mono);font-size:var(--w-meta);
+  color:var(--ink-faint);font-variant-numeric:tabular-nums}
+.night .ok{font-family:var(--font-mono);font-size:var(--w-tag);color:var(--status-good);
+  letter-spacing:.06em;white-space:nowrap}
+.z-future .night .nt{color:var(--ink-faint)}
+.z-future .tk{background:var(--line-strong);opacity:.8}
+
+/* 章清單列（站牌摺頁裡的排程），行線分隔、無外框 */
+.plan-row{position:relative;display:flex;gap:14px;align-items:baseline;
+  padding:8px 0;border-bottom:1px solid var(--line);font-size:var(--w-meta)}
+.plan-row:first-child{border-top:1px solid var(--line)}
+.plan-row .sc{flex:none;font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:.06em;color:var(--c,var(--ink-faint));width:70px;
+  font-variant-numeric:tabular-nums}
+.plan-row .pn{color:var(--ink-dim)}
+.plan-row .ph{margin-left:auto;font-family:var(--font-mono);color:var(--ink-faint);
+  font-variant-numeric:tabular-nums}
+
+/* =====================================================================
+   摺疊 <details>：站牌即 summary，原生開合（不手刻）
+   ===================================================================== */
+details.wfold summary{list-style:none;cursor:pointer;position:relative}
+details.wfold summary::-webkit-details-marker{display:none}
+details.wfold summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.car{display:inline-block;flex:none;font-family:var(--font-mono);font-size:var(--w-tag);
+  color:var(--ink-faint);transition:transform var(--dur) var(--ease)}
+details[open] .car{transform:rotate(90deg)}
+.wbody{padding:2px 0 10px}
+/* 摺起時的 7 夜壓縮叢：一格一夜的微縮刻度 */
+.mini-tks{display:inline-flex;gap:5px;align-items:center;margin-left:12px}
+.mini-tks i{width:2px;height:10px;border-radius:1px;display:block;
+  background:color-mix(in srgb,var(--warm) 55%,transparent)}
+.z-future .mini-tks i{background:var(--line-strong)}
+details[open] .mini-tks{display:none}
+
+/* ---- 結算列（脊柱上的傷口：照表 vs 實燒）---- */
+.debt{position:relative;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  margin:18px 0 6px;padding:12px 0;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);
+  font-variant-numeric:tabular-nums}
+.debt b{color:var(--status-warn);font-weight:600}
+
+/* =====================================================================
+   今夜 TONIGHT：脊柱的燃點，唯一撐開的一夜
+   ===================================================================== */
+#tonight{scroll-margin-top:7vh}
+.now-head{position:relative;display:flex;align-items:center;gap:14px;
+  padding:44px 0 6px;min-height:44px}
+.now-head .st-t{flex:none;font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--accent);
+  font-variant-numeric:tabular-nums}
+.now-head .ln{flex:1;height:1px;margin-right:-60vw;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--warm) 45%,transparent),var(--line) 70%)}
+.dwrap{display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-top:10px}
+.dnum{font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:clamp(4rem,10vw,7.5rem);font-weight:600;line-height:.86;
+  letter-spacing:var(--ls-title);color:var(--accent);
+  text-shadow:0 0 60px rgba(194,94,46,.4),0 0 18px rgba(194,94,46,.25)}
+.dlab{padding-bottom:10px;font-family:var(--font-mono);font-size:var(--w-meta);
+  color:var(--ink-dim);font-variant-numeric:tabular-nums;line-height:1.9}
+.dlab .faint{color:var(--ink-faint)}
+.burnout{margin-top:18px;padding:11px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);
+  font-variant-numeric:tabular-nums}
+.burnout .hot{color:var(--accent);font-weight:600}
+.burnout .sep{width:1px;height:14px;background:var(--line-strong)}
+
+/* ---- 主菜：今夜的章（全頁唯一 -hi，色場向左出血、穿過脊柱）---- */
+.duty{position:relative;margin-top:30px;padding:18px 0 20px 22px}
+.duty::before{content:"";position:absolute;left:0;top:16px;bottom:16px;width:2px;
+  border-radius:1px;background:var(--ch);
+  box-shadow:0 0 30px -2px color-mix(in srgb,var(--ch) 62%,transparent)}
+.duty::after{content:"";position:absolute;z-index:-1;top:0;bottom:0;
+  left:-60vw;right:-8px;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--ch) 8%,transparent) 58%,transparent)}
+.duty .d-sub{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);
+  color:var(--ch);font-variant-numeric:tabular-nums}
+.duty h2{font-size:var(--w-title);letter-spacing:var(--ls-title);font-weight:700;line-height:1.15;margin-top:6px}
+.duty .d-meta{margin-top:8px;font-family:var(--font-mono);font-size:var(--w-meta);
+  color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.duty .ch-bar{height:3px;border-radius:2px;margin-top:12px;
+  background:color-mix(in srgb,var(--ink) 9%,transparent);overflow:hidden}
+.duty .ch-bar i{display:block;height:100%;border-radius:2px;background:var(--ch)}
+
+/* ---- 今夜三切片：勾了才算燒 ---- */
+.slices{margin-top:26px}
+.slice{position:relative;display:flex;align-items:flex-start;gap:14px;
+  padding:13px 0;border-bottom:1px solid var(--line)}
+.slice:first-child{border-top:1px solid var(--line)}
+.slice .box{width:16px;height:16px;border-radius:4px;flex:none;margin-top:5px;
+  box-shadow:inset 0 0 0 1px var(--line-strong);position:relative;
+  transition:background-color 150ms var(--ease)}
+.slice .box::before{content:"";position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);width:44px;height:44px}
+.slice.done .box{background:var(--ink);box-shadow:none}
+.slice.done .box::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;
+  color:var(--bg);font-size:12px;font-weight:700;line-height:1}
+.slice .s-main{min-width:0}
+.slice .s-t{font-size:var(--w-sub);font-weight:600}
+.slice.done .s-t{color:var(--ink-faint);text-decoration:line-through}
+.slice .s-m{margin-top:3px;font-family:var(--font-mono);font-size:var(--w-meta);
+  color:var(--ink-dim);font-variant-numeric:tabular-nums;display:flex;
+  align-items:center;gap:10px;flex-wrap:wrap}
+.slice .s-h{margin-left:auto;flex:none;font-family:var(--font-mono);font-size:var(--w-meta);
+  font-weight:600;color:var(--ink-dim);font-variant-numeric:tabular-nums;padding-top:4px}
+/* 播放器只是安靜的示意（不觸發任何影音） */
+.pgl{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;
+  box-shadow:inset 0 0 0 1px var(--line-strong);color:var(--ink-dim);flex:none}
+.pgl svg{display:block;margin-left:1px}
+.x2{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.06em;
+  color:var(--ink-faint);box-shadow:inset 0 0 0 1px var(--line);
+  border-radius:999px;padding:1px 8px}
+
+.s-read{margin-top:14px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);
+  font-variant-numeric:tabular-nums}
+.s-read .hot{color:var(--accent);font-weight:600}
+.s-read .sep{width:1px;height:14px;background:var(--line-strong)}
+
+/* ---- 複習佇列（到期卡逐張過）---- */
+.rvq{margin-top:34px}
+.rvq .rv-head{display:flex;align-items:baseline;gap:14px}
+.rvq .rv-head .zh{font-size:var(--w-sub);font-weight:700}
+.rv-done p{display:flex;gap:14px;align-items:baseline;padding:8px 0;
+  border-bottom:1px solid var(--line);font-family:var(--font-mono);
+  font-size:var(--w-meta);color:var(--ink-faint);font-variant-numeric:tabular-nums}
+.rv-card{position:relative;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  padding:16px 0 16px 22px;border-bottom:1px solid var(--line)}
+.rv-card::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:2px;
+  border-radius:1px;background:color-mix(in srgb,var(--c,var(--ink-dim)) 68%,transparent)}
+.rv-card .rv-code{font-family:var(--font-mono);font-size:var(--w-sub);font-weight:600;
+  font-variant-numeric:tabular-nums}
+.rv-card .rv-src{font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);
+  font-variant-numeric:tabular-nums}
+.rv-card .rv-btns{margin-left:auto;display:flex;gap:8px}
+.rv-next-line{padding:10px 0 0;font-family:var(--font-mono);font-size:var(--w-meta);
+  color:var(--ink-faint);font-variant-numeric:tabular-nums}
+.rv-clear{padding:14px 0;font-family:var(--font-mono);font-size:var(--w-meta);
+  color:var(--status-good);font-variant-numeric:tabular-nums}
+
+/* ---- 稀用動作：擺在邊陲 ---- */
+.utils{margin-top:30px;display:flex;gap:22px;flex-wrap:wrap;
+  font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.08em}
+.utils button{color:var(--ink-faint);padding:12px 0;letter-spacing:inherit;
+  transition:color 150ms var(--ease)}
+.utils button:hover{color:var(--ink-dim)}
+.orient{margin-top:26px;font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:var(--ls-tag);color:var(--ink-faint);font-variant-numeric:tabular-nums}
+
+/* =====================================================================
+   按鈕（tokens 契約：三高、ghost 內陰影邊）
+   ===================================================================== */
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  height:var(--bh,var(--btn-h-sm));padding:0 13px;border-radius:var(--r-sm);
+  font-size:var(--w-meta);font-weight:600;line-height:1;letter-spacing:.02em;
+  transition:transform 150ms var(--ease),box-shadow 150ms var(--ease),
+             background-color 150ms var(--ease)}
+.btn:active{transform:translateY(1px)}
+.ui-ghost{box-shadow:inset 0 0 0 1px var(--line-strong)}
+.ui-ghost:hover{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 40%,transparent);
+  background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.hit{position:relative}
+/* .hit 44px 外擴由 tokens.css 供給 */
+
+/* =====================================================================
+   桅頂（往上捲到底才會看到——衝刺的起點在最上面）
+   ===================================================================== */
+.mast{padding:clamp(40px,7vh,84px) 0 34px}
+.mast h1{font-size:var(--w-sub);font-weight:700;margin-top:10px}
+.mast h1 .en{font-family:var(--font-mono);font-size:var(--w-tag);font-weight:500;
+  letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint);margin-left:12px}
+.mast p{margin-top:6px;color:var(--ink-faint);font-size:var(--w-meta);max-width:40em}
+.origin{position:relative;margin-top:26px;padding:8px 0;display:flex;gap:14px;align-items:baseline}
+.origin .ot{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);
+  text-transform:uppercase;color:var(--ink-faint);font-variant-numeric:tabular-nums}
+.origin .ot b{color:var(--accent);font-weight:600}
+
+/* ---- 終點段 ---- */
+.terminus{position:relative;padding:30px 0 20px;display:flex;gap:18px;align-items:baseline;flex-wrap:wrap}
+.terminus .tt{font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:var(--w-title);font-weight:600;letter-spacing:var(--ls-title);color:var(--accent);
+  text-shadow:0 0 22px rgba(194,94,46,.35)}
+.terminus .tm{font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);
+  font-variant-numeric:tabular-nums}
+
+.colophon{margin:80px 0 110px;padding-top:14px;border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+/* =====================================================================
+   「今夜」錨點：全頁唯一四邊框浮層（真的浮：fixed overlay）
+   ===================================================================== */
+.anchor{position:fixed;right:clamp(16px,3vw,30px);bottom:clamp(16px,3vh,26px);z-index:8;
+  display:flex;align-items:center;gap:10px;padding:11px 18px;
+  font-family:var(--font-mono);font-size:var(--w-meta);font-weight:600;
+  font-variant-numeric:tabular-nums;color:var(--ink);
+  box-shadow:var(--glass-inner),0 18px 48px rgba(0,0,0,.5);
+  transition:transform 150ms var(--ease)}
+.anchor:hover{transform:translateY(-1px)}
+.anchor .ar{color:var(--accent);width:1em;text-align:center}
+.anchor.at .ar{text-shadow:0 0 12px rgba(224,120,64,.8)}
+
+/* ---- 進場：自 aurora 凝結（blur 唯一豁免）---- */
+html.js .fx-cd{opacity:0;transform:translateY(14px);filter:blur(10px)}
+html.js .in .fx-cd,html.js .fx-cd.in{opacity:1;transform:none;filter:none;
+  transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),filter var(--dur) var(--ease);
+  transition-delay:calc(var(--i,0) * var(--stagger))}
+
+/* =====================================================================
+   RWD：390 也要活
+   ===================================================================== */
+@media (max-width:680px){
+  :root{--spx:22px;--gut:18px}
+  .feed{padding-right:16px}
+  .night .nd{width:74px}
+  .night .nh{display:none}
+  .dnum{font-size:clamp(3.4rem,17vw,5rem)}
+  .duty h2{font-size:calc(var(--w-title)*.8)}
+  .plan-row .sc{width:56px}
+  .slice .s-h{display:none}
+  .station .st-t{white-space:normal}
+  .anchor{right:12px;bottom:12px}
+}
+
+/* reduced-motion：tokens 全滅動效，此處補「靜止即完成態」 */
+@media (prefers-reduced-motion:reduce){
+  html.js .fx-cd{opacity:1;transform:none;filter:none}
+  .tk.now::after{animation:none;opacity:.6}
+}
+</style>
+</head>
+<body>
+
+<div class="aurora" aria-hidden="true"><i class="au-a"></i><i class="au-b"></i></div>
+
+<div class="page">
+
+<!-- ============ 桅頂：脊柱起點（往上捲才看得到——過去在上面）============ -->
+<header class="feed mast">
+  <p class="eyebrow">FEB · STUDY MODE 變體 S · 一夜一格 · 08·20 → 02·01</p>
+  <h1>時間脊柱<span class="en">Time Spine — the sprint IS the page</span></h1>
+  <p>倒數尺立起來變成左緣的脊柱。內容按時間掛在柱上：過去壓縮、今夜撐開、未來收攏。捲動＝在衝刺上旅行；進度＝脊柱燒掉了多少。</p>
+</header>
+
+<!-- =====================================================================
+     已燒段 THE BURNED — 過去的夜：壓縮、暗、✓
+     ===================================================================== -->
+<section class="zone z-past" data-reveal aria-label="已燒的夜">
+  <div class="feed">
+
+    <div class="origin fx-cd" style="--i:0">
+      <span class="cap" aria-hidden="true"></span>
+      <span class="ot"><b>08·20</b> · 衝刺點火 · 第一段 24 夜 · 118.8h</span>
+    </div>
+
+    <!-- W1：整週摺疊（原生 details，站牌即 summary） -->
+    <details class="wfold fx-cd" style="--i:1">
+      <summary>
+        <div class="station" style="padding-top:22px">
+          <span class="tk st" aria-hidden="true"></span>
+          <span class="car" aria-hidden="true">▸</span>
+          <span class="st-t"><b>W1</b> · 08/20–08/26 · 16.8h 燒完 · 2 章 ✓</span>
+          <span class="mini-tks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          <span class="ln" aria-hidden="true"></span>
+        </div>
+      </summary>
+      <div class="wbody">
+        <div class="night"><span class="tk" style="--o:.4" aria-hidden="true"></span><span class="nd">08/20 四</span><span class="nt"><span class="sc" style="--c:var(--sc-elec)">電子學</span> · 基本電路學（第零章）</span><span class="nh">2.2h</span></div>
+        <div class="night"><span class="tk" style="--o:.44" aria-hidden="true"></span><span class="nd">08/21 五</span><span class="nt"><span class="sc" style="--c:var(--sc-elec)">電子學</span> · 基本電路學 <span class="ok">✓ 章完 4.4h</span></span><span class="nh">2.2h</span></div>
+        <div class="night"><span class="tk" style="--o:.48" aria-hidden="true"></span><span class="nd">08/22 六</span><span class="nt"><span class="sc" style="--c:var(--sc-elec)">電子學</span> · 二極體電路</span><span class="nh">2.6h</span></div>
+        <div class="night"><span class="tk" style="--o:.52" aria-hidden="true"></span><span class="nd">08/23 日</span><span class="nt"><span class="sc" style="--c:var(--sc-elec)">電子學</span> · 二極體電路 · 離線實測 <span class="ok">✓</span></span><span class="nh">2.8h</span></div>
+        <div class="night"><span class="tk" style="--o:.56" aria-hidden="true"></span><span class="nd">08/24 一</span><span class="nt"><span class="sc" style="--c:var(--sc-elec)">電子學</span> · 二極體電路 <span class="ok">✓ 章完 8.0h</span></span><span class="nh">2.6h</span></div>
+        <div class="night"><span class="tk" style="--o:.6" aria-hidden="true"></span><span class="nd">08/25 二</span><span class="nt"><span class="sc" style="--c:var(--sc-math)">工數</span> · 拉氏轉換</span><span class="nh">2.1h</span></div>
+        <div class="night"><span class="tk" style="--o:.64" aria-hidden="true"></span><span class="nd">08/26 三</span><span class="nt"><span class="sc" style="--c:var(--sc-math)">工數</span> · 拉氏轉換</span><span class="nh">2.3h</span></div>
+      </div>
+    </details>
+
+    <!-- W2 站牌＋本週已過的夜（可見、壓縮、暗） -->
+    <div class="station fx-cd" style="--i:2">
+      <span class="tk st" aria-hidden="true"></span>
+      <span class="st-t"><b>W2</b> · 08/27–09/02 · 排定 29.9h</span>
+      <span class="ln" aria-hidden="true"></span>
+    </div>
+    <div class="night fx-cd" style="--i:3"><span class="tk" style="--o:.7" aria-hidden="true"></span><span class="nd">08/27 四</span><span class="nt"><span class="sc" style="--c:var(--sc-math)">工數</span> · 拉氏轉換 <span class="ok">✓ 章完 6.5h</span></span><span class="nh">2.1h</span></div>
+    <div class="night fx-cd" style="--i:4"><span class="tk" style="--o:.76" aria-hidden="true"></span><span class="nd">08/28 五</span><span class="nt"><span class="sc" style="--c:var(--sc-la)">線代</span> · 矩陣運算與行列式</span><span class="nh">1.9h</span></div>
+    <div class="night fx-cd" style="--i:5"><span class="tk" style="--o:.82" aria-hidden="true"></span><span class="nd">08/29 六</span><span class="nt"><span class="sc" style="--c:var(--sc-la)">線代</span> · 矩陣運算與行列式 <span class="ok">✓ 章完 3.7h</span></span><span class="nh">1.8h</span></div>
+    <div class="night fx-cd" style="--i:6"><span class="tk rest" aria-hidden="true"></span><span class="nd">08/30 日</span><span class="nt">— 休</span><span class="nh">0.0h</span></div>
+    <div class="night fx-cd" style="--i:7"><span class="tk rest" aria-hidden="true"></span><span class="nd">08/31 一</span><span class="nt">複習卡 ×14 清空 · 影片未動</span><span class="nh">0.0h</span></div>
+
+    <!-- 結算：脊柱上的傷口 -->
+    <div class="debt fx-cd" style="--i:8" role="status">
+      <span>結算 · 照表 12 夜 × 5.0h ＝ 60.0h</span>
+      <span>實燒 22.6h</span>
+      <span><b>差 −37.4h</b></span>
+      <button type="button" class="btn ui-ghost hit" style="margin-left:auto">重排 W2–W4</button>
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================================
+     今夜 TONIGHT — 脊柱的燃點，唯一撐開的一夜
+     ===================================================================== -->
+<section class="zone z-today" id="tonight" data-reveal aria-label="今夜">
+  <div class="feed">
+
+    <div class="now-head fx-cd" style="--i:0">
+      <span class="tk now" aria-hidden="true"></span>
+      <span class="st-t">今夜 TONIGHT · 夜 13/165</span>
+      <span class="ln" aria-hidden="true"></span>
+    </div>
+
+    <div class="dwrap fx-cd" style="--i:1">
+      <span class="dnum" aria-label="倒數 153 天">D-153</span>
+      <span class="dlab">09·01 週二 · W2<br>
+        <span class="faint">距 2027-02-01 筆試 · <span id="nowClock">--:--:--</span></span></span>
+    </div>
+
+    <div class="burnout fx-cd" style="--i:2" role="status" aria-label="燃燒讀數">
+      <span class="hot">已燒 22.6 / 118.8h</span>
+      <span class="sep" aria-hidden="true"></span>
+      <span>19%</span>
+      <span class="sep" aria-hidden="true"></span>
+      <span>脊柱 12/165 夜 · 7%</span>
+      <span class="sep" aria-hidden="true"></span>
+      <span>今夜配額 5.0h</span>
+    </div>
+
+    <!-- 主菜：計畫決定，不用選（全頁唯一 -hi） -->
+    <div class="duty fx-cd" style="--i:3;--ch:var(--sc-elec-hi)">
+      <span class="d-sub">電子學 · 考點 80% · 計畫指定 · 進行中</span>
+      <h2>BJT 小訊號放大器</h2>
+      <p class="d-meta">0.0 / 9.9h · 影片 17.7h → 2x 8.9h · 考古題 1.0h</p>
+      <span class="ch-bar" aria-hidden="true"><i style="width:1%"></i></span>
+    </div>
+
+    <!-- 今夜三切片：勾了才算燒 -->
+    <div class="slices fx-cd" style="--i:4" aria-label="今夜切片">
+      <div class="slice" data-h="3.4">
+        <button type="button" class="box" role="checkbox" aria-checked="false" aria-label="影片切片 3.4 小時"></button>
+        <div class="s-main">
+          <p class="s-t">影片 ×2 · 續播</p>
+          <p class="s-m">
+            <span class="pgl" aria-hidden="true"><svg width="9" height="11" viewBox="0 0 9 11"><path d="M1 1l7 4.5L1 10z" fill="currentColor"/></svg></span>
+            <span>ME-E07 · 169min · 自 42:10 續</span>
+            <span class="x2">2x</span><span class="x2">三步淡出</span>
+            <span>→ ME-E08 · 91min</span>
+          </p>
+        </div>
+        <span class="s-h">3.4h</span>
+      </div>
+      <div class="slice" data-h="1.0">
+        <button type="button" class="box" role="checkbox" aria-checked="false" aria-label="考古題切片 1 小時"></button>
+        <div class="s-main">
+          <p class="s-t">考古題 · 收口</p>
+          <p class="s-m"><span>台大113 第3題 · 成大112 第1題</span></p>
+        </div>
+        <span class="s-h">1.0h</span>
+      </div>
+      <div class="slice" data-h="0.6">
+        <button type="button" class="box" role="checkbox" aria-checked="false" aria-label="複習卡切片 0.6 小時"></button>
+        <div class="s-main">
+          <p class="s-t">複習卡 ×2 到期</p>
+          <p class="s-m"><span>控001 · 數003 · 佇列在下方</span></p>
+        </div>
+        <span class="s-h">0.6h</span>
+      </div>
+    </div>
+    <div class="s-read fx-cd" style="--i:5" role="status">
+      <span>已勾 <span class="hot" id="burnNow">0.0</span> / 5.0h</span>
+      <span class="sep" aria-hidden="true"></span>
+      <span>錯題 <b id="errN" style="color:var(--accent);font-weight:600">0</b></span>
+      <button type="button" class="btn ui-ghost hit" id="errBtn" aria-label="錯題加一">錯題 ＋</button>
+    </div>
+
+    <!-- 複習佇列：到期卡逐張過 -->
+    <div class="rvq fx-cd" style="--i:6" aria-label="複習佇列">
+      <div class="rv-head"><span class="zh">複習佇列</span><span class="eyebrow">RV · 到期 ×2 · 過一張少一張</span></div>
+      <div class="rv-done" id="rvDone" aria-live="polite"></div>
+      <div id="rvActive"></div>
+      <p class="rv-next-line" id="rvNext"></p>
+    </div>
+
+    <!-- 稀用動作擺邊陲：計畫決定，選擇是摩擦 -->
+    <div class="utils fx-cd" style="--i:7" aria-label="稀用動作">
+      <button type="button" class="hit">搜尋逐字稿</button>
+      <button type="button" class="hit">影片庫</button>
+      <button type="button" class="hit">重排計畫</button>
+    </div>
+
+    <p class="orient fx-cd" style="--i:8">↑ 已燒的夜 · ↓ 未燃的夜</p>
+  </div>
+</section>
+
+<!-- =====================================================================
+     未燃段 THE UNBURNED — 未來：安靜、收攏、站牌與摺疊
+     ===================================================================== -->
+<section class="zone z-future" data-reveal aria-label="未燃的夜">
+  <div class="feed">
+
+    <div class="night fx-cd" style="--i:0"><span class="tk" aria-hidden="true"></span><span class="nd">09/02 三</span><span class="nt"><span class="sc" style="--c:var(--sc-elec)">電子學</span> · BJT 小訊號放大器 · 續（ME-E08 → E09）</span><span class="nh">5.0h</span></div>
+
+    <details class="wfold fx-cd" style="--i:1">
+      <summary>
+        <div class="station">
+          <span class="tk st" aria-hidden="true"></span>
+          <span class="car" aria-hidden="true">▸</span>
+          <span class="st-t"><b>W3</b> · 09/03–09/09 · 排定 33.0h</span>
+          <span class="mini-tks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          <span class="ln" aria-hidden="true"></span>
+        </div>
+      </summary>
+      <div class="wbody">
+        <div class="plan-row"><span class="sc" style="--c:var(--sc-elec)">電子學</span><span class="pn">MOSFET 特性與偏壓</span><span class="ph">3.6h</span></div>
+        <div class="plan-row"><span class="sc" style="--c:var(--sc-elec)">電子學</span><span class="pn">MOSFET 小訊號與 CMOS</span><span class="ph">2.8h</span></div>
+        <div class="plan-row"><span class="sc" style="--c:var(--sc-elec)">電子學</span><span class="pn">差動與電流源</span><span class="ph">3.5h</span></div>
+        <div class="plan-row"><span class="sc" style="--c:var(--sc-elec)">電子學</span><span class="pn">頻率響應</span><span class="ph">3.7h</span></div>
+        <div class="plan-row"><span class="sc" style="--c:var(--sc-math)">工數</span><span class="pn">ODE：高階線性</span><span class="ph">10.1h</span></div>
+        <div class="plan-row"><span class="sc" style="--c:var(--sc-math)">工數</span><span class="pn">ODE：聯立與應用</span><span class="ph">3.6h</span></div>
+        <div class="plan-row"><span class="sc" style="--c:var(--sc-la)">線代</span><span class="pn">內積空間與正交</span><span class="ph">5.7h</span></div>
+      </div>
+    </details>
+
+    <div class="station warn fx-cd" style="--i:2">
+      <span class="tk warn" aria-hidden="true"></span>
+      <span class="st-t"><b>09/04 五</b> · 多益報名截止 · 剩 3 天 · 唯一趕得上書審的場</span>
+      <span class="ln" aria-hidden="true"></span>
+    </div>
+
+    <details class="wfold fx-cd" style="--i:3">
+      <summary>
+        <div class="station">
+          <span class="tk st" aria-hidden="true"></span>
+          <span class="car" aria-hidden="true">▸</span>
+          <span class="st-t"><b>W4</b> · 09/10–09/12 · 3 夜收尾 16.2h</span>
+          <span class="mini-tks" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="ln" aria-hidden="true"></span>
+        </div>
+      </summary>
+      <div class="wbody">
+        <div class="plan-row"><span class="sc" style="--c:var(--sc-elec)">電子學</span><span class="pn">運算放大器</span><span class="ph">3.4h</span></div>
+        <div class="plan-row"><span class="sc" style="--c:var(--sc-elec)">電子學</span><span class="pn">回授與穩定度</span><span class="ph">5.4h</span></div>
+        <div class="plan-row"><span class="sc" style="--c:var(--sc-math)">工數</span><span class="pn">傅立葉級數與轉換</span><span class="ph">5.0h</span></div>
+        <div class="plan-row"><span class="sc" style="--c:var(--sc-la)">線代</span><span class="pn">SVD 與二次型</span><span class="ph">2.4h</span></div>
+      </div>
+    </details>
+
+    <div class="station fx-cd" style="--i:4">
+      <span class="tk st" aria-hidden="true"></span>
+      <span class="st-t"><b>09/12 六</b> · 第一段終點 · 118.8h 清算</span>
+      <span class="ln" aria-hidden="true"></span>
+    </div>
+
+    <details class="wfold fx-cd" style="--i:5">
+      <summary>
+        <div class="station">
+          <span class="tk st" aria-hidden="true"></span>
+          <span class="car" aria-hidden="true">▸</span>
+          <span class="st-t"><b>09/13 日</b> · 控制系統起跑 · 第二段 51.0h</span>
+          <span class="ln" aria-hidden="true"></span>
+        </div>
+      </summary>
+      <div class="wbody">
+        <div class="plan-row"><span class="sc" style="--c:var(--sc-ctrl)">自控</span><span class="pn">系統建模與方塊圖</span><span class="ph">6.0h</span></div>
+        <div class="plan-row"><span class="sc" style="--c:var(--sc-ctrl)">自控</span><span class="pn">時域響應與穩態誤差</span><span class="ph">8.0h</span></div>
+        <div class="plan-row"><span class="sc" style="--c:var(--sc-ctrl)">自控</span><span class="pn">穩定度（Routh）</span><span class="ph">4.0h</span></div>
+        <div class="plan-row"><span class="sc" style="--c:var(--sc-ctrl)">自控</span><span class="pn">根軌跡</span><span class="ph">7.0h</span></div>
+        <div class="plan-row"><span class="sc" style="--c:var(--sc-ctrl)">自控</span><span class="pn">頻域分析（Bode / Nyquist）</span><span class="ph">9.0h</span></div>
+        <div class="plan-row"><span class="sc" style="--c:var(--sc-ctrl)">自控</span><span class="pn">控制器設計（PID / 補償器）</span><span class="ph">8.0h</span></div>
+        <div class="plan-row"><span class="sc" style="--c:var(--sc-ctrl)">自控</span><span class="pn">狀態空間</span><span class="ph">9.0h</span></div>
+      </div>
+    </details>
+
+    <div class="station fx-cd" style="--i:6">
+      <span class="tk st" aria-hidden="true"></span>
+      <span class="st-t"><b>09/20 日</b> · <span style="color:var(--sc-toeic)">多益應考</span> · 成績 10/06 出</span>
+      <span class="ln" aria-hidden="true"></span>
+    </div>
+
+    <div class="gap fx-cd" style="--i:7" aria-label="摺疊 10 夜">
+      <p class="g-lab eyebrow">×10 夜 · 09/21–09/30 · 摺疊</p>
+    </div>
+
+    <div class="station fx-cd" style="--i:8">
+      <span class="tk st" aria-hidden="true"></span>
+      <span class="st-t"><b>10/01 四</b> · 甄試簡章季 · 116 版確認報名日</span>
+      <span class="ln" aria-hidden="true"></span>
+    </div>
+
+    <div class="gap" aria-label="摺疊 122 夜" style="padding:44px 0">
+      <p class="g-lab eyebrow">×122 夜 · 10/02–01/31 · 摺疊 · 二輪複習＋考古循環</p>
+    </div>
+
+    <div class="terminus">
+      <span class="term-node" aria-hidden="true"></span>
+      <span class="tt">02·01</span>
+      <span class="tm">週一 · 筆試 · D-0 · 脊柱在此燒盡</span>
+    </div>
+
+    <footer class="colophon">
+      <span class="eyebrow">FEB · 變體 S · 時間脊柱 TIME SPINE · 2026-09-01</span>
+      <span class="eyebrow">tokens.css 唯一來源 · ADR-0002 去框化</span>
+    </footer>
+  </div>
+</section>
+
+</div><!-- /page -->
+
+<!-- 全頁唯一四邊框浮層：今夜錨點（真的浮） -->
+<button type="button" class="glass anchor hit at" id="anchorBtn" aria-label="回到今夜">
+  <span class="ar" id="anchorAr" aria-hidden="true">●</span>今夜
+</button>
+
+<noscript><p class="feed" style="padding:20px 0;color:var(--ink-dim)">（JavaScript 關閉：頁面自最上端的 08/20 起點開始，往下捲即抵達今夜；錨點與佇列互動未啟用。）</p></noscript>
+
+<script>
+(function(){
+  "use strict";
+  var rm=window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  /* ---- 開頁即今夜：載入直接落在燃點（計畫決定，零選擇摩擦）---- */
+  var tonight=document.getElementById("tonight");
+  var interacted=false;
+  ["wheel","touchstart","keydown","pointerdown"].forEach(function(ev){
+    window.addEventListener(ev,function(){interacted=true;},{once:true,passive:true});
+  });
+  function jump(){if(tonight)tonight.scrollIntoView({block:"start"});}
+  if(!location.hash)jump();
+  window.addEventListener("load",function(){if(!interacted&&!location.hash)jump();});
+  /* 視窗尺寸改變（含 0 高恢復、行動版網址列收合）且未互動前：重新對準今夜 */
+  window.addEventListener("resize",function(){if(!interacted&&!location.hash)jump();});
+
+  /* ---- 凝結進場：38ms stagger（reduced-motion 直接完成態）---- */
+  var secs=document.querySelectorAll("[data-reveal]");
+  function revealAll(){secs.forEach(function(s){s.classList.add("in");});}
+  if(rm.matches||!("IntersectionObserver" in window)){revealAll();}
+  else{
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);}});
+    },{threshold:.05,rootMargin:"0px 0px -4% 0px"});
+    secs.forEach(function(s){io.observe(s);});
+    setTimeout(revealAll,2200);
+  }
+
+  /* ---- 活時鐘（tabular-nums 不位移）---- */
+  var clk=document.getElementById("nowClock");
+  if(clk){
+    var p2=function(n){return (n<10?"0":"")+n;};
+    var tickClock=function(){var d=new Date();
+      clk.textContent=p2(d.getHours())+":"+p2(d.getMinutes())+":"+p2(d.getSeconds());};
+    tickClock();setInterval(tickClock,1000);
+  }
+
+  /* ---- 今夜錨點：方向隨你在時間軸上的位置改變 ---- */
+  var btn=document.getElementById("anchorBtn");
+  var ar=document.getElementById("anchorAr");
+  var raf=null;
+  function place(){
+    raf=null;
+    if(!tonight)return;
+    var r=tonight.getBoundingClientRect(),vh=window.innerHeight;
+    var s;
+    if(r.top>vh*.7)s="↓";               /* 今夜在下方（你在過去） */
+    else if(r.bottom<vh*.3)s="↑";       /* 今夜在上方（你在未來） */
+    else s="●";
+    ar.textContent=s;
+    btn.classList.toggle("at",s==="●");
+    btn.setAttribute("aria-label",s==="●"?"你在今夜":"回到今夜");
+  }
+  window.addEventListener("scroll",function(){if(!raf)raf=requestAnimationFrame(place);},{passive:true});
+  place();
+  btn.addEventListener("click",function(){
+    tonight.scrollIntoView({block:"start",behavior:rm.matches?"auto":"smooth"});
+  });
+
+  /* ---- 今夜切片：勾了才算燒 ---- */
+  var burnNow=document.getElementById("burnNow");
+  function recount(){
+    var t=0;
+    document.querySelectorAll(".slice.done").forEach(function(s){t+=parseFloat(s.getAttribute("data-h"))||0;});
+    if(burnNow)burnNow.textContent=t.toFixed(1);
+  }
+  document.querySelectorAll(".slice .box").forEach(function(b){
+    b.addEventListener("click",function(){
+      var s=b.closest(".slice");
+      var on=!s.classList.contains("done");
+      s.classList.toggle("done",on);
+      b.setAttribute("aria-checked",String(on));
+      recount();
+    });
+  });
+
+  /* ---- 錯題計數 ---- */
+  var errN=document.getElementById("errN");
+  var errBtn=document.getElementById("errBtn");
+  if(errBtn)errBtn.addEventListener("click",function(){
+    errN.textContent=String(parseInt(errN.textContent,10)+1);
+  });
+
+  /* ---- 複習佇列：pass/A/B/C 逐張過 ---- */
+  var queue=[
+    {code:"控001",src:"GoodNotes p.12",c:"var(--sc-ctrl)"},
+    {code:"數003",src:"GoodNotes p.31",c:"var(--sc-math)"}
+  ];
+  var doneBox=document.getElementById("rvDone");
+  var activeBox=document.getElementById("rvActive");
+  var nextLine=document.getElementById("rvNext");
+  var gradeMap={pass:"pass → +7 夜","A":"A → +3 夜","B":"B → +1 夜","C":"C → 今夜重試"};
+  function renderQ(){
+    if(!activeBox)return;
+    if(queue.length===0){
+      activeBox.innerHTML='<p class="rv-clear">佇列清空 ✓ · 今夜複習 ×2 · 明夜到期 ×3</p>';
+      nextLine.textContent="";
+      return;
+    }
+    var c=queue[0];
+    activeBox.innerHTML=
+      '<div class="rv-card" style="--c:'+c.c+'">'+
+      '<span class="rv-code">'+c.code+'</span>'+
+      '<span class="rv-src">'+c.src+'</span>'+
+      '<span class="rv-btns">'+
+      ["pass","A","B","C"].map(function(g){
+        return '<button type="button" class="btn ui-ghost hit" data-g="'+g+'">'+g+'</button>';
+      }).join("")+
+      '</span></div>';
+    nextLine.textContent=queue.length>1?("下一張 · "+queue[1].code+" · "+queue[1].src):"這是最後一張";
+    activeBox.querySelectorAll("[data-g]").forEach(function(gb){
+      gb.addEventListener("click",function(){
+        var g=gb.getAttribute("data-g");
+        var card=queue.shift();
+        if(g==="C")queue.push(card);   /* C：排回今夜尾端重試 */
+        var p=document.createElement("p");
+        p.textContent=card.code+" · "+gradeMap[g];
+        doneBox.appendChild(p);
+        renderQ();
+      });
+    });
+  }
+  renderQ();
+})();
+</script>
+</body>
+</html>

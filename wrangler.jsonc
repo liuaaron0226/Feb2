@@ -1,0 +1,40 @@
+{
+  // Feb 的 Cloudflare Pages 專案設定。
+  // 用 .jsonc 而非 .toml：官方文件（workers/wrangler/configuration，2026-08-28 更新）
+  // 明講「Cloudflare recommends using wrangler.jsonc for new projects」，
+  // 且部分新功能只給 JSON 設定檔。JSONC 支援註解，中文說明照樣寫得下。
+  //
+  // 這份檔案一旦存在就是 Pages 專案設定的唯一真相（source of truth）——
+  // Dashboard 上的 binding 設定會被它覆蓋。改這裡，不要改 Dashboard。
+  "name": "feb",
+
+  // 零建置仍然成立：沒有編譯、沒有打包、沒有 npm install。
+  // dist/ 只是「site/ ＋ data/」的一次複製，由 scripts/cloud/build-dist.mjs 組出來
+  // （node 內建 fs，零依賴）。教材必須與殼層同在一個部署裡，因為 Phase E 之後
+  // 它們是 Pages 的靜態資產而不是 R2 物件——R2 已整個移除（帳號不開通 R2）。
+  "pages_build_output_dir": "dist",
+
+  // 供裝日期。Workers runtime 的行為以這天為準，之後不要隨手往前推。
+  "compatibility_date": "2026-09-02",
+
+  // 讀寫進度的 D1（對應原本媒體伺服器的 progress.json）。
+  // Function 內以 context.env.DB 取用。
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "feb-progress",
+      "database_id": "7ec35880-2f92-4be4-bb7d-d36e5c3bf4a6",
+      // Pages 的本機開發（wrangler pages dev）**必須**有這一欄才綁得到本機 D1，
+      // 官方文件（d1/best-practices/local-development「Develop locally with Pages」）
+      // 明列它為 Pages local development 的必要欄位。值是本機模擬庫的識別，
+      // 與雲端那顆無關——Pages 也還不支援對「遠端」D1 做本機開發。
+      "preview_database_id": "DB"
+    }
+  ]
+
+  // ⚠ 這裡**刻意沒有 r2_buckets**。Phase E 使用者裁定：完全不開通 R2
+  //   （零計費面）。教材（292 檔／167.9 MB、單檔最大 15.1 MiB）改成隨部署上傳的
+  //   Pages 靜態資產，免費方案上限是 20,000 檔／單檔 25 MiB，兩條都遠遠沒碰到。
+  //   靜態資產本來會繞過驗章直接公開——所以 functions/_middleware.js 這一版
+  //   守的是**整個站**，不是只有 /api/*。那道門是這個決定成立的唯一前提。
+}

@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "wrangler": "^4.127.1"
+  },
+  "scripts": {
+    "build": "node scripts/cloud/build-dist.mjs",
+    "deploy": "node scripts/cloud/build-dist.mjs && wrangler pages deploy dist --project-name feb --branch main"
+  }
+}

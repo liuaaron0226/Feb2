@@ -1,0 +1,409 @@
+<title>隨身思考地圖</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<style>
+/* ── 取自素材本身：這些地圖是從板書萃取的。
+      深色＝黑板（帶綠味的深色地、粉筆字），淺色＝描圖紙。
+      四科各給一種粉筆色，用來辨識，不用來裝飾。 ────────────────── */
+:root{
+  --ground:#F2F0E9; --raise:#FBFAF6; --sink:#E7E4DA;
+  --ink:#1E2622; --ink-2:#4A574F; --ink-3:#79867D;
+  --rule:#D6D2C6; --rule-2:#C2BDAE;
+  --chalk-amber:#A97A16; --chalk-blue:#2F6E9E; --chalk-rose:#B0526A; --chalk-green:#4B8A4A;
+  --wrong:#B4462F; --right:#2F7D57;
+  --accent:var(--chalk-amber);
+  --shadow:0 1px 2px rgba(30,38,34,.06),0 8px 24px rgba(30,38,34,.06);
+  --f-body:"Noto Sans TC",system-ui,-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
+  --f-disp:"Noto Serif TC",Georgia,"Songti TC",serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --rail:322px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F1613; --raise:#18211D; --sink:#0A0F0D;
+    --ink:#E9EFE9; --ink-2:#A9B7AD; --ink-3:#7A8A80;
+    --rule:#26312C; --rule-2:#33403A;
+    --chalk-amber:#E3B457; --chalk-blue:#7FAFD4; --chalk-rose:#D68C9C; --chalk-green:#8FC08C;
+    --wrong:#E08B78; --right:#7FC79C;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F1613; --raise:#18211D; --sink:#0A0F0D;
+  --ink:#E9EFE9; --ink-2:#A9B7AD; --ink-3:#7A8A80;
+  --rule:#26312C; --rule-2:#33403A;
+  --chalk-amber:#E3B457; --chalk-blue:#7FAFD4; --chalk-rose:#D68C9C; --chalk-green:#8FC08C;
+  --wrong:#E08B78; --right:#7FC79C;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--f-body);
+  font-size:15px;line-height:1.65;-webkit-text-size-adjust:100%}
+[data-subject="電子學"]{--accent:var(--chalk-amber)}
+[data-subject="工數"]{--accent:var(--chalk-blue)}
+[data-subject="線代"]{--accent:var(--chalk-rose)}
+[data-subject="多益"]{--accent:var(--chalk-green)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+/* ── 版面：手機單欄切換，寬螢幕左索引右內文 ── */
+.app{min-height:100dvh}
+@media (min-width:900px){
+  .app{display:grid;grid-template-columns:var(--rail) minmax(0,1fr);height:100dvh}
+}
+
+/* ── 索引 ── */
+.index{display:flex;flex-direction:column;min-height:0;background:var(--sink);
+  border-right:1px solid var(--rule)}
+.app[data-view="reader"] .index{display:none}
+@media (min-width:900px){ .app[data-view="reader"] .index{display:flex} }
+.masthead{padding:20px 18px 14px;border-bottom:1px solid var(--rule)}
+.masthead h1{margin:0;font-family:var(--f-disp);font-weight:700;font-size:1.3rem;
+  letter-spacing:.02em;text-wrap:balance}
+.masthead .sub{margin-top:5px;color:var(--ink-3);font-size:.8rem;
+  font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.tools{padding:12px 18px;display:flex;flex-direction:column;gap:10px;
+  border-bottom:1px solid var(--rule)}
+.search{width:100%;padding:9px 12px;border-radius:8px;font:inherit;font-size:.9rem;
+  background:var(--raise);color:var(--ink);border:1px solid var(--rule-2)}
+.search::placeholder{color:var(--ink-3)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:4px 10px;border-radius:999px;font-size:.78rem;font-weight:500;
+  border:1px solid var(--rule-2);color:var(--ink-2);white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);
+  color:var(--sink);font-weight:700}
+.chip[data-s="電子學"]{--accent:var(--chalk-amber)}
+.chip[data-s="工數"]{--accent:var(--chalk-blue)}
+.chip[data-s="線代"]{--accent:var(--chalk-rose)}
+.chip[data-s="多益"]{--accent:var(--chalk-green)}
+.list{flex:1;min-height:0;overflow-y:auto;padding-bottom:32px}
+.grp{position:sticky;top:0;z-index:2;padding:9px 18px 6px;background:var(--sink);
+  border-bottom:1px solid var(--rule);color:var(--ink-3);
+  font-family:var(--f-mono);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase}
+.row{display:flex;gap:10px;align-items:baseline;width:100%;text-align:start;
+  padding:9px 18px;border-bottom:1px solid var(--rule);
+  border-left:3px solid transparent;transition:background-color .12s}
+.row:hover{background:var(--raise)}
+.row[aria-current="true"]{background:var(--raise);border-left-color:var(--accent)}
+.row .code{flex:none;font-family:var(--f-mono);font-size:.74rem;color:var(--accent);
+  font-weight:600;font-variant-numeric:tabular-nums}
+.row .name{flex:1;min-width:0;font-size:.86rem;line-height:1.45;color:var(--ink-2);
+  overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.row[aria-current="true"] .name{color:var(--ink)}
+.empty{padding:26px 18px;color:var(--ink-3);font-size:.86rem}
+
+/* ── 內文 ── */
+.reader{min-width:0;overflow-y:auto}
+.app[data-view="index"] .reader{display:none}
+@media (min-width:900px){ .app[data-view="index"] .reader{display:block} }
+.rhead{position:sticky;top:0;z-index:5;padding:14px 20px 12px;background:var(--ground);
+  border-bottom:1px solid var(--rule)}
+.back{display:inline-flex;align-items:center;gap:5px;margin-bottom:8px;
+  font-size:.82rem;color:var(--ink-2);font-weight:500}
+@media (min-width:900px){ .back{display:none} }
+.rhead .code{font-family:var(--f-mono);font-size:.78rem;font-weight:600;color:var(--accent);
+  letter-spacing:.04em}
+.rhead h2{margin:3px 0 0;font-family:var(--f-disp);font-weight:600;font-size:1.18rem;
+  line-height:1.4;text-wrap:balance}
+.meta{margin-top:7px;display:flex;flex-wrap:wrap;gap:5px 14px;color:var(--ink-3);
+  font-family:var(--f-mono);font-size:.72rem;font-variant-numeric:tabular-nums}
+.body{padding:0 20px 72px;max-width:74ch}
+
+/* 整堂課的結論，永遠攤開。用字級與留白把它抬起來，不另外做成一塊 */
+.tldr{margin:20px 0 2px;padding:0 0 18px;border-bottom:1px solid var(--rule)}
+.tldr ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px}
+.tldr li{display:flex;gap:11px;font-family:var(--f-disp);font-weight:600;
+  font-size:1.06rem;line-height:1.62;text-wrap:pretty}
+.tldr li::before{content:"—";flex:none;font-family:var(--f-body);font-weight:700;color:var(--accent)}
+
+details{border-bottom:1px solid var(--rule)}
+summary{list-style:none;cursor:pointer;padding:15px 0 13px;display:flex;align-items:baseline;gap:9px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"";flex:none;width:7px;height:7px;margin-left:auto;
+  border-right:1.5px solid var(--ink-3);border-bottom:1.5px solid var(--ink-3);
+  transform:rotate(45deg) translateY(-2px);transition:transform .18s}
+details[open] summary::after{transform:rotate(-135deg) translateY(-2px)}
+summary h3{margin:0;font-family:var(--f-disp);font-weight:600;font-size:1rem}
+summary .n{font-family:var(--f-mono);font-size:.74rem;color:var(--ink-3);
+  font-variant-numeric:tabular-nums}
+.sect{padding:2px 0 22px;display:flex;flex-direction:column;gap:16px}
+
+/* 圖：橫向自己捲，頁面不會被撐寬 */
+.dia{border:1px solid var(--rule);border-radius:10px;background:var(--raise);overflow:hidden}
+.dia > h4{margin:0;padding:9px 14px;font-family:var(--f-body);font-weight:500;font-size:.83rem;
+  color:var(--ink-2);border-bottom:1px solid var(--rule);background:var(--sink)}
+.dia .canvas{overflow-x:auto;padding:14px}
+.dia svg{max-width:none;height:auto;display:block;margin:0 auto}
+.mermaid{margin:0;font-family:var(--f-body)}
+.dia .raw{margin:0;padding:14px;font-family:var(--f-mono);font-size:.74rem;
+  color:var(--ink-3);white-space:pre-wrap}
+
+/* 例題：時間戳是它在課堂中的位置，本身就是順序，不另外編號 */
+.ex{display:flex;flex-direction:column;gap:7px;padding-left:14px;
+  border-left:2px solid var(--rule-2)}
+.ex .top{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px}
+.ex .at{font-family:var(--f-mono);font-size:.73rem;color:var(--ink-3);
+  font-variant-numeric:tabular-nums}
+.ex .tag{font-size:.78rem;font-weight:700;color:var(--accent)}
+.ex .trigger{font-size:.88rem;color:var(--ink-2)}
+.ex ol{margin:0;padding-left:1.35em;display:flex;flex-direction:column;gap:4px;font-size:.9rem}
+.ex .trap{font-size:.85rem;color:var(--wrong);padding-left:2px}
+.ex .trap b{font-weight:700}
+
+/* 題型對照：看到什麼 → 怎麼做 */
+.pb{display:grid;grid-template-columns:minmax(0,1fr);gap:0;
+  border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+.pb .r{display:grid;grid-template-columns:minmax(0,1fr);gap:2px;padding:11px 14px;
+  border-bottom:1px solid var(--rule);background:var(--raise)}
+.pb .r:last-child{border-bottom:0}
+.pb .t{font-size:.87rem;font-weight:500}
+.pb .m{font-size:.87rem;color:var(--ink-2)}
+.pb .m::before{content:"→ ";color:var(--accent);font-weight:700}
+@media (min-width:620px){
+  .pb .r{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:14px;align-items:baseline}
+  .pb .m::before{content:none}
+}
+
+/* 常見錯誤：錯的與對的成對出現，✗／✓ 的顏色已經分類完了，不再加色條 */
+.pit{display:flex;flex-direction:column;gap:4px;padding:0 0 15px;
+  border-bottom:1px solid var(--rule)}
+.pit:last-child{border-bottom:0;padding-bottom:0}
+.pit .w,.pit .g{font-family:var(--f-mono);font-size:.83rem;line-height:1.55;
+  overflow-x:auto;white-space:pre-wrap;word-break:break-word}
+.pit .w{color:var(--wrong)}
+.pit .g{color:var(--right)}
+.pit .w::before{content:"✗ ";font-weight:700}
+.pit .g::before{content:"✓ ";font-weight:700}
+.pit .why{font-size:.85rem;color:var(--ink-2)}
+
+/* 章節：課堂的時間軸 */
+.ch{display:flex;flex-direction:column}
+.ch .r{display:flex;gap:12px;align-items:baseline;padding:7px 0;
+  border-bottom:1px solid var(--rule)}
+.ch .r:last-child{border-bottom:0}
+.ch .at{flex:none;font-family:var(--f-mono);font-size:.75rem;color:var(--ink-3);
+  font-variant-numeric:tabular-nums}
+.ch .tt{font-size:.89rem}
+
+.foot{padding:0 20px 40px;max-width:74ch;color:var(--ink-3);font-size:.76rem;line-height:1.7}
+.foot hr{border:0;border-top:1px solid var(--rule);margin:0 0 14px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="app" id="app" data-view="index">
+  <aside class="index">
+    <div class="masthead">
+      <h1>隨身思考地圖</h1>
+      <div class="sub" id="tally">載入中…</div>
+    </div>
+    <div class="tools">
+      <input class="search" id="q" type="search" placeholder="搜代號、課名、觀念…" autocomplete="off" aria-label="搜尋課程">
+      <div class="chips" id="chips"></div>
+    </div>
+    <nav class="list" id="list" aria-label="課程索引"></nav>
+  </aside>
+  <main class="reader" id="reader"></main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<script>
+const DATA = JSON.parse(document.getElementById("mapdata").textContent);
+const TOTAL_DIAGRAMS = DATA.reduce((n, d) => n + d.concepts.length, 0);
+const SUBJECTS = ["電子學","工數","線代","多益"];
+const app = document.getElementById("app");
+const listEl = document.getElementById("list");
+const readerEl = document.getElementById("reader");
+const qEl = document.getElementById("q");
+let filter = "", subj = "", current = null;
+
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+  ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const mmss = s => {
+  s = Math.max(0, Math.round(s || 0));
+  const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+  return (h ? h + ":" + String(m).padStart(2, "0") : String(m)) + ":" + String(x).padStart(2, "0");
+};
+/* 常見錯誤裡是 LaTeX。KaTeX 的樣式表在這裡載不進來（CSP 只放行 Google Fonts），
+   所以把它整理成看得懂的純文字，而不是留一串反斜線給人猜。 */
+const tidy = s => String(s || "")
+  .replace(/\$+/g, "")
+  .replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, "($1)/($2)")
+  .replace(/\\sqrt\s*\{([^{}]*)\}/g, "√($1)")
+  .replace(/\\text\s*\{([^{}]*)\}/g, "$1")
+  .replace(/\\(left|right|displaystyle|,|;|!)/g, "")
+  .replace(/\\times/g, "×").replace(/\\cdot/g, "·").replace(/\\div/g, "÷")
+  .replace(/\\approx/g, "≈").replace(/\\neq/g, "≠").replace(/\\leq/g, "≤").replace(/\\geq/g, "≥")
+  .replace(/\\pm/g, "±").replace(/\\mp/g, "∓").replace(/\\infty/g, "∞")
+  .replace(/\\alpha/g, "α").replace(/\\beta/g, "β").replace(/\\mu/g, "µ")
+  .replace(/\\omega/g, "ω").replace(/\\Omega/g, "Ω").replace(/\\pi/g, "π")
+  .replace(/\\theta/g, "θ").replace(/\\lambda/g, "λ").replace(/\\Delta/g, "Δ").replace(/\\delta/g, "δ")
+  .replace(/\\rightarrow|\\to/g, "→").replace(/\\Rightarrow/g, "⇒")
+  .replace(/[\^_]\{([^{}]*)\}/g, (m, g) => (m[0] === "^" ? "^" : "_") + g)
+  .replace(/\\\\/g, "  ").replace(/\\ /g, " ")
+  .replace(/\s{3,}/g, "  ").trim();
+
+/* ── 索引 ── */
+function buildChips(){
+  const box = document.getElementById("chips");
+  const counts = {};
+  DATA.forEach(d => counts[d.subject] = (counts[d.subject] || 0) + 1);
+  box.innerHTML = SUBJECTS.filter(s => counts[s]).map(s =>
+    `<button class="chip" data-s="${esc(s)}" aria-pressed="false">${esc(s)} ${counts[s]}</button>`).join("");
+  box.addEventListener("click", e => {
+    const b = e.target.closest(".chip"); if(!b) return;
+    subj = (subj === b.dataset.s) ? "" : b.dataset.s;
+    [...box.children].forEach(c => c.setAttribute("aria-pressed", String(c.dataset.s === subj)));
+    renderList();
+  });
+}
+function matches(d){
+  if (subj && d.subject !== subj) return false;
+  if (!filter) return true;
+  const q = filter.toLowerCase();
+  if ((d.code + " " + d.title).toLowerCase().includes(q)) return true;
+  if (d.tldr.some(t => t.toLowerCase().includes(q))) return true;
+  if (d.concepts.some(c => c.name.toLowerCase().includes(q))) return true;
+  if (d.playbook.some(p => (p.trigger + p.method).toLowerCase().includes(q))) return true;
+  return d.examples.some(x => (x.tag + x.trigger).toLowerCase().includes(q));
+}
+function renderList(){
+  const hits = DATA.filter(matches);
+  let html = "", grp = "";
+  for (const d of hits){
+    if (d.series !== grp){
+      grp = d.series;
+      html += `<div class="grp">${esc(grp)}</div>`;
+    }
+    html += `<button class="row" data-subject="${esc(d.subject)}" data-code="${esc(d.code)}"`
+         + ` aria-current="${current === d.code}">`
+         + `<span class="code">${esc(d.code)}</span>`
+         + `<span class="name">${esc(d.title || "（無課名）")}</span></button>`;
+  }
+  listEl.innerHTML = html || `<p class="empty">沒有符合「${esc(filter)}」的課程。</p>`;
+  document.getElementById("tally").textContent =
+    hits.length === DATA.length ? `${DATA.length} 堂課 · ${TOTAL_DIAGRAMS} 張觀念圖`
+                                : `${hits.length} / ${DATA.length} 堂課`;
+}
+listEl.addEventListener("click", e => {
+  const r = e.target.closest(".row"); if(!r) return;
+  open(r.dataset.code);
+  app.dataset.view = "reader";
+  readerEl.scrollTop = 0;
+});
+qEl.addEventListener("input", () => { filter = qEl.value.trim(); renderList(); });
+
+/* ── 內文 ── */
+function section(title, count, open, inner){
+  return `<details${open ? " open" : ""}><summary><h3>${esc(title)}</h3>`
+       + `<span class="n">${count}</span></summary><div class="sect">${inner}</div></details>`;
+}
+function open(code){
+  const d = DATA.find(x => x.code === code); if(!d) return;
+  current = code;
+  [...listEl.querySelectorAll(".row")].forEach(r =>
+    r.setAttribute("aria-current", String(r.dataset.code === code)));
+
+  const parts = [];
+  if (d.tldr.length)
+    parts.push(`<div class="tldr"><ul>${d.tldr.map(t => `<li>${esc(t)}</li>`).join("")}</ul></div>`);
+
+  if (d.concepts.length)
+    parts.push(section("觀念圖", d.concepts.length, true, d.concepts.map((c, i) =>
+      `<figure class="dia"><h4>${esc(c.name)}</h4><div class="canvas">`
+      + `<pre class="mermaid" data-i="${i}">${esc(c.mermaid)}</pre></div></figure>`).join("")));
+
+  if (d.flow)
+    parts.push(section("解題流程", "1", true,
+      `<figure class="dia"><h4>整堂課的判斷路徑</h4><div class="canvas">`
+      + `<pre class="mermaid" data-i="flow">${esc(d.flow)}</pre></div></figure>`));
+
+  if (d.examples.length)
+    parts.push(section("例題與步驟", d.examples.length, false, d.examples.map(x => {
+      const steps = String(x.md || "").split(/\n+/).map(s => s.replace(/^\s*\d+[.、)]\s*/, "").trim())
+        .filter(Boolean);
+      return `<div class="ex"><div class="top">`
+        + `<span class="at">影片 ${mmss(x.t)}</span>`
+        + (x.tag ? `<span class="tag">${esc(x.tag)}</span>` : "")
+        + (x.trigger ? `<span class="trigger">${esc(x.trigger)}</span>` : "")
+        + `</div>`
+        + (steps.length ? `<ol>${steps.map(s => `<li>${esc(tidy(s))}</li>`).join("")}</ol>` : "")
+        + (x.trap ? `<p class="trap"><b>陷阱</b>　${esc(tidy(x.trap))}</p>` : "")
+        + `</div>`;
+    }).join("")));
+
+  if (d.playbook.length)
+    parts.push(section("題型對照", d.playbook.length, false,
+      `<div class="pb">${d.playbook.map(p =>
+        `<div class="r"><div class="t">${esc(p.trigger)}</div>`
+        + `<div class="m">${esc(p.method)}</div></div>`).join("")}</div>`));
+
+  if (d.pitfalls.length)
+    parts.push(section("常見錯誤", d.pitfalls.length, false, d.pitfalls.map(p =>
+      `<div class="pit"><div class="w">${esc(tidy(p.wrong))}</div>`
+      + `<div class="g">${esc(tidy(p.right))}</div>`
+      + (p.why ? `<div class="why">${esc(p.why)}</div>` : "") + `</div>`).join("")));
+
+  if (d.chapters.length)
+    parts.push(section("課堂章節", d.chapters.length, false,
+      `<div class="ch">${d.chapters.map(c =>
+        `<div class="r"><span class="at">${mmss(c.t)}</span>`
+        + `<span class="tt">${esc(c.title)}</span></div>`).join("")}</div>`));
+
+  readerEl.dataset.subject = d.subject;
+  readerEl.innerHTML =
+    `<header class="rhead">`
+    + `<button class="back" id="back">← 全部課程</button>`
+    + `<div class="code">${esc(d.code)}</div><h2>${esc(d.title || "（無課名）")}</h2>`
+    + `<div class="meta"><span>${esc(d.subject)}</span><span>${esc(d.series)}</span>`
+    + `<span>${Math.round(d.dur / 60)} 分</span>`
+    + `<span>觀念圖 ${d.concepts.length}</span><span>例題 ${d.examples.length}</span></div>`
+    + `</header><div class="body">${parts.join("")}</div>`
+    + `<div class="foot"><hr>時間戳指向偉文的課程錄影，在這裡只作定位用，點了不會播放。`
+    + `　地圖由逐字稿產生，公式與板書以課本為準。</div>`;
+
+  document.getElementById("back").addEventListener("click", () => { app.dataset.view = "index"; });
+  drawDiagrams();
+}
+
+/* ── mermaid：只畫當前這堂課的圖，主題跟著頁面的明暗走 ── */
+function themeVars(){
+  const cs = getComputedStyle(document.documentElement);
+  const v = n => cs.getPropertyValue(n).trim();
+  return { theme:"base", startOnLoad:false, securityLevel:"loose",
+    flowchart:{ useMaxWidth:false, htmlLabels:true, curve:"basis" },
+    themeVariables:{
+      background:v("--raise"), primaryColor:v("--raise"), primaryTextColor:v("--ink"),
+      primaryBorderColor:v("--rule-2"), lineColor:v("--ink-3"), secondaryColor:v("--sink"),
+      tertiaryColor:v("--sink"), tertiaryTextColor:v("--ink"), secondaryTextColor:v("--ink"),
+      fontFamily:'"Noto Sans TC",system-ui,sans-serif', fontSize:"14px",
+      nodeBorder:v("--rule-2"), clusterBkg:v("--sink"), clusterBorder:v("--rule"),
+      titleColor:v("--ink"), edgeLabelBackground:v("--raise") } };
+}
+async function drawDiagrams(){
+  const nodes = [...readerEl.querySelectorAll("pre.mermaid")];
+  if (!nodes.length || typeof mermaid === "undefined") return;
+  mermaid.initialize(themeVars());
+  for (const n of nodes){
+    const src = n.textContent;
+    try{
+      const id = "m" + Math.random().toString(36).slice(2, 9);
+      const { svg } = await mermaid.render(id, src);
+      n.outerHTML = svg;
+    }catch(err){
+      /* 圖畫不出來時把原始定義留著，總比一塊空白好 */
+      const pre = document.createElement("pre");
+      pre.className = "raw"; pre.textContent = src;
+      n.replaceWith(pre);
+    }
+  }
+}
+/* 使用者切換系統明暗時重畫，否則線條會留在舊主題的顏色 */
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+  if (current) open(current);
+});
+
+buildChips();
+renderList();
+open(DATA[0].code);           /* 一進來就是可用狀態，不是空殼 */
+</script>

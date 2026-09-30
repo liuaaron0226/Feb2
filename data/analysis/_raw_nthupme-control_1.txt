@@ -1,0 +1,91 @@
+{
+  "answer": "{\"years\":,\"chapters\":[{\"name\":\"拉氏轉換與數學基礎\",\"years\":{\"111\":0,\"112\":0,\"113\":0,\"114\":0,\"115\":0},\"qs\":{\"111\":[],\"112\":[],\"113\":[],\"114\":[],\"115\":[]}},{\"name\":\"系統建模與轉移函數\",\"years\":{\"111\":0,\"112\":0,\"113\":0,\"114\":0,\"115\":0},\"qs\":{\"111\":[],\"112\":[],\"113\":[],\"114\":[],\"115\":[]}},{\"name\":\"方塊圖與訊號流程圖\",\"years\":{\"111\":0,\"112\":0,\"113\":0,\"114\":0,\"115\":0},\"qs\":{\"111\":[],\"112\":[],\"113\":[],\"114\":[],\"115\":[]}},{\"name\":\"穩定度(Routh-Hurwitz)\",\"years\":{\"111\":0,\"112\":0,\"113\":0,\"114\":0,\"115\":0},\"qs\":{\"111\":[],\"112\":[],\"113\":[],\"114\":[],\"115\":[]}},{\"name\":\"時域響應與暫態規格\",\"years\":{\"111\":0,\"112\":0,\"113\":0,\"114\":0,\"115\":0},\"qs\":{\"111\":[],\"112\":[],\"113\":[],\"114\":[],\"115\":[]}},{\"name\":\"穩態誤差與誤差常數\",\"years\":{\"111\":0,\"112\":0,\"113\":0,\"114\":0,\"115\":0},\"qs\":{\"111\":[],\"112\":[],\"113\":[],\"114\":[],\"115\":[]}},{\"name\":\"根軌跡\",\"years\":{\"111\":0,\"112\":0,\"113\":1,\"114\":0,\"115\":1},\"qs\":{\"111\":[],\"112\":[],\"113\":[1],\"114\":[],\"115\":[2]}},{\"name\":\"頻率響應(Bode/極座標圖)\",\"years\":{\"111\":0,\"112\":0,\"113\":0,\"114\":0,\"115\":0},\"qs\":{\"111\":[],\"112\":[],\"113\":[],\"114\":[],\"115\":[]}},{\"name\":\"頻域穩定(Nyquist)\",\"years\":{\"111\":1,\"112\":1,\"113\":1,\"114\":1,\"115\":0},\"qs\":{\"111\":[1],\"112\":[3],\"113\":[3],\"114\":[1],\"115\":[]}},{\"name\":\"控制器設計(PID/相位超前落後補償)\",\"years\":{\"111\":1,\"112\":1,\"113\":0,\"114\":1,\"115\":1},\"qs\":{\"111\":[3],\"112\":[1],\"113\":[],\"114\":[3],\"115\":[3]}},{\"name\":\"狀態空間動態方程\",\"years\":{\"111\":0,\"112\":0,\"113\":0,\"114\":0,\"115\":0},\"qs\":{\"111\":[],\"112\":[],\"113\":[],\"114\":[],\"115\":[]}},{\"name\":\"狀態轉移矩陣\",\"years\":{\"111\":0,\"112\":0,\"113\":0,\"114\":0,\"115\":0},\"qs\":{\"111\":[],\"112\":[],\"113\":[],\"114\":[],\"115\":[]}},{\"name\":\"可控制性與可觀察性\",\"years\":{\"111\":0,\"112\":1,\"113\":0,\"114\":0,\"115\":0},\"qs\":{\"111\":[],\"112\":[2],\"113\":[],\"114\":[],\"115\":[]}},{\"name\":\"狀態回授與觀察器設計\",\"years\":{\"111\":1,\"112\":1,\"113\":1,\"114\":1,\"115\":1},\"qs\":{\"111\":[4],\"112\":[4],\"113\":[4],\"114\":[2],\"115\":[4]}},{\"name\":\"物理系統建模\",\"years\":{\"111\":1,\"112\":0,\"113\":1,\"114\":1,\"115\":1},\"qs\":{\"111\":[2],\"112\":[],\"113\":[2],\"114\":[4],\"115\":[1]}},{\"name\":\"數位控制(Z轉換)\",\"years\":{\"111\":0,\"112\":0,\"113\":0,\"114\":0,\"115\":0},\"qs\":{\"111\":[],\"112\":[],\"113\":[],\"114\":[],\"115\":[]}},{\"name\":\"非線性系統分析\",\"years\":{\"111\":0,\"112\":0,\"113\":0,\"114\":0,\"115\":0},\"qs\":{\"111\":[],\"112\":[],\"113\":[],\"114\":[],\"115\":[]}},{\"name\":\"其他\",\"years\":{\"111\":0,\"112\":0,\"113\":0,\"114\":0,\"115\":0},\"qs\":{\"111\":[],\"112\":[],\"113\":[],\"114\":[],\"115\":[]}}],\"mustKnow\":[\"物理系統建模：推導機械（質量-彈簧-阻尼）、液壓（水槽非線性流率與線性化）、電磁與電路等物理系統的狀態方程式與轉換函數。\",\"頻域穩定(Nyquist)：繪製開迴路 Nyquist 圖、計算實軸交點，並靈活運用 Nyquist 穩定判準 (Z = N + P) 判定閉迴路系統穩定性與範圍。\",\"控制器設計(PID/相位超前落後補償)：設計相位超前/落後補償器或 PID 控制器，以同時滿足特定相位裕度、增益交叉頻率或時域規格。\",\"狀態回授與觀察器設計：建構狀態觀測器（常包含常數干擾或感測器偏差之增廣狀態模型）與狀態回授控制，並運用分離原理或LQR最佳控制。\",\"可控制性與可觀察性：分析多變數或電路系統的可控制性與可觀察性矩陣，並探討極點-零點消去與零狀態可觀性。\"],\"trend\":\"近年命題極為固定，每年皆維持四大題（各占 20-30 分），題型具備極高之跨章節綜合度，常從物理建模與頻域分析出發，並環環相扣至後續的控制器或觀測器設計。偏好章節顯著集中於「狀態回授與觀察器設計」、「物理系統建模」與「頻域穩定(Nyquist)」，子題關聯性高，若建模錯誤將產生連鎖扣分，計算量大且深具實務控制工程感。\"}",
+  "conversation_id": "b0e2898b-9f4a-4474-8798-b92a4868699d",
+  "turn_number": 10,
+  "is_follow_up": true,
+  "references": [
+    {
+      "source_id": "370bae1b-e510-4784-933d-86818322a77d",
+      "citation_number": 1,
+      "cited_text": "考 試 科 目 （代碼）：（12〇巧控制系統 共 4 頁，第 1 頁 *請在【答案卷】作答 Q 1 For the system in Figure 1, Figure 1 ( a )扫nd the transfer 扣nction 巡 巧灼 (5 pts) (b) Sketch the root locus with respect 化 iC, iC> 0 (5 pts) Ziegler-Nichols Tuning for the Regulator 切 = Based on the intimate Sensitivity Method Type of Controller Optimum Gain P 巧 PID kp =  0.5Ku kp = 0.化 Ku kp — 1.6Ku Tj = O.SPu TV) =  0.1 巧 Pu Table 1 Ziegler-Nichols Tuning method (c) Let’s replace 皮 with a. P I controller I)c(s). Based on 也e Ziegler-Nichols Tuning ",
+      "start_char": 512,
+      "end_char": 1013,
+      "chunk_id": "240febcf-2240-4b30-b7e7-80d8ee51c148",
+      "passage_id": null,
+      "answer_start_char": 512,
+      "answer_end_char": 1013,
+      "score": 0.9259259259259259,
+      "fragment_start_char": 512,
+      "fragment_end_char": 1013,
+      "answer_anchor_start": 0,
+      "answer_anchor_end": 863
+    },
+    {
+      "source_id": "370bae1b-e510-4784-933d-86818322a77d",
+      "citation_number": 2,
+      "cited_text": "method shown as Table 1, design Dc(s). Give the values of your (kp, Ti) (10 pts) (d) Wi化 above PI controller 公c(s)， determine 化e relevant e rro r constant of. closed loop system with respect to 'reference inp山灰仅) （ 5 pts)國立清華大學111學年度項壬班考試入學試題 系所班組別：動为機械工程學系乙組(電機控制組） 考 試 科 目 （代碼）：（12〇巧控制系統 -共 4 頁，第 2 頁 *請在【答案卷】作答 Q2 民似 u(t) y (0 Figure 2 The plant Qp(s) in Figure 2 res址 s in y  的 = 0  0 <  t  <  1 = u ( t  -  1) t  含 1 (a) What is the phase margin PM for the system shown in Figure 2? (5 pts) (b) Draw the Nyquist plot. Specify the crossover points on the real axis 化 get points. ",
+      "start_char": 1013,
+      "end_char": 1599,
+      "chunk_id": "0ac90087-5e64-480b-9034-93eaf2e6d085",
+      "passage_id": null,
+      "answer_start_char": 1013,
+      "answer_end_char": 1599,
+      "score": 1.0,
+      "fragment_start_char": 1013,
+      "fragment_end_char": 1599,
+      "answer_anchor_start": 863,
+      "answer_anchor_end": 879
+    },
+    {
+      "source_id": "370bae1b-e510-4784-933d-86818322a77d",
+      "citation_number": 3,
+      "cited_text": "注 意 ：考試開始给響前，不得翻閱試題， 並不得書寫、畫記、作答。 國立清華大學111學年度項壬班考試入學試題 系所班組別：動力機械工程學系 乙組(電機控制組） 科 目 代 碼 ：1202 考 試 科 目 ：控制系統 作答注意事項 1 .  請核對答案卷（卡）上之准考證號、科目若稱是否正確。 2 .  考試開始後，請於作答前先翻閱整份試題，是否有污損或試題印刷不 清 ，得舉手請監試人員處理，但不得要求解釋題意。 3 .  考生限在答案卷上標記t 由此開始作答」直內作答，且不可書寫姓 若 、准考證號或與作答^關之其他文字或符號。 4 .  答案卷用盡不得要求加頁。 5 .  答案卷可用任何書寫工具作答，惟為方便閱卷辨識，請值量使用藍色 或黑色書寫：答案卡限用2B鉛筆晝記；如晝記不清（含未依範例畫 記）致光學閱讀機無法辨識答案者，其後果一律由考生自行負責。 6 .  其他應考規則、違規處理及扣分方式，請自行詳閱准考證閲上「國立 清華大學試場規則及違規處理辦法」，無法因本試題封面作答注意事項 中未列明巧稱未知悉。’ ’ 立清華大學111學年度頌壬班考試入學試題 系所班組別：動为機械工程學系乙組(電機控制組） ",
+      "start_char": 0,
+      "end_char": 512,
+      "chunk_id": "7802a60c-de2a-4149-9834-8d2d825591ba",
+      "passage_id": null,
+      "answer_start_char": 0,
+      "answer_end_char": 512,
+      "score": 0.4444444444444444,
+      "fragment_start_char": 0,
+      "fragment_end_char": 512,
+      "answer_anchor_start": 1097,
+      "answer_anchor_end": 1104
+    },
+    {
+      "source_id": "370bae1b-e510-4784-933d-86818322a77d",
+      "citation_number": 4,
+      "cited_text": "(10 pts) (c) Use Nyquist criterion 化 decide 化e clo化d-loop system stability. Give the values of N ， Z 化 get points. (5 pts) (Notes: (c) will be counted only when (b) is correct!) \"(t) m y(t) Y(s) Figure 3 (d) For the system shown in Figure 3, the plant Gp(s) is the same described above and fc >  0. What is the range of 足化 result in a stable closed-loop system? (5 pts) 立清華大學111學年度頌去班考試入學試題 系所班組別：動为機械工程學系乙組(電機控制組） 考 試 科 目 （代碼）：（120巧控制系統 共 4 頁，第 3 頁 *請在【答案卷】作答 Q3. For the model depicted in Figure 4, ",
+      "start_char": 1599,
+      "end_char": 2101,
+      "chunk_id": "33134138-70fe-4fa6-ae78-e6bdf1b9e495",
+      "passage_id": null,
+      "answer_start_char": 1599,
+      "answer_end_char": 2101,
+      "score": 0.8518518518518519,
+      "fragment_start_char": 1599,
+      "fragment_end_char": 2101,
+      "answer_anchor_start": 1588,
+      "answer_anchor_end": 1701
+    }
+  ],
+  "turn_key": {
+    "session_id": "b0e2898b-9f4a-4474-8798-b92a4868699d",
+    "turn_id": "507b082d-b833-4f47-a9d5-b330c53d1d77",
+    "turn_code": 4159117121
+  },
+  "next_steps": [
+    {
+      "question": "Tell me more about state feedback control",
+      "type_code": 9
+    },
+    {
+      "question": "Show me Nyquist stability examples",
+      "type_code": 9
+    },
+    {
+      "question": "Explain physical system modeling tips",
+      "type_code": 9
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+# make_notes.py --only-file 用的範圍清單（UTF-8；逗號或換行分隔；# 開頭是註解）
+# 多益。平常不在範圍內（見 notes-scope-five.txt），2026-09-07 使用者指定補做這 13 支，
+# 所以獨立成一個檔案手動叫用，週日保鮮的自動排程仍然只吃 notes-scope-five.txt。
+多益

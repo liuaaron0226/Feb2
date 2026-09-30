@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Feb">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#12161C"/><stop offset="1" stop-color="#0B0D10"/>
+    </linearGradient>
+    <linearGradient id="dawn" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F0C98A"/><stop offset="1" stop-color="#C25E2E"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#sky)"/>
+  <!-- 山稜：沿用站上的山景語彙 -->
+  <path d="M0 372 L128 268 L206 330 L306 226 L404 322 L512 250 L512 512 L0 512 Z"
+        fill="#1E3A5F" opacity=".55"/>
+  <path d="M0 424 L96 356 L190 412 L286 340 L390 408 L512 344 L512 512 L0 512 Z"
+        fill="#1E3A5F" opacity=".85"/>
+  <circle cx="382" cy="150" r="46" fill="url(#dawn)" opacity=".92"/>
+  <text x="256" y="238" text-anchor="middle"
+        font-family="Georgia,'Times New Roman',serif" font-size="150" font-weight="600"
+        fill="#FFFFFF" letter-spacing="4">Feb</text>
+</svg>

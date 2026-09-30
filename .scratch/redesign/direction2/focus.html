@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="zh-Hant-TW" data-intensity="quiet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>席次 Focus Deck · Variant F</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../../site/css/tokens.css">
+<script>document.documentElement.classList.add('js')</script>
+<style>
+/* =====================================================================
+   VARIANT F ·「席次」FOCUS DECK
+   ---------------------------------------------------------------------
+   結構論：螢幕不是儀表板，是一條走道。一次只給一站，劇院尺寸：
+     01 複習到期 → 02 今日章節 → 03 錯題回顧 → 04 收工
+   每一站不是卡片——是整個視窗的出血色場，站有站的色相。
+   導航＝巨型左右箭頭＋鍵盤（←→ / 1–4）＋ mono 進度讀數 2/4。
+   一條細的常駐頁尾讀數把 D-153／總進度釘在地上。
+   去框化：全頁零四邊框面板；結構全靠字階、脊線、髮絲線、色場。
+   強度儀鎖 quiet（aurora 8%、ambient 凍結）——備考的人不該被湖面分心。
+   ===================================================================== */
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;color-scheme:dark}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:var(--font-ui);font-size:var(--w-body);line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:clip;min-height:100vh;
+}
+::selection{background:var(--warm);color:var(--bg)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+/* ---- aurora（quiet 檔：8%、靜止）---- */
+.au-a{width:78vmax;height:78vmax;left:-18vmax;top:-24vmax;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--sc-la-hi) 16%,transparent),transparent 68%);
+  animation:drift-a 84s var(--ease) infinite alternate}
+.au-b{width:64vmax;height:64vmax;right:-16vmax;bottom:-20vmax;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--warm) 13%,transparent),transparent 70%);
+  animation:drift-b 112s var(--ease) infinite alternate}
+@keyframes drift-a{to{transform:translate3d(11vw,9vh,0) scale(1.14)}}
+@keyframes drift-b{to{transform:translate3d(-10vw,-8vh,0) scale(1.09)}}
+
+/* =====================================================================
+   劇場框架：上軌 / 舞台 / 頁尾讀數 —— 只有 JS 開起來才鎖 100dvh
+   ===================================================================== */
+html.js body{height:100dvh;overflow:hidden;display:grid;grid-template-rows:auto 1fr auto}
+.frame-top,.frame-foot{position:relative;z-index:4}
+
+/* ---- 上軌：眉標＋四站地帶（一條髮絲帶的四個地帶，不是四顆分頁鈕）---- */
+.frame-top{border-bottom:1px solid var(--line);
+  display:flex;align-items:stretch;gap:0;padding-inline:clamp(16px,3vw,40px)}
+.brand{display:flex;align-items:center;padding-block:14px;flex:none}
+.rail-tabs{display:flex;align-items:stretch;margin-left:clamp(16px,4vw,56px)}
+.rt{position:relative;display:flex;align-items:center;gap:9px;padding:0 clamp(10px,1.8vw,22px);
+  font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);
+  color:var(--ink-faint);font-variant-numeric:tabular-nums;text-transform:uppercase;
+  transition:color 150ms var(--ease)}
+.rt:hover{color:var(--ink-dim)}
+.rt .t-no{font-weight:600}
+.rt[aria-pressed="true"]{color:var(--st-c,var(--accent))}
+/* 指示線用 ::before —— ::after 屬於 tokens 的 .hit 命中區擴張，不可佔用 */
+.rt[aria-pressed="true"]::before{content:"";position:absolute;left:10%;right:10%;bottom:-1px;height:2px;
+  background:var(--st-c,var(--warm));box-shadow:0 0 12px color-mix(in srgb,var(--st-c,var(--warm)) 60%,transparent)}
+.pos{margin-left:auto;display:flex;align-items:baseline;gap:2px;align-self:center;
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:calc(var(--w-title)*.8);font-weight:600;letter-spacing:var(--ls-title);line-height:1}
+.pos .of{color:var(--ink-faint);font-size:var(--w-sub);font-weight:500}
+
+/* =====================================================================
+   舞台 DECK：一次一站，整站就是一片出血色場
+   ===================================================================== */
+.deck{position:relative;z-index:1}
+html.js .deck{overflow:hidden}
+.station{--st-c:var(--accent)}
+html.js .station{
+  position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;
+  visibility:hidden;opacity:0;pointer-events:none;
+  transform:translateX(var(--slide,26px));
+  transition:opacity var(--dur-exit) var(--ease),transform var(--dur-exit) var(--ease),
+             visibility 0s linear var(--dur-exit);
+}
+html.js .station.on{
+  visibility:visible;opacity:1;pointer-events:auto;transform:none;
+  transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),visibility 0s;
+}
+/* 無 JS：四站直排成一頁長文，全部可讀 */
+html:not(.js) .station{border-bottom:1px solid var(--line)}
+
+/* 站的色場：不是框，是這個房間的燈 ------------------------------- */
+.st-review{background:
+  radial-gradient(1100px 640px at 10% 42%,rgba(194,94,46,.20),transparent 70%),
+  radial-gradient(680px 420px at 96% 108%,rgba(194,94,46,.07),transparent 70%)}
+.st-review{--st-c:var(--accent)}
+.st-chapter{--st-c:var(--sc-elec-hi);background:
+  radial-gradient(1200px 700px at 88% -12%,color-mix(in srgb,var(--sc-elec-hi) 9%,transparent),transparent 72%),
+  linear-gradient(180deg,color-mix(in srgb,var(--sc-elec-hi) 4%,transparent),transparent 46%)}
+.st-wrong{--st-c:var(--status-bad);background:
+  radial-gradient(1100px 620px at 8% 108%,color-mix(in srgb,var(--status-bad) 9%,transparent),transparent 72%)}
+.st-done{--st-c:var(--status-good);background:
+  radial-gradient(900px 520px at 50% 118%,color-mix(in srgb,var(--status-good) 6%,transparent),transparent 74%)}
+
+/* 席次水印：巨大的站號，出血切出右緣——這一站的座位牌 */
+.seat{position:absolute;right:-.06em;top:-.12em;z-index:0;pointer-events:none;user-select:none;
+  font-family:var(--font-mono);font-weight:600;line-height:1;
+  font-size:clamp(11rem,30vw,24rem);letter-spacing:var(--ls-title);
+  color:color-mix(in srgb,var(--st-c) 9%,transparent);font-variant-numeric:tabular-nums}
+
+/* 站內版心：垂直置中的劇院走位 */
+.st-col{position:relative;z-index:1;max-width:960px;margin-inline:auto;
+  min-height:100%;display:flex;flex-direction:column;justify-content:center;
+  padding:clamp(40px,7vh,88px) clamp(76px,9vw,120px);gap:0}
+html:not(.js) .st-col{min-height:auto}
+
+/* ---- 巨讀數（design-system .dnum 血統）---- */
+.giant{font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:clamp(4.6rem,13vw,9rem);font-weight:600;line-height:.9;
+  letter-spacing:var(--ls-title);color:var(--st-c);
+  text-shadow:0 0 60px color-mix(in srgb,var(--st-c) 38%,transparent)}
+.giant small{font-size:.38em;font-weight:500;color:var(--ink-dim);text-shadow:none;letter-spacing:0}
+.g-line{display:flex;align-items:baseline;gap:20px;flex-wrap:wrap;margin-top:14px}
+.g-sub{color:var(--ink-dim);max-width:34em}
+.st-eyebrow{margin-bottom:clamp(18px,3vh,30px);display:flex;align-items:center;gap:18px}
+.st-eyebrow::after{content:"";height:1px;flex:1;background:var(--line);
+  margin-right:calc(50% - 50vw)} /* 眉標線刷出右緣：站是出血的 */
+
+/* ---- 脊線列（去框化的行）---- */
+.rows{margin-top:clamp(22px,4vh,38px)}
+.row{position:relative;display:flex;align-items:center;gap:14px 18px;flex-wrap:wrap;
+  padding:15px 0 15px 22px;border-bottom:1px solid var(--line)}
+.row:first-child{border-top:1px solid var(--line)}
+.row::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:2px;border-radius:1px;
+  background:color-mix(in srgb,var(--c,var(--ink-dim)) 64%,transparent)}
+.row.is-hi::before{background:var(--c);box-shadow:0 0 26px -2px color-mix(in srgb,var(--c) 60%,transparent)}
+.row .r-code{font-family:var(--font-mono);font-size:var(--w-meta);font-weight:600;
+  font-variant-numeric:tabular-nums;flex:none}
+.row .r-title{font-weight:600}
+.row .r-meta{font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);
+  font-variant-numeric:tabular-nums}
+.row .r-end{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.row.dim{opacity:.62}
+.row .r-bar{flex-basis:100%;height:3px;border-radius:2px;margin-top:6px;
+  background:color-mix(in srgb,var(--ink) 9%,transparent);overflow:hidden}
+.row .r-bar i{display:block;height:100%;border-radius:2px;background:color-mix(in srgb,var(--c,var(--ink-dim)) 70%,transparent)}
+.row.is-hi .r-bar i{background:var(--c)}
+
+/* ---- 主角卡位（複習站的當前卡：脊線＋留白，不是箱子）---- */
+.nowcard{margin-top:clamp(26px,5vh,44px);padding-left:26px;border-left:2px solid var(--warm)}
+.nowcard .cc{font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:calc(var(--w-title)*1.15);font-weight:600;letter-spacing:var(--ls-title);line-height:1.05}
+.nowcard .cs{margin-top:6px;font-family:var(--font-mono);font-size:var(--w-meta);
+  color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.gradebar{margin-top:22px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grade-hint{flex-basis:100%}
+
+/* ---- 按鈕（design-system 配方縮編）---- */
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  height:var(--bh,var(--btn-h));padding:0 16px;border-radius:var(--r-sm);
+  font-size:var(--w-meta);font-weight:600;line-height:1;letter-spacing:.02em;
+  transition:transform 150ms var(--ease),box-shadow 150ms var(--ease),
+             background-color 150ms var(--ease),color 150ms var(--ease)}
+.btn:active{transform:translateY(1px)}
+.ui-solid{background:var(--ink);color:var(--bg)}
+.ui-solid:hover{transform:translateY(-1px);box-shadow:0 6px 24px -10px color-mix(in srgb,var(--ink) 45%,transparent)}
+.ui-ghost{box-shadow:inset 0 0 0 1px var(--line-strong)}
+.ui-ghost:hover{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 40%,transparent);
+  background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.btn[disabled]{opacity:.38;cursor:not-allowed}
+.btn[disabled]:hover{transform:none;box-shadow:inset 0 0 0 1px var(--line-strong)}
+
+/* chip：mono 小讀數（2x、淡出三步…）——邊線是元件邊界，非面板 */
+.chip{display:inline-flex;align-items:center;gap:7px;height:var(--btn-h-xs);padding:0 10px;
+  border-radius:999px;font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.06em;
+  color:var(--ink-dim);box-shadow:inset 0 0 0 1px var(--line-strong);font-variant-numeric:tabular-nums}
+.chip.hot{color:var(--st-c);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--st-c) 55%,transparent)}
+
+/* 學科 pill（雙階，-hi 全頁最多一個） */
+.pill{display:inline-flex;align-items:center;gap:8px;height:var(--btn-h-sm);padding:0 13px;border-radius:999px;
+  font-size:var(--w-meta);font-weight:500;color:var(--c,var(--ink-dim));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c,var(--ink-dim)) 40%,transparent)}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--c,var(--ink-dim))}
+.pill.is-hi{color:var(--ch);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ch) 55%,transparent),
+  0 0 30px -6px color-mix(in srgb,var(--ch) 42%,transparent);
+  background:color-mix(in srgb,var(--ch) 9%,transparent)}
+.pill.is-hi::before{background:var(--ch)}
+
+/* 勾選框：一顆行內元件 */
+.box{width:16px;height:16px;border-radius:4px;flex:none;padding:0;position:relative;
+  box-shadow:inset 0 0 0 1px var(--line-strong);transition:box-shadow 150ms var(--ease)}
+.box[aria-checked="true"]{background:var(--st-c);box-shadow:none}
+.box[aria-checked="true"]::after{content:"";position:absolute;left:5px;top:2px;width:5px;height:8px;
+  border:solid var(--bg);border-width:0 2px 2px 0;transform:rotate(42deg)}
+
+/* 章節站專屬 */
+.ch-name{font-size:clamp(2.1rem,5vw,3.4rem);font-weight:800;letter-spacing:var(--ls-title);line-height:1.12;margin-top:12px}
+.ch-quota{margin-top:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.ch-quota .hot{color:var(--st-c);font-weight:600}
+.qbar{width:min(320px,40vw);height:3px;border-radius:2px;background:color-mix(in srgb,var(--ink) 9%,transparent);overflow:hidden}
+.qbar i{display:block;height:100%;border-radius:2px;background:var(--st-c)}
+.sub-lab{margin-top:clamp(26px,4.5vh,40px);display:flex;align-items:baseline;gap:14px}
+.sub-lab .zh{font-size:var(--w-sub);font-weight:700}
+/* 播放器＝安靜示意：一顆 ghost 鈕＋三角形 SVG，不出聲、不嵌媒體 */
+.playglyph{display:block;width:10px;height:12px}
+.playglyph path{fill:currentColor}
+
+/* 錯題站：×次數走狀態色（永遠帶字，不裸色） */
+.xbad{font-family:var(--font-mono);font-size:var(--w-meta);font-weight:600;
+  color:var(--status-bad);font-variant-numeric:tabular-nums}
+.overdue{color:var(--status-bad)}
+
+/* 收工站：戰報行 */
+.report .row{padding-left:0}
+.report .row::before{display:none}
+.report .r-key{flex:none;width:120px;font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint)}
+.tomorrow{margin-top:clamp(26px,4.5vh,40px);padding-left:26px;border-left:2px solid color-mix(in srgb,var(--sc-math-hi) 70%,transparent)}
+.tomorrow .t-lead{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);
+  text-transform:uppercase;color:var(--ink-faint)}
+.tomorrow .t-main{margin-top:6px;font-size:var(--w-sub);font-weight:600}
+.wrapbar{margin-top:clamp(28px,5vh,46px);display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+
+/* ---- 巨型翻站箭頭：整條邊都是把手 ---- */
+.arrow{display:none}
+html.js .arrow{position:absolute;z-index:5;top:0;bottom:0;width:clamp(56px,7vw,88px);
+  display:flex;align-items:center;justify-content:center;color:var(--ink-faint);
+  transition:color 150ms var(--ease),background-color 150ms var(--ease)}
+html.js .arrow:hover{color:var(--ink);background:linear-gradient(var(--dirg,90deg),color-mix(in srgb,var(--ink) 5%,transparent),transparent)}
+.arrow.prev{left:0;--dirg:90deg}
+.arrow.next{right:0;--dirg:270deg}
+.arrow svg{width:clamp(26px,3vw,38px);height:auto}
+.arrow:focus-visible{outline-offset:-3px}  /* 全高把手：焦點環內縮成完整矩形，配方不變 */
+.arrow[disabled]{opacity:.22;cursor:not-allowed}
+.arrow[disabled]:hover{color:var(--ink-faint);background:none}
+
+/* ---- 頁尾常駐讀數：一條細的錨 ---- */
+.frame-foot{border-top:1px solid var(--line);padding:11px clamp(16px,3vw,40px);
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  font-family:var(--font-mono);font-size:var(--w-meta);font-variant-numeric:tabular-nums;color:var(--ink-dim)}
+.frame-foot .hot{color:var(--accent);font-weight:600;
+  text-shadow:0 0 18px rgba(224,120,64,.35)}
+.frame-foot .sep{width:1px;height:14px;background:var(--line-strong)}
+.microbar{width:64px;height:3px;border-radius:2px;background:color-mix(in srgb,var(--ink) 10%,transparent);overflow:hidden}
+.microbar i{display:block;height:100%;background:var(--ink-dim)}
+.foot-hint{margin-left:auto}
+
+/* 行動版翻站列（箭頭邊條在窄幅讓位） */
+.deckbar{display:none}
+
+/* ---- 進場：自 aurora 凝結（blur 唯一豁免）---- */
+html.js .fx{opacity:0;transform:translateY(14px);filter:blur(10px)}
+html.js .station.on .fx{opacity:1;transform:none;filter:none;
+  transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),filter var(--dur) var(--ease);
+  transition-delay:calc(var(--i,0)*var(--stagger))}
+
+/* =====================================================================
+   RWD · 390 也要活
+   ===================================================================== */
+@media (max-width:680px){
+  html.js .arrow{display:none}
+  .deckbar{position:relative;z-index:4;display:flex;align-items:center;justify-content:space-between;
+    gap:12px;padding:10px clamp(16px,4vw,24px);border-top:1px solid var(--line)}
+  html:not(.js) .deckbar{display:none}
+  .deckbar .pos{font-size:calc(var(--w-title)*.62);margin:0}
+  .st-col{padding:clamp(30px,6vh,48px) clamp(20px,6vw,32px)}
+  .giant{font-size:clamp(3.6rem,19vw,5.2rem)}
+  .seat{font-size:clamp(8rem,40vw,12rem)}
+  .rt .t-name{display:none}
+  .b-ext{display:none}
+  .pos{font-size:calc(var(--w-title)*.62)}
+  .rail-tabs{margin-left:8px}
+  .row .r-end{margin-left:0;flex-basis:100%}
+  .report .r-key{width:100%}
+  .foot-hint{display:none}
+}
+
+/* 換卡重播：凝結一次（blur 豁免；reduced-motion 由 tokens 全滅） */
+@keyframes cdplay{from{opacity:0;transform:translateY(10px);filter:blur(8px)}}
+.replay{animation:cdplay var(--dur) var(--ease)}
+
+/* reduced-motion：靜止即完成態（tokens.css 已全滅動效） */
+@media (prefers-reduced-motion:reduce){
+  html.js .fx{opacity:1;transform:none;filter:none}
+  html.js .station{transform:none}
+}
+</style>
+</head>
+<body>
+
+<div class="aurora" aria-hidden="true"><i class="au-a"></i><i class="au-b"></i></div>
+
+<!-- ================= 上軌：品牌眉標＋四站地帶＋進度讀數 ================= -->
+<header class="frame-top">
+  <span class="brand eyebrow">FEB ·「席次」<span class="b-ext">FOCUS DECK · 2026-09-01 · 一次一站</span></span>
+  <nav class="rail-tabs" aria-label="四站走道">
+    <button type="button" class="rt hit" data-go="0" aria-pressed="true"  style="--st-c:var(--accent)"><span class="t-no">01</span><span class="t-name">複習</span></button>
+    <button type="button" class="rt hit" data-go="1" aria-pressed="false" style="--st-c:var(--sc-elec-hi)"><span class="t-no">02</span><span class="t-name">章節</span></button>
+    <button type="button" class="rt hit" data-go="2" aria-pressed="false" style="--st-c:var(--status-bad)"><span class="t-no">03</span><span class="t-name">錯題</span></button>
+    <button type="button" class="rt hit" data-go="3" aria-pressed="false" style="--st-c:var(--status-good)"><span class="t-no">04</span><span class="t-name">收工</span></button>
+  </nav>
+  <span class="pos" aria-live="polite"><span id="posNow">1</span><span class="of">/4</span></span>
+</header>
+
+<!-- ================= 舞台 ================= -->
+<main class="deck" aria-label="今晚的四站">
+
+  <button type="button" class="arrow prev" id="btnPrev" aria-label="上一站" disabled>
+    <svg viewBox="0 0 24 40" aria-hidden="true"><path d="M20 2 4 20l16 18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+  <button type="button" class="arrow next" id="btnNext" aria-label="下一站">
+    <svg viewBox="0 0 24 40" aria-hidden="true"><path d="M4 2l16 18L4 38" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+
+  <!-- ========== 站 01 · 複習到期（ember 場）========== -->
+  <section class="station st-review on" aria-label="站 01 · 複習到期">
+    <span class="seat" aria-hidden="true">01</span>
+    <div class="st-col">
+      <p class="st-eyebrow eyebrow fx" style="--i:0"><span><span style="color:var(--accent)">站 01</span> · 複習到期 REVIEW DUE · 到期就是今晚</span></p>
+      <div class="g-line fx" style="--i:1">
+        <span class="giant" id="rvGiant">3<small>張</small></span>
+        <span class="g-sub">到期複習卡。平均一張 40 秒，清空再往下走——<br>計畫已經排好順序，你只負責按等第。</span>
+      </div>
+
+      <div class="nowcard fx" style="--i:2" id="rvNow">
+        <p class="cc" id="rvCode">控001</p>
+        <p class="cs" id="rvSrc">GoodNotes p.12 · 自動控制 · 根軌跡</p>
+        <div class="gradebar" style="--bh:var(--btn-h)">
+          <button type="button" class="btn ui-solid hit" data-grade="pass" style="padding:0 22px">pass · 記得</button>
+          <button type="button" class="btn ui-ghost hit" data-grade="A" style="padding:0 20px">A</button>
+          <button type="button" class="btn ui-ghost hit" data-grade="B" style="padding:0 20px">B</button>
+          <button type="button" class="btn ui-ghost hit" data-grade="C" style="padding:0 20px">C</button>
+          <span class="grade-hint eyebrow">pass＝下次間隔拉長 · C＝明晚再見</span>
+        </div>
+      </div>
+
+      <div class="nowcard fx" style="--i:2;display:none;border-left-color:color-mix(in srgb,var(--status-good) 70%,transparent)" id="rvDone">
+        <p class="cc" style="color:var(--status-good)">清空 ✓</p>
+        <p class="cs">3 張複習完畢 · 用時約 2 分</p>
+        <div class="gradebar" style="--bh:var(--btn-h)">
+          <button type="button" class="btn ui-solid hit" id="rvGoNext" style="padding:0 22px">前往 02 今日章節 →</button>
+        </div>
+      </div>
+
+      <div class="rows fx" style="--i:3" id="rvQueue" aria-label="接下來的卡">
+        <div class="row dim" style="--c:var(--sc-math)" data-q="數003">
+          <span class="r-code">數003</span><span class="r-meta">GoodNotes p.31 · 工數 · 拉氏轉換</span>
+          <span class="r-end r-meta">第 2 張</span>
+        </div>
+        <div class="row dim" style="--c:var(--sc-elec)" data-q="電012">
+          <span class="r-code">電012</span><span class="r-meta">GoodNotes p.07 · 電子學 · 二極體電路</span>
+          <span class="r-end r-meta">第 3 張</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 站 02 · 今日章節（電子學 -hi 6% 場）========== -->
+  <section class="station st-chapter" aria-label="站 02 · 今日章節">
+    <span class="seat" aria-hidden="true">02</span>
+    <div class="st-col">
+      <p class="st-eyebrow eyebrow fx" style="--i:0"><span><span style="color:var(--sc-elec-hi)">站 02</span> · 今日章節 TODAY'S CHAPTER · 計畫決定，你只要坐下</span></p>
+      <div class="fx" style="--i:1">
+        <span class="pill is-hi" style="--c:var(--sc-elec);--ch:var(--sc-elec-hi)">電子學 · W2 · 進行中</span>
+        <h1 class="ch-name">BJT 小訊號放大器</h1>
+        <div class="ch-quota">
+          <span>章 9.9h＝看 8.9h＋考古 1.0h</span>
+          <span class="qbar" role="img" aria-label="章進度 3.2 於 9.9 小時"><i style="width:32%"></i></span>
+          <span class="hot">已 3.2h · 今日配額 3.3h</span>
+        </div>
+      </div>
+
+      <div class="sub-lab fx" style="--i:2"><span class="zh">集數</span><span class="eyebrow">2 倍速 · 淡出三步 · 播放器為安靜示意</span></div>
+      <div class="rows fx" style="--i:3">
+        <div class="row dim" style="--c:var(--sc-elec)">
+          <span class="r-code">EL-E12</span><span class="r-title">混合 π 模型</span><span class="r-meta">84min</span>
+          <span class="r-end r-meta">已完成 ✓</span>
+          <span class="r-bar" aria-hidden="true"><i style="width:100%"></i></span>
+        </div>
+        <div class="row is-hi" style="--c:var(--sc-elec-hi)" aria-current="true">
+          <span class="r-code">EL-E13</span><span class="r-title">CE／CC 組態增益</span><span class="r-meta">96min</span>
+          <span class="r-end" style="--bh:var(--btn-h-sm)">
+            <span class="chip hot">2x</span>
+            <span class="chip">淡出三步 · 步 2</span>
+            <button type="button" class="btn ui-ghost hit" style="padding:0 14px">
+              <svg class="playglyph" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0l10 6-10 6z"/></svg>
+              自 42:10 續播
+            </button>
+          </span>
+          <span class="r-bar" aria-hidden="true"><i style="width:44%"></i></span>
+        </div>
+        <div class="row dim" style="--c:var(--sc-elec)">
+          <span class="r-code">EL-E14</span><span class="r-title">多級放大與頻寬</span><span class="r-meta">78min</span>
+          <span class="r-end r-meta">未開始 ○</span>
+          <span class="r-bar" aria-hidden="true"><i style="width:0%"></i></span>
+        </div>
+      </div>
+
+      <div class="sub-lab fx" style="--i:4"><span class="zh">考古題</span><span class="eyebrow">看完就寫 · 勾與記錯都在本站完成</span></div>
+      <div class="rows fx" style="--i:5">
+        <div class="row" style="--c:var(--sc-elec)">
+          <button type="button" class="box hit" role="checkbox" aria-checked="true" aria-label="台大113 第3題 已完成"></button>
+          <span class="r-title">台大113 第3題</span><span class="r-meta">共射極增益推導</span>
+          <span class="r-end" style="--bh:var(--btn-h-xs)">
+            <button type="button" class="btn ui-ghost hit" style="padding:0 10px;font-size:var(--w-tag)">記錯 ×</button>
+          </span>
+        </div>
+        <div class="row" style="--c:var(--sc-elec)">
+          <button type="button" class="box hit" role="checkbox" aria-checked="false" aria-label="成大112 第1題 未完成"></button>
+          <span class="r-title">成大112 第1題</span><span class="r-meta">小訊號等效電路</span>
+          <span class="r-end" style="--bh:var(--btn-h-xs)">
+            <button type="button" class="btn ui-ghost hit" style="padding:0 10px;font-size:var(--w-tag)">記錯 ×</button>
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 站 03 · 錯題回顧（status-bad 場）========== -->
+  <section class="station st-wrong" aria-label="站 03 · 錯題回顧">
+    <span class="seat" aria-hidden="true">03</span>
+    <div class="st-col">
+      <p class="st-eyebrow eyebrow fx" style="--i:0"><span><span style="color:var(--status-bad)">站 03</span> · 錯題回顧 REDO QUEUE · 錯過的才是考點</span></p>
+      <div class="g-line fx" style="--i:1">
+        <span class="giant" id="wrGiant">3<small>題</small></span>
+        <span class="g-sub">今晚到期回鍋。連對兩次自動出列；<br>重解＝直接開考卷該題（示意）。</span>
+      </div>
+
+      <div class="rows fx" style="--i:2" id="wrRows">
+        <div class="row" style="--c:var(--sc-elec)">
+          <span class="r-code">電子學</span><span class="r-title">BJT 直流偏壓</span>
+          <span class="r-meta">台大112 第2題</span><span class="xbad">× 錯 2 次</span>
+          <span class="r-end" style="--bh:var(--btn-h-sm)">
+            <span class="r-meta">到期 今天</span>
+            <button type="button" class="btn ui-ghost hit" style="padding:0 14px">重解</button>
+            <button type="button" class="btn ui-solid hit" data-pass style="padding:0 14px">已通</button>
+          </span>
+        </div>
+        <div class="row" style="--c:var(--sc-math)">
+          <span class="r-code">工數</span><span class="r-title">拉氏轉換</span>
+          <span class="r-meta">成大111 第4題</span><span class="xbad">× 錯 1 次</span>
+          <span class="r-end" style="--bh:var(--btn-h-sm)">
+            <span class="r-meta">到期 今天</span>
+            <button type="button" class="btn ui-ghost hit" style="padding:0 14px">重解</button>
+            <button type="button" class="btn ui-solid hit" data-pass style="padding:0 14px">已通</button>
+          </span>
+        </div>
+        <div class="row" style="--c:var(--sc-la)">
+          <span class="r-code">線代</span><span class="r-title">矩陣運算與行列式</span>
+          <span class="r-meta">台科110 第1題</span><span class="xbad">× 錯 3 次</span>
+          <span class="r-end" style="--bh:var(--btn-h-sm)">
+            <span class="r-meta overdue">逾期 1 天</span>
+            <button type="button" class="btn ui-ghost hit" style="padding:0 14px">重解</button>
+            <button type="button" class="btn ui-solid hit" data-pass style="padding:0 14px">已通</button>
+          </span>
+        </div>
+      </div>
+      <p class="fx eyebrow" style="--i:3;margin-top:20px" id="wrEmpty" hidden>回鍋清空 ✓ · 前往 04 收工</p>
+    </div>
+  </section>
+
+  <!-- ========== 站 04 · 收工（quiet 場）========== -->
+  <section class="station st-done" aria-label="站 04 · 收工">
+    <span class="seat" aria-hidden="true">04</span>
+    <div class="st-col">
+      <p class="st-eyebrow eyebrow fx" style="--i:0"><span><span style="color:var(--status-good)">站 04</span> · 收工 WRAP · 今日戰報</span></p>
+      <div class="g-line fx" style="--i:1">
+        <span class="giant" style="--st-c:var(--ink);text-shadow:none">4.2<small>h／5.0h</small></span>
+        <span class="g-sub">今晚實讀。缺口 0.8h 已自動攤進明後天配額，<br>不用自己重排。</span>
+      </div>
+
+      <div class="rows report fx" style="--i:2">
+        <div class="row"><span class="r-key">看課</span><span class="r-meta">3.1h · EL-E12 全集 · EL-E13 至 42:10（2x）</span></div>
+        <div class="row"><span class="r-key">考古</span><span class="r-meta">0.6h · 台大113 第3題 ✓ · 成大112 第1題 ✓</span></div>
+        <div class="row"><span class="r-key">複習卡</span><span class="r-meta">3 張 · 控001 pass · 數003 B · 電012 A</span></div>
+        <div class="row"><span class="r-key">新增錯題</span><span class="r-meta"><span class="xbad">× 2</span> · 已排入回鍋佇列 · 明晚到期</span></div>
+      </div>
+
+      <div class="tomorrow fx" style="--i:3">
+        <p class="t-lead">明日預告 · 09-02 · 配額 5.0h</p>
+        <p class="t-main">電子學 EL-E14 收尾 → 工數「ODE：一階」開章 EP01</p>
+      </div>
+
+      <div class="wrapbar fx" style="--i:4;--bh:var(--btn-h)">
+        <button type="button" class="btn ui-solid hit" id="btnWrap" style="padding:0 26px;height:var(--btn-h)">收工</button>
+        <span class="eyebrow">收工後鎖站 · 明早自動回到站 01</span>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- 行動版翻站列 -->
+<nav class="deckbar" aria-label="翻站">
+  <button type="button" class="btn ui-ghost hit" id="btnPrevM" style="--bh:var(--btn-h);padding:0 18px" disabled>← 上一站</button>
+  <span class="pos"><span id="posNowM">1</span><span class="of">/4</span></span>
+  <button type="button" class="btn ui-ghost hit" id="btnNextM" style="--bh:var(--btn-h);padding:0 18px">下一站 →</button>
+</nav>
+
+<!-- ================= 頁尾常駐讀數：錨 ================= -->
+<footer class="frame-foot" role="status" aria-label="常駐讀數">
+  <span class="hot">D-153</span>
+  <span class="sep" aria-hidden="true"></span>
+  <span>距 2027-02-01 筆試</span>
+  <span class="sep" aria-hidden="true"></span>
+  <span>總進度 22.6/118.8h</span>
+  <span class="microbar" aria-hidden="true"><i style="width:19%"></i></span>
+  <span>19%</span>
+  <span class="sep" aria-hidden="true"></span>
+  <span>W2</span>
+  <span class="sep" aria-hidden="true"></span>
+  <span id="clock">21:47:00</span>
+  <span class="foot-hint eyebrow">← → 換站 · 1–4 直達</span>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var rm=window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  /* ---- 走道狀態（specimen：狀態留在 JS，DOM 只長出來）---- */
+  var stations=[].slice.call(document.querySelectorAll(".station"));
+  var tabs=[].slice.call(document.querySelectorAll(".rt"));
+  var prevs=[document.getElementById("btnPrev"),document.getElementById("btnPrevM")];
+  var nexts=[document.getElementById("btnNext"),document.getElementById("btnNextM")];
+  var posEls=[document.getElementById("posNow"),document.getElementById("posNowM")];
+  var idx=0;
+
+  function go(n,dir){
+    if(n<0||n>=stations.length||n===idx)return;
+    dir=dir||(n>idx?1:-1);
+    var leaving=stations[idx],entering=stations[n];
+    entering.style.setProperty("--slide",(dir>0?26:-26)+"px");
+    leaving.classList.remove("on");
+    entering.classList.add("on");
+    entering.scrollTop=0;
+    idx=n;
+    tabs.forEach(function(t,i){t.setAttribute("aria-pressed",String(i===idx));});
+    posEls.forEach(function(p){if(p)p.textContent=String(idx+1);});
+    prevs.forEach(function(b){if(b)b.disabled=(idx===0);});
+    nexts.forEach(function(b){if(b)b.disabled=(idx===stations.length-1);});
+  }
+  prevs.forEach(function(b){if(b)b.addEventListener("click",function(){go(idx-1,-1);});});
+  nexts.forEach(function(b){if(b)b.addEventListener("click",function(){go(idx+1,1);});});
+  tabs.forEach(function(t,i){t.addEventListener("click",function(){go(i);});});
+  document.addEventListener("keydown",function(e){
+    if(e.altKey||e.ctrlKey||e.metaKey)return;
+    var tag=(e.target&&e.target.tagName)||"";
+    if(tag==="INPUT"||tag==="TEXTAREA")return;
+    if(e.key==="ArrowRight"||e.key==="Right"){go(idx+1,1);e.preventDefault();}
+    else if(e.key==="ArrowLeft"||e.key==="Left"){go(idx-1,-1);e.preventDefault();}
+    else if(e.key>="1"&&e.key<="4"){go(+e.key-1);e.preventDefault();}
+  });
+
+  /* ---- 站 01：卡片評分，一張接一張，清空亮放行鈕 ---- */
+  var cards=[
+    {code:"控001",src:"GoodNotes p.12 · 自動控制 · 根軌跡"},
+    {code:"數003",src:"GoodNotes p.31 · 工數 · 拉氏轉換"},
+    {code:"電012",src:"GoodNotes p.07 · 電子學 · 二極體電路"}
+  ];
+  var ci=0;
+  var rvGiant=document.getElementById("rvGiant"),
+      rvCode=document.getElementById("rvCode"),
+      rvSrc=document.getElementById("rvSrc"),
+      rvNow=document.getElementById("rvNow"),
+      rvDone=document.getElementById("rvDone"),
+      rvQueue=document.getElementById("rvQueue");
+  function paintCard(){
+    var left=cards.length-ci;
+    rvGiant.innerHTML=left+"<small>張</small>";
+    if(left<=0){
+      rvNow.style.display="none";rvDone.style.display="block";
+      if(rvQueue)rvQueue.style.display="none";
+      return;
+    }
+    rvCode.textContent=cards[ci].code;
+    rvSrc.textContent=cards[ci].src;
+    /* 佇列同步：把已消化的行拿掉 */
+    if(rvQueue){[].slice.call(rvQueue.children).forEach(function(r){
+      var q=r.getAttribute("data-q");
+      var still=cards.slice(ci+1).some(function(c){return c.code===q;});
+      r.style.display=still?"":"none";
+    });}
+    if(!rm.matches){
+      rvNow.classList.remove("replay");
+      void rvNow.offsetWidth;
+      rvNow.classList.add("replay");   /* 換卡：凝結重播一次 */
+    }
+  }
+  [].slice.call(document.querySelectorAll("[data-grade]")).forEach(function(b){
+    b.addEventListener("click",function(){ci++;paintCard();});
+  });
+  var goNext=document.getElementById("rvGoNext");
+  if(goNext)goNext.addEventListener("click",function(){go(1,1);});
+
+  /* ---- 站 02：考古題勾選 ---- */
+  [].slice.call(document.querySelectorAll('.box[role="checkbox"]')).forEach(function(b){
+    b.addEventListener("click",function(){
+      var on=b.getAttribute("aria-checked")==="true";
+      b.setAttribute("aria-checked",String(!on));
+      var lab=b.getAttribute("aria-label")||"";
+      b.setAttribute("aria-label",lab.replace(on?"已完成":"未完成",on?"未完成":"已完成"));
+    });
+  });
+
+  /* ---- 站 03：已通出列 ---- */
+  var wrGiant=document.getElementById("wrGiant"),
+      wrRows=document.getElementById("wrRows"),
+      wrEmpty=document.getElementById("wrEmpty"),
+      wrLeft=3;
+  [].slice.call(document.querySelectorAll("[data-pass]")).forEach(function(b){
+    b.addEventListener("click",function(){
+      var row=b.closest(".row");
+      if(!row)return;
+      row.style.transition="opacity var(--dur-exit) var(--ease)";
+      row.style.opacity="0";
+      setTimeout(function(){
+        row.remove();
+        wrLeft--;
+        wrGiant.innerHTML=wrLeft+"<small>題</small>";
+        if(wrLeft<=0&&wrEmpty)wrEmpty.hidden=false;
+      },rm.matches?0:210);
+    });
+  });
+
+  /* ---- 站 04：收工鎖站 ---- */
+  var wrap=document.getElementById("btnWrap");
+  if(wrap)wrap.addEventListener("click",function(){
+    wrap.textContent="已收工 · 明早見";
+    wrap.disabled=true;
+  });
+
+  /* ---- 活時鐘：tabular-nums 不位移 ---- */
+  var clk=document.getElementById("clock");
+  if(clk){
+    var p2=function(n){return (n<10?"0":"")+n;};
+    var tick=function(){var d=new Date();
+      clk.textContent=p2(d.getHours())+":"+p2(d.getMinutes())+":"+p2(d.getSeconds());};
+    tick();setInterval(tick,1000);
+  }
+})();
+</script>
+</body>
+</html>

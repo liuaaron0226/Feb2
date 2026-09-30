@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feb · Direction A — 夜航儀表</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============ DIRECTION A · 夜航儀表 · token 契約 ============ */
+:root{
+  --bg:#0A0C10;
+  --bg-raise:#10141B;
+  --ink:#E9EDF4;
+  --ink-dim:#A3ADC2;
+  --ink-faint:#75809E;
+  --accent:#E07840;            /* ember lit：讀數文字用（對比 6:1） */
+  --warm:#C25E2E;              /* ember core：只給正在燒的東西 */
+  --line:rgba(146,162,188,.12);
+  --line-strong:rgba(146,162,188,.28);
+  --glass:rgba(16,20,27,.88);
+  --glass-line:rgba(154,170,196,.15);
+  --sc-elec:#D2A377;
+  --sc-math:#6FB5B0;
+  --sc-la:#7FA3C9;
+  --sc-ctrl:#9F94CF;
+  --sc-toeic:#8FBD9F;
+  --w-title:2.5rem; --w-sub:1.0625rem; --w-body:.9375rem; --w-meta:.8125rem; --w-tag:.6875rem;
+  --ls-title:-.035em; --ls-tag:.16em;
+  --r-lg:18px; --r-md:12px; --r-sm:9px;
+  --btn-h:32px; --btn-h-sm:28px; --btn-h-xs:24px;
+  --dur:320ms; --ease:cubic-bezier(.22,1,.36,1);
+  --font-ui:'Inter','Noto Sans TC',system-ui,-apple-system,sans-serif;
+  --font-mono:'IBM Plex Mono','Noto Sans TC',Consolas,ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg);
+  background-image:radial-gradient(1100px 420px at 50% -140px, rgba(127,163,201,.05), transparent 70%);
+  color:var(--ink);
+  font-family:var(--font-ui);
+  font-size:var(--w-body);
+  line-height:1.6;
+  overflow-x:hidden;
+}
+::selection{background:var(--warm);color:var(--bg)}
+a{color:var(--ink-dim)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+
+.wrap{max-width:1200px;margin:0 auto;padding:56px clamp(16px,4vw,48px) 96px;display:flex;flex-direction:column;gap:26px}
+
+/* ---- 進場：只動 transform/opacity，40ms/項 ---- */
+@keyframes rise{from{opacity:0;transform:translateY(10px)}}
+[data-rise]{animation:rise var(--dur) var(--ease) backwards;animation-delay:var(--d,0ms)}
+
+/* ---- 面板：無毛玻璃，1px 內縮髮絲線的近平面浮起 ---- */
+.panel{
+  background:var(--bg-raise);
+  border-radius:var(--r-lg);
+  box-shadow:inset 0 0 0 1px var(--glass-line), inset 0 1px 0 rgba(255,255,255,.035), 0 12px 32px rgba(0,0,0,.35);
+  padding:26px 30px 30px;
+}
+.p-eyebrow{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.p-eyebrow .tag{
+  font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);
+  text-transform:uppercase;color:var(--ink-faint);font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.p-eyebrow .rule{flex:1;height:1px;background:var(--line)}
+.p-eyebrow .zh{font-size:var(--w-tag);letter-spacing:var(--ls-tag);color:var(--ink-faint);white-space:nowrap}
+
+/* ---- 觸控外擴：視覺高度照 token，命中區 ≥44px ---- */
+.hit{position:relative}
+.hit::after{
+  content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:max(100%,44px);height:max(100%,44px);
+}
+/* hover 覆膜：只轉 opacity */
+.tint{position:relative}
+.tint::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;background:currentColor;
+  opacity:0;transition:opacity 150ms var(--ease);pointer-events:none;
+}
+.tint:hover::before{opacity:.07}
+.tint:active::before{opacity:.13}
+
+/* ============ SPEC-HEAD ============ */
+.spec-head{padding:8px 2px 4px}
+.spec-head .eyebrow{
+  font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);
+  text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:14px;
+}
+.spec-head .eyebrow::after{content:"";flex:1;max-width:180px;height:1px;background:var(--line-strong)}
+.spec-head h1{
+  font-size:var(--w-title);letter-spacing:var(--ls-title);font-weight:700;
+  margin-top:14px;line-height:1.15;
+}
+.spec-head .thesis{margin-top:10px;color:var(--ink-dim);font-size:var(--w-sub);max-width:40em}
+.spec-head .thesis b{font-family:var(--font-mono);font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
+
+/* ============ S-01 HOME 待機 ============ */
+.home-grid{display:flex;align-items:flex-end;justify-content:space-between;gap:32px;flex-wrap:wrap}
+.clock{
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:calc(var(--w-title)*2.3);font-weight:500;letter-spacing:var(--ls-title);
+  line-height:1;margin-top:6px;
+}
+.clock .colon{color:var(--ink-faint)}
+.clock-meta{display:flex;align-items:center;gap:14px;margin-top:14px;flex-wrap:wrap}
+.clock-meta .date{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:var(--w-meta);color:var(--ink-dim)}
+.wx{
+  display:inline-flex;align-items:center;gap:7px;height:var(--btn-h-sm);padding:0 12px;
+  border-radius:999px;box-shadow:inset 0 0 0 1px var(--line-strong);
+  font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);font-variant-numeric:tabular-nums;
+}
+.wx svg{width:13px;height:13px;stroke:var(--ink-faint)}
+.modes{display:flex;gap:14px;flex-wrap:wrap}
+.mode{
+  min-height:64px;min-width:168px;padding:12px 26px;border-radius:var(--r-md);
+  display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;
+  text-align:left;transition:transform 150ms var(--ease);
+}
+.mode:active{transform:translateY(1px)}
+.mode .m-label{font-size:var(--w-sub);font-weight:600;letter-spacing:.01em}
+.mode .m-sub{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.08em;font-variant-numeric:tabular-nums}
+.mode.solid{background:var(--ink);color:var(--bg)}
+.mode.solid .m-sub{color:var(--bg);opacity:.62}
+.mode.ghost{box-shadow:inset 0 0 0 1px var(--line-strong);color:var(--ink)}
+.mode.ghost .m-sub{color:var(--ink-faint)}
+
+/* ---- 簽名件：D-154 倒數尺 ---- */
+.countdown{margin-top:30px;padding-top:24px;border-top:1px solid var(--line)}
+.cd-head{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap}
+.cd-d{
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:calc(var(--w-title)*1.5);font-weight:600;line-height:1;
+  color:var(--accent);letter-spacing:var(--ls-title);
+  text-shadow:0 0 22px rgba(194,94,46,.35);
+}
+.cd-label{font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.cd-note{margin-left:auto;font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint);font-variant-numeric:tabular-nums}
+.rail{display:flex;justify-content:space-between;align-items:flex-end;height:28px;margin-top:20px;position:relative}
+.tick{flex:none;width:2px;height:12px;border-radius:1px;background:var(--ink-dim);opacity:var(--o,.6)}
+.tick.m1{height:20px;background:var(--ink)}
+.tick.today{
+  width:3px;height:28px;border-radius:1.5px;background:var(--warm);
+  box-shadow:0 0 3px rgba(194,94,46,.9),0 0 14px rgba(194,94,46,.55);
+}
+@keyframes tickin{from{opacity:0;transform:translateY(5px)}}
+.boot .tick{animation:tickin 200ms var(--ease) backwards;animation-delay:calc(var(--i,0)*7ms)}
+.rail-months{position:relative;height:18px;margin-top:9px;
+  font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);
+  color:var(--ink-faint);font-variant-numeric:tabular-nums;text-transform:uppercase;
+}
+.mlabel{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+.mlabel.start{left:0;transform:none;color:var(--accent)}
+.mlabel.end{left:auto;right:0;transform:none;color:var(--accent)}
+
+/* ============ S-02 WORKBENCH 工作台 ============ */
+.toolbar{
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  padding:10px 16px;border-radius:var(--r-md);
+  box-shadow:inset 0 0 0 1px var(--line);margin-bottom:22px;
+}
+.tb-d{font-family:var(--font-mono);font-size:var(--w-meta);font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
+.tb-item{font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;gap:9px}
+.tb-sep{width:1px;height:16px;background:var(--line-strong)}
+.microbar{width:64px;height:3px;border-radius:2px;background:var(--line);overflow:hidden}
+.microbar i{display:block;height:100%;background:var(--ink-dim)}
+.search{
+  margin-left:auto;display:inline-flex;align-items:center;gap:9px;height:44px;padding:0 14px;
+  border-radius:var(--r-sm);box-shadow:inset 0 0 0 1px var(--line-strong);
+}
+.search svg{width:14px;height:14px;stroke:var(--ink-faint);flex:none}
+.search input{
+  background:none;border:0;color:var(--ink);font-family:var(--font-ui);font-size:var(--w-meta);
+  width:150px;outline:none;
+}
+.search input::placeholder{color:var(--ink-faint)}
+.search:focus-within{box-shadow:inset 0 0 0 1px var(--accent)}
+
+.wb-grid{display:grid;grid-template-columns:5fr 7fr;gap:26px;align-items:start}
+.wm-list{display:flex;flex-direction:column;gap:12px}
+.chapter{
+  border-radius:var(--r-md);padding:14px 16px 15px;
+  box-shadow:inset 0 0 0 1px var(--line);
+}
+.chapter.active{
+  background:var(--glass);
+  box-shadow:inset 0 0 0 1px var(--line-strong), inset 3px 0 0 var(--warm);
+}
+.ch-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.ch-sub{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);color:var(--c,var(--ink-dim))}
+.ch-status{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.08em;color:var(--ink-faint);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ch-status.on{color:var(--accent)}
+.ch-title{font-size:var(--w-sub);font-weight:600;margin-top:6px;letter-spacing:.01em}
+.ch-bar{height:3px;border-radius:2px;background:var(--line);overflow:hidden;margin-top:12px}
+.ch-bar i{display:block;height:100%;border-radius:2px;background:var(--c,var(--ink-dim));opacity:.85}
+.ch-meta{display:flex;justify-content:space-between;margin-top:7px;
+  font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.08em;color:var(--ink-faint);font-variant-numeric:tabular-nums}
+
+.wm-detail{border-radius:var(--r-md);box-shadow:inset 0 0 0 1px var(--line);padding:18px 20px 20px}
+.dt-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.dt-head h3{font-size:var(--w-sub);font-weight:700;letter-spacing:.01em}
+.dt-state{margin-left:auto;font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.08em;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
+.kp{display:flex;align-items:center;gap:12px;margin-top:16px}
+.kp .lab{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint);white-space:nowrap}
+.kp .bar{flex:1;height:3px;border-radius:2px;background:var(--line);overflow:hidden}
+.kp .bar i{display:block;height:100%;background:var(--sc-math);opacity:.85}
+.kp .val{font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.dt-group{margin-top:20px}
+.dt-group .g-lab{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint);margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.dt-group .g-lab::after{content:"";flex:1;height:1px;background:var(--line)}
+.chips{display:flex;gap:10px;flex-wrap:wrap}
+.chip{
+  height:var(--btn-h-sm);padding:0 13px;border-radius:var(--r-sm);
+  display:inline-flex;align-items:center;gap:8px;
+  box-shadow:inset 0 0 0 1px var(--line-strong);
+  font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink);font-variant-numeric:tabular-nums;
+}
+.chip .min{color:var(--ink-faint);font-size:var(--w-tag)}
+.xlinks{display:flex;gap:22px;flex-wrap:wrap}
+.xlink{
+  display:inline-flex;align-items:center;gap:6px;min-height:24px;
+  font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);
+  text-decoration:underline;text-underline-offset:4px;text-decoration-color:var(--line-strong);
+  font-variant-numeric:tabular-nums;
+}
+.xlink:hover{color:var(--ink);text-decoration-color:var(--ink-dim)}
+.xlink .arr{color:var(--ink-faint);font-family:var(--font-mono)}
+
+.review-strip{margin-top:22px;border-radius:var(--r-md);box-shadow:inset 0 0 0 1px var(--line);padding:14px 18px}
+.rv-lab{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint);display:flex;align-items:center;gap:12px}
+.rv-lab::after{content:"";flex:1;height:1px;background:var(--line)}
+.rv-row{display:flex;align-items:center;gap:14px;min-height:48px;flex-wrap:wrap}
+.rv-row + .rv-row{border-top:1px solid var(--line)}
+.rv-code{font-family:var(--font-mono);font-size:var(--w-meta);font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.rv-src{font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-faint);font-variant-numeric:tabular-nums}
+.rv-btns{margin-left:auto;display:flex;gap:8px}
+.grade{
+  height:var(--btn-h-xs);min-width:34px;padding:0 10px;border-radius:var(--r-sm);
+  box-shadow:inset 0 0 0 1px var(--line-strong);
+  font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.06em;color:var(--ink-dim);
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.grade:hover{color:var(--ink)}
+.rv-wait{margin-left:auto;font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint)}
+
+/* ============ S-03 EXAM 情報 ============ */
+.exam-wrap{display:grid;grid-template-columns:1fr 248px;gap:26px;align-items:start}
+.xtable{border-radius:var(--r-md);box-shadow:inset 0 0 0 1px var(--line);overflow:hidden}
+.xhead,.xrow{
+  display:grid;grid-template-columns:1.6fr .7fr 1.7fr .7fr .8fr;
+  gap:12px;align-items:center;padding:12px 18px;
+}
+.xhead{
+  font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);
+  text-transform:uppercase;color:var(--ink-faint);border-bottom:1px solid var(--line);
+  background:rgba(255,255,255,.015);
+}
+.xrow{min-height:56px}
+.xrow + .xrow{border-top:1px solid var(--line)}
+.c-school{font-weight:600;font-size:var(--w-body)}
+.c-school .grp{color:var(--ink-faint);font-weight:400;font-size:var(--w-meta);margin-left:6px}
+.c-date,.c-papers{font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.c-subj{font-size:var(--w-meta);color:var(--ink-dim)}
+.c-subj.none{color:var(--ink-faint)}
+.c-cd{font-family:var(--font-mono);font-size:var(--w-meta);font-variant-numeric:tabular-nums;color:var(--ink-dim);text-align:right}
+.c-cd .burn{
+  display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;
+  color:var(--accent);box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--warm) 55%, transparent);
+  font-weight:600;
+}
+.c-cd .off{color:var(--ink-faint)}
+.heat{border-radius:var(--r-md);box-shadow:inset 0 0 0 1px var(--line);padding:16px 18px}
+.heat .h-lab{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint)}
+.heat h4{font-size:var(--w-body);font-weight:600;margin-top:8px}
+.heat .cells{display:flex;gap:5px;margin-top:12px}
+.heat .cells i{width:14px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 1px var(--line-strong)}
+.heat .cells i.on{background:var(--warm);box-shadow:none}
+.heat .h-meta{margin-top:10px;font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.08em;color:var(--ink-faint);font-variant-numeric:tabular-nums}
+.heat .h-meta b{color:var(--accent);font-weight:600}
+
+/* ============ S-04 COMPONENTS 元件 ============ */
+.comp-grid{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.comp{border-radius:var(--r-md);box-shadow:inset 0 0 0 1px var(--line);padding:16px 18px 18px}
+.comp .c-lab{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint);margin-bottom:14px;display:flex;align-items:center;gap:12px}
+.comp .c-lab::after{content:"";flex:1;height:1px;background:var(--line)}
+.btn-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.btn-row + .btn-row{margin-top:12px}
+.btn-row .sz{width:30px;font-family:var(--font-mono);font-size:var(--w-tag);color:var(--ink-faint);font-variant-numeric:tabular-nums}
+.ui-solid,.ui-ghost{
+  height:var(--bh,var(--btn-h));padding:0 16px;border-radius:var(--r-sm);
+  display:inline-flex;align-items:center;font-size:var(--w-meta);font-weight:600;letter-spacing:.02em;
+  transition:transform 150ms var(--ease);
+}
+.ui-solid:active,.ui-ghost:active{transform:translateY(1px)}
+.ui-solid{background:var(--ink);color:var(--bg)}
+.ui-ghost{box-shadow:inset 0 0 0 1px var(--line-strong);color:var(--ink)}
+.ui-seg{
+  height:var(--bh,var(--btn-h));border-radius:var(--r-sm);display:inline-flex;align-items:stretch;
+  box-shadow:inset 0 0 0 1px var(--line-strong);overflow:hidden;
+}
+.ui-seg button{
+  padding:0 13px;font-size:var(--w-meta);color:var(--ink-faint);display:inline-flex;align-items:center;
+}
+.ui-seg button + button{border-left:1px solid var(--line)}
+.ui-seg button.on{background:rgba(233,237,244,.09);color:var(--ink);font-weight:600}
+.pills{display:flex;gap:10px;flex-wrap:wrap}
+.pill{
+  display:inline-flex;align-items:center;gap:8px;height:var(--btn-h-sm);padding:0 13px;border-radius:999px;
+  font-size:var(--w-meta);color:var(--c,var(--ink-dim));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--c,var(--ink-dim)) 40%, transparent);
+}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--c,var(--ink-dim))}
+.pill.sm{height:22px;padding:0 10px;font-size:var(--w-tag)}
+.lamps{display:flex;flex-direction:column}
+.lamp-row{display:flex;align-items:center;gap:11px;min-height:44px}
+.lamp-row + .lamp-row{border-top:1px solid var(--line)}
+.lamp{width:8px;height:8px;border-radius:50%;flex:none}
+.lamp.ok{background:var(--sc-toeic)}
+.lamp.busy{background:var(--sc-elec)}
+.lamp.miss{background:var(--warm);box-shadow:0 0 8px rgba(194,94,46,.6)}
+.lamp-row .l-name{font-size:var(--w-meta);color:var(--ink)}
+.lamp-row .l-note{margin-left:auto;font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.08em;color:var(--ink-faint);font-variant-numeric:tabular-nums}
+.lamp-row .l-note.hot{color:var(--accent)}
+.todo{
+  display:flex;align-items:center;gap:13px;min-height:52px;padding:0 16px;
+  border-radius:var(--r-md);box-shadow:inset 0 0 0 1px var(--line-strong);
+}
+.todo .box{
+  width:16px;height:16px;border-radius:4px;flex:none;
+  box-shadow:inset 0 0 0 1px var(--line-strong);background:none;padding:0;
+}
+.todo .t-name{font-size:var(--w-body);font-weight:500}
+.todo .t-due{margin-left:auto;font-family:var(--font-mono);font-size:var(--w-meta);font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
+
+/* ============ S-05 TOKENS 記號 ============ */
+.tk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.swatch{border-radius:var(--r-sm);box-shadow:inset 0 0 0 1px var(--line);padding:10px}
+.swatch .blk{height:40px;border-radius:6px;box-shadow:inset 0 0 0 1px var(--line)}
+.swatch .nm{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.06em;color:var(--ink);margin-top:9px}
+.swatch .hx{font-family:var(--font-mono);font-size:var(--w-tag);color:var(--ink-faint);font-variant-numeric:tabular-nums}
+.type-ladder{margin-top:26px;border-radius:var(--r-md);box-shadow:inset 0 0 0 1px var(--line);padding:6px 20px}
+.tl-row{display:flex;align-items:baseline;gap:22px;padding:13px 0}
+.tl-row + .tl-row{border-top:1px solid var(--line)}
+.tl-tag{flex:none;width:170px;font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.06em;color:var(--ink-faint);font-variant-numeric:tabular-nums}
+.tl-sample{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tl-title{font-size:var(--w-title);letter-spacing:var(--ls-title);font-weight:700;font-family:var(--font-mono);font-variant-numeric:tabular-nums;line-height:1.2}
+.tl-sub{font-size:var(--w-sub);font-weight:600}
+.tl-body{font-size:var(--w-body);color:var(--ink-dim)}
+.tl-meta{font-size:var(--w-meta);font-family:var(--font-mono);color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.tl-tagx{font-size:var(--w-tag);font-family:var(--font-mono);letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint)}
+
+/* ============ RWD ============ */
+@media (max-width:900px){
+  .wb-grid{grid-template-columns:1fr}
+  .exam-wrap{grid-template-columns:1fr}
+  .comp-grid{grid-template-columns:1fr}
+}
+@media (max-width:600px){
+  .panel{padding:20px 18px 22px}
+  .clock{font-size:calc(var(--w-title)*1.55)}
+  .cd-d{font-size:calc(var(--w-title)*1.1)}
+  .cd-note{margin-left:0;flex-basis:100%}
+  .tick{width:1px}
+  .tick.today{width:2px}
+  .search{margin-left:0;flex:1 1 100%}
+  .search input{width:100%;flex:1}
+  .xhead{display:none}
+  .xrow{grid-template-columns:1fr auto;grid-template-areas:"school cd" "subj subj" "date papers";row-gap:6px;padding:14px 16px}
+  .c-school{grid-area:school}
+  .c-cd{grid-area:cd}
+  .c-subj{grid-area:subj}
+  .c-date{grid-area:date}
+  .c-papers{grid-area:papers;text-align:right}
+  .tl-tag{width:118px}
+  .mode{min-width:100%;flex:1}
+  .rv-btns{margin-left:0;flex-basis:100%;padding-bottom:8px}
+}
+
+/* ---- reduced motion：全滅 ---- */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 1 · SPEC-HEAD -->
+  <header class="spec-head" data-rise>
+    <p class="eyebrow">Direction A · Night Instrument</p>
+    <h1>夜航儀表</h1>
+    <p class="thesis">凌晨的駕駛艙：儀表只發必要的光，每個數字都是讀數。唯一在燒的，是離筆試剩下的 <b>154</b> 夜。</p>
+  </header>
+
+  <!-- 2 · S-HOME 待機 -->
+  <section class="s-home panel" data-rise aria-label="待機">
+    <div class="p-eyebrow"><span class="tag">S-01 · Standby</span><span class="rule"></span><span class="zh">待機</span></div>
+    <div class="home-grid">
+      <div class="clockblock">
+        <div class="clock" aria-label="現在時刻 21 點 47 分">21<span class="colon">:</span>47</div>
+        <div class="clock-meta">
+          <span class="date">2026-08-31 · 週一</span>
+          <span class="wx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>晴 31°</span>
+        </div>
+      </div>
+      <div class="modes">
+        <button class="mode ghost tint hit"><span class="m-label">考古題</span><span class="m-sub">20 份離線在機</span></button>
+        <button class="mode solid tint hit"><span class="m-label">讀書</span><span class="m-sub">續 工數 W2 · ME-E07</span></button>
+      </div>
+    </div>
+
+    <!-- 簽名件：倒數尺 -->
+    <div class="countdown">
+      <div class="cd-head">
+        <span class="cd-d">D-154</span>
+        <span class="cd-label">距 2027-02-01 筆試</span>
+        <span class="cd-note">154 格 · 一格一夜</span>
+      </div>
+      <div class="rail boot" id="rail" role="img" aria-label="倒數尺：自今夜至 2027 年 2 月 1 日筆試，共 154 夜，每格一夜，今夜為燃點"></div>
+      <div class="rail-months" id="railMonths" aria-hidden="true"><span class="mlabel start">08·31 今夜</span><span class="mlabel end">02·01 筆試</span></div>
+      <noscript><p class="cd-label">（JavaScript 關閉：倒數尺未渲染，讀數仍為 D-154。）</p></noscript>
+    </div>
+  </section>
+
+  <!-- 3 · S-WORKBENCH 工作台 -->
+  <section class="s-workbench panel" data-rise aria-label="工作台">
+    <div class="p-eyebrow"><span class="tag">S-02 · Workbench</span><span class="rule"></span><span class="zh">工作台</span></div>
+
+    <div class="toolbar">
+      <span class="tb-d">D-154</span>
+      <span class="tb-sep" aria-hidden="true"></span>
+      <span class="tb-item">總進度 42%<span class="microbar" aria-hidden="true"><i style="width:42%"></i></span></span>
+      <span class="tb-sep" aria-hidden="true"></span>
+      <span class="tb-item">W2</span>
+      <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.8-3.8"/></svg><input type="search" placeholder="搜尋逐字稿" aria-label="搜尋逐字稿"></label>
+    </div>
+
+    <div class="wb-grid">
+      <div class="wm-list">
+        <article class="chapter" data-rise style="--c:var(--sc-elec)">
+          <div class="ch-top"><span class="ch-sub">電子學</span><span class="ch-status">已完成 ✓</span></div>
+          <h3 class="ch-title">BJT 與 FET</h3>
+          <div class="ch-bar"><i style="width:80%"></i></div>
+          <div class="ch-meta"><span>考點覆蓋</span><span>80%</span></div>
+        </article>
+        <article class="chapter active" data-rise style="--c:var(--sc-math)" aria-current="true">
+          <div class="ch-top"><span class="ch-sub">工數</span><span class="ch-status on">進行中 ●</span></div>
+          <h3 class="ch-title">拉普拉斯轉換</h3>
+          <div class="ch-bar"><i style="width:95%"></i></div>
+          <div class="ch-meta"><span>考點覆蓋</span><span>95%</span></div>
+        </article>
+        <article class="chapter" data-rise style="--c:var(--sc-la)">
+          <div class="ch-top"><span class="ch-sub">線代</span><span class="ch-status">未開始 ○</span></div>
+          <h3 class="ch-title">特徵值與對角化</h3>
+          <div class="ch-bar"><i style="width:60%"></i></div>
+          <div class="ch-meta"><span>考點覆蓋</span><span>60%</span></div>
+        </article>
+        <article class="chapter" data-rise style="--c:var(--sc-ctrl)">
+          <div class="ch-top"><span class="ch-sub">自動控制</span><span class="ch-status">未開始 ○</span></div>
+          <h3 class="ch-title">根軌跡</h3>
+          <div class="ch-bar"><i style="width:70%"></i></div>
+          <div class="ch-meta"><span>考點覆蓋</span><span>70%</span></div>
+        </article>
+      </div>
+
+      <div class="wm-detail" data-rise>
+        <div class="dt-head">
+          <span class="pill sm" style="--c:var(--sc-math)">工數</span>
+          <h3>拉普拉斯轉換</h3>
+          <span class="dt-state">W2 · 進行中</span>
+        </div>
+        <div class="kp">
+          <span class="lab">KP · 考點</span>
+          <span class="bar" aria-hidden="true"><i style="width:95%"></i></span>
+          <span class="val">95%</span>
+        </div>
+        <div class="dt-group">
+          <div class="g-lab">EP · 集數</div>
+          <div class="chips">
+            <button class="chip tint hit">ME-E07<span class="min">169min</span></button>
+            <button class="chip tint hit">ME-E08<span class="min">142min</span></button>
+          </div>
+        </div>
+        <div class="dt-group">
+          <div class="g-lab">PX · 考古題</div>
+          <div class="xlinks">
+            <a class="xlink hit" href="#">台大113 第3題<span class="arr">↗</span></a>
+            <a class="xlink hit" href="#">成大112 第1題<span class="arr">↗</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-strip" data-rise>
+      <div class="rv-lab">RV · 今日複習</div>
+      <div class="rv-row">
+        <span class="rv-code">控001</span>
+        <span class="rv-src">GoodNotes p.12</span>
+        <div class="rv-btns">
+          <button class="grade tint hit" aria-label="控001 評分 pass">pass</button>
+          <button class="grade tint hit" aria-label="控001 評分 A">A</button>
+          <button class="grade tint hit" aria-label="控001 評分 B">B</button>
+          <button class="grade tint hit" aria-label="控001 評分 C">C</button>
+        </div>
+      </div>
+      <div class="rv-row">
+        <span class="rv-code">數003</span>
+        <span class="rv-src">p.31</span>
+        <span class="rv-wait">待複習</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · S-EXAM 情報表 -->
+  <section class="s-exam panel" data-rise aria-label="情報">
+    <div class="p-eyebrow"><span class="tag">S-03 · Exam Intel</span><span class="rule"></span><span class="zh">情報</span></div>
+    <div class="exam-wrap">
+      <div class="xtable" role="table" aria-label="報考校系情報">
+        <div class="xhead" role="row">
+          <span>校系 · 組</span><span>試日</span><span>筆試科目</span><span>考古題</span><span style="text-align:right">倒數</span>
+        </div>
+        <div class="xrow" role="row">
+          <span class="c-school">台大電機<span class="grp">丙組</span></span>
+          <span class="c-date">02·01</span>
+          <span class="c-subj">工數A＋電子學</span>
+          <span class="c-papers">10 份</span>
+          <span class="c-cd"><span class="burn">D-154</span></span>
+        </div>
+        <div class="xrow" role="row">
+          <span class="c-school">成大電機<span class="grp">甲組</span></span>
+          <span class="c-date">02·03</span>
+          <span class="c-subj">工數＋電路</span>
+          <span class="c-papers">7 份</span>
+          <span class="c-cd">D-156</span>
+        </div>
+        <div class="xrow" role="row">
+          <span class="c-school">中央電機</span>
+          <span class="c-date">—</span>
+          <span class="c-subj none">免筆試 · 書面審查</span>
+          <span class="c-papers">3 份</span>
+          <span class="c-cd"><span class="off">—</span></span>
+        </div>
+      </div>
+      <aside class="heat" data-rise>
+        <div class="h-lab">Heat · 出題熱度</div>
+        <h4>拉普拉斯轉換</h4>
+        <div class="cells" aria-label="十年份考古題中出現九次">
+          <i class="on" style="opacity:.3"></i><i class="on" style="opacity:.38"></i><i></i><i class="on" style="opacity:.5"></i><i class="on" style="opacity:.58"></i><i class="on" style="opacity:.66"></i><i class="on" style="opacity:.76"></i><i class="on" style="opacity:.86"></i><i class="on" style="opacity:.93"></i><i class="on"></i>
+        </div>
+        <div class="h-meta">台大 104–113 · <b>9/10 份</b>出現</div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- 5 · S-COMPONENTS 元件 -->
+  <section class="s-components panel" data-rise aria-label="元件">
+    <div class="p-eyebrow"><span class="tag">S-04 · Components</span><span class="rule"></span><span class="zh">元件</span></div>
+    <div class="comp-grid">
+      <div class="comp" data-rise>
+        <div class="c-lab">BTN · 三型 × 三高</div>
+        <div class="btn-row" style="--bh:var(--btn-h)">
+          <span class="sz">32</span>
+          <button class="ui-solid tint hit">開始</button>
+          <button class="ui-ghost tint hit">稍後</button>
+          <div class="ui-seg" role="group" aria-label="範圍切換 32"><button class="on hit">週</button><button class="hit">月</button><button class="hit">全</button></div>
+        </div>
+        <div class="btn-row" style="--bh:var(--btn-h-sm)">
+          <span class="sz">28</span>
+          <button class="ui-solid tint hit">開始</button>
+          <button class="ui-ghost tint hit">稍後</button>
+          <div class="ui-seg" role="group" aria-label="範圍切換 28"><button class="on hit">週</button><button class="hit">月</button><button class="hit">全</button></div>
+        </div>
+        <div class="btn-row" style="--bh:var(--btn-h-xs)">
+          <span class="sz">24</span>
+          <button class="ui-solid tint hit">開始</button>
+          <button class="ui-ghost tint hit">稍後</button>
+          <div class="ui-seg" role="group" aria-label="範圍切換 24"><button class="on hit">週</button><button class="hit">月</button><button class="hit">全</button></div>
+        </div>
+      </div>
+      <div class="comp" data-rise>
+        <div class="c-lab">SC · 學科</div>
+        <div class="pills">
+          <span class="pill" style="--c:var(--sc-elec)">電子學</span>
+          <span class="pill" style="--c:var(--sc-math)">工程數學</span>
+          <span class="pill" style="--c:var(--sc-la)">線性代數</span>
+          <span class="pill" style="--c:var(--sc-ctrl)">自動控制</span>
+          <span class="pill" style="--c:var(--sc-toeic)">多益</span>
+        </div>
+      </div>
+      <div class="comp" data-rise>
+        <div class="c-lab">ST · 狀態燈</div>
+        <div class="lamps">
+          <div class="lamp-row"><span class="lamp ok" aria-hidden="true"></span><span class="l-name">離線就緒</span><span class="l-note">12/12 在機</span></div>
+          <div class="lamp-row"><span class="lamp busy" aria-hidden="true"></span><span class="l-name">補檔中</span><span class="l-note">2 檔傳輸</span></div>
+          <div class="lamp-row"><span class="lamp miss" aria-hidden="true"></span><span class="l-name">缺 3</span><span class="l-note hot">字幕未載</span></div>
+        </div>
+      </div>
+      <div class="comp" data-rise>
+        <div class="c-lab">TD · 待辦</div>
+        <div class="todo">
+          <button class="box hit" role="checkbox" aria-checked="false" aria-label="多益報名 未完成"></button>
+          <span class="t-name">多益報名</span>
+          <span class="t-due">剩 4 天</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · S-TOKENS 記號 -->
+  <section class="s-tokens panel" data-rise aria-label="記號">
+    <div class="p-eyebrow"><span class="tag">S-05 · Tokens</span><span class="rule"></span><span class="zh">記號</span></div>
+    <div class="tk-grid">
+      <div class="swatch"><div class="blk" style="background:var(--bg)"></div><div class="nm">--bg</div><div class="hx">#0A0C10</div></div>
+      <div class="swatch"><div class="blk" style="background:var(--bg-raise)"></div><div class="nm">--bg-raise</div><div class="hx">#10141B</div></div>
+      <div class="swatch"><div class="blk" style="background:var(--ink)"></div><div class="nm">--ink</div><div class="hx">#E9EDF4</div></div>
+      <div class="swatch"><div class="blk" style="background:var(--ink-dim)"></div><div class="nm">--ink-dim</div><div class="hx">#A3ADC2</div></div>
+      <div class="swatch"><div class="blk" style="background:var(--ink-faint)"></div><div class="nm">--ink-faint</div><div class="hx">#75809E</div></div>
+      <div class="swatch"><div class="blk" style="background:var(--accent)"></div><div class="nm">--accent</div><div class="hx">#E07840</div></div>
+      <div class="swatch"><div class="blk" style="background:var(--warm)"></div><div class="nm">--warm</div><div class="hx">#C25E2E</div></div>
+      <div class="swatch"><div class="blk" style="background:var(--line-strong)"></div><div class="nm">--line / strong</div><div class="hx">146,162,188 · 12/28%</div></div>
+      <div class="swatch"><div class="blk" style="background:var(--glass);box-shadow:inset 0 0 0 1px var(--glass-line)"></div><div class="nm">--glass / line</div><div class="hx">無模糊 · 髮絲線</div></div>
+      <div class="swatch"><div class="blk" style="background:var(--sc-elec)"></div><div class="nm">--sc-elec</div><div class="hx">#D2A377</div></div>
+      <div class="swatch"><div class="blk" style="background:var(--sc-math)"></div><div class="nm">--sc-math</div><div class="hx">#6FB5B0</div></div>
+      <div class="swatch"><div class="blk" style="background:var(--sc-la)"></div><div class="nm">--sc-la</div><div class="hx">#7FA3C9</div></div>
+      <div class="swatch"><div class="blk" style="background:var(--sc-ctrl)"></div><div class="nm">--sc-ctrl</div><div class="hx">#9F94CF</div></div>
+      <div class="swatch"><div class="blk" style="background:var(--sc-toeic)"></div><div class="nm">--sc-toeic</div><div class="hx">#8FBD9F</div></div>
+    </div>
+    <div class="type-ladder">
+      <div class="tl-row"><span class="tl-tag">--w-title · 2.5rem · mono</span><span class="tl-sample tl-title">D-154</span></div>
+      <div class="tl-row"><span class="tl-tag">--w-sub · 1.0625rem</span><span class="tl-sample tl-sub">拉普拉斯轉換 · 特徵值與對角化</span></div>
+      <div class="tl-row"><span class="tl-tag">--w-body · .9375rem</span><span class="tl-sample tl-body">今晚讀書模式：工數 W2，ME-E07 自 42:10 續播。</span></div>
+      <div class="tl-row"><span class="tl-tag">--w-meta · .8125rem · mono</span><span class="tl-sample tl-meta">ME-E07 · 169min · 台大113 第3題</span></div>
+      <div class="tl-row"><span class="tl-tag">--w-tag · .6875rem · ls .16em</span><span class="tl-sample tl-tagx">S-05 · Tokens · IBM Plex Mono</span></div>
+    </div>
+  </section>
+
+</div>
+<script>
+(function(){
+  // 進場 stagger：40ms/項，只動 transform/opacity
+  var rises=document.querySelectorAll('[data-rise]');
+  for(var k=0;k<rises.length;k++){rises[k].style.setProperty('--d',(k*40)+'ms');}
+
+  // 簽名件 D-154 倒數尺：154 格，一格一夜（2026-08-31 起，燃至 02-01 筆試）
+  var rail=document.getElementById('rail');
+  var months=document.getElementById('railMonths');
+  if(!rail)return;
+  var N=154;
+  var frag=document.createDocumentFragment();
+  for(var i=0;i<N;i++){
+    var d=new Date(2026,7,31+i); // 真實日期推算，月界為真
+    var t=document.createElement('i');
+    t.className='tick';
+    var o;
+    if(i===0){t.classList.add('today');o=1;}
+    else{o=Math.max(.24,.9-(i/N)*.62);} // 越遠越暗：未到的夜先蟄伏
+    if(i>0&&d.getDate()===1){
+      t.classList.add('m1');o=Math.min(1,o+.2);
+      var s=document.createElement('span');
+      s.className='mlabel';
+      s.style.left=(i/(N-1)*100)+'%';
+      s.textContent=(d.getMonth()+1<10?'0':'')+(d.getMonth()+1);
+      months.appendChild(s);
+    }
+    t.style.setProperty('--o',o);
+    t.style.setProperty('--i',i);
+    frag.appendChild(t);
+  }
+  rail.appendChild(frag);
+  // 開機掃描只跑一次，結束後移除 boot（reduced-motion 由 CSS 全滅）
+  setTimeout(function(){rail.classList.remove('boot');},N*7+400);
+})();
+</script>
+</body>
+</html>

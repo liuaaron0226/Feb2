@@ -1,0 +1,5 @@
+{
+  "error": true,
+  "code": "UNEXPECTED_ERROR",
+  "message": "Unexpected error: Authentication expired or invalid. Final URL: https://accounts.google.com/<redacted>\nRun 'notebooklm login' to re-authenticate."
+}

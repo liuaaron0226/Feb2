@@ -1,0 +1,107 @@
+[
+ {
+  "file": "ncku-control.json",
+  "school": "成大電機",
+  "subject": "控制系統(含控制工程、線性系統)"
+ },
+ {
+  "file": "ncku-math.json",
+  "school": "成大電機",
+  "subject": "工程數學"
+ },
+ {
+  "file": "nckues-circ.json",
+  "school": "成大工科",
+  "subject": "電子電路"
+ },
+ {
+  "file": "nckues-control.json",
+  "school": "成大工科",
+  "subject": "控制系統"
+ },
+ {
+  "file": "nckues-la.json",
+  "school": "成大工科",
+  "subject": "線性代數"
+ },
+ {
+  "file": "nckues-math.json",
+  "school": "成大工科",
+  "subject": "工程數學"
+ },
+ {
+  "file": "nckues-sig.json",
+  "school": "成大工科",
+  "subject": "訊號與系統"
+ },
+ {
+  "file": "ncu-elec.json",
+  "school": "中央",
+  "subject": "電子學"
+ },
+ {
+  "file": "ncu-math.json",
+  "school": "中央",
+  "subject": "工程數學（不含複變）"
+ },
+ {
+  "file": "ncu-sig.json",
+  "school": "中央",
+  "subject": "信號與系統"
+ },
+ {
+  "file": "nsysu-control.json",
+  "school": "中山",
+  "subject": "控制系統"
+ },
+ {
+  "file": "nsysu-math.json",
+  "school": "中山",
+  "subject": "工程數學乙"
+ },
+ {
+  "file": "nthupme-control.json",
+  "school": "清大動機",
+  "subject": "控制系統"
+ },
+ {
+  "file": "ntu-control.json",
+  "school": "台大",
+  "subject": "控制系統(含電路系統分析)"
+ },
+ {
+  "file": "ntu-math.json",
+  "school": "台大",
+  "subject": "工程數學C"
+ },
+ {
+  "file": "ntust-math.json",
+  "school": "台科大(自控所)",
+  "subject": "工程數學"
+ },
+ {
+  "file": "ntut-control.json",
+  "school": "北科大",
+  "subject": "控制系統"
+ },
+ {
+  "file": "ntut-math.json",
+  "school": "北科大",
+  "subject": "工程數學"
+ },
+ {
+  "file": "ust-control.json",
+  "school": "台聯大",
+  "subject": "控制系統"
+ },
+ {
+  "file": "ust-elec.json",
+  "school": "台聯大",
+  "subject": "電子學"
+ },
+ {
+  "file": "ust-math.json",
+  "school": "台聯大",
+  "subject": "工程數學C"
+ }
+]

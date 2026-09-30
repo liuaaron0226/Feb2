@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>複習排程表 · 116 控制組</title>
+<style>
+  @page { size: A4 portrait; margin: 9mm 8mm; }
+
+  :root{
+    --ink:#14181d;
+    --ink2:#4a5460;
+    --ink3:#8a95a3;
+    --line:#c8d0da;
+    --line2:#e4e9ef;
+    --hl:#a8620d;
+    --hlbg:#fdf6ec;
+    --wk:#f6f8fa;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  body{
+    font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif;
+    color:var(--ink);
+    background:#e8ecf1;
+    padding:14px;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .sheet{
+    width:194mm; min-height:279mm;
+    margin:0 auto; background:#fff; padding:0;
+    display:flex; flex-direction:column;
+    box-shadow:0 2px 18px rgba(20,24,29,.14);
+  }
+
+  /* ---------- header ---------- */
+  .hd{
+    display:flex; align-items:baseline; gap:10px;
+    border-bottom:1.6px solid var(--ink);
+    padding-bottom:5px; margin-bottom:7px;
+  }
+  .hd h1{ font-size:15.5px; font-weight:800; letter-spacing:.4px; }
+  .hd .sub{ font-size:9.6px; color:var(--ink2); }
+  .hd .rt{ margin-left:auto; font-size:9.6px; color:var(--ink2); text-align:right; line-height:1.45; }
+  .hd .rt b{ color:var(--hl); font-size:11.5px; }
+
+  /* ---------- how it works strip ---------- */
+  .flow{
+    display:grid; grid-template-columns:repeat(5,1fr); gap:0;
+    border:1px solid var(--line); border-radius:3px;
+    margin-bottom:8px; overflow:hidden;
+  }
+  .flow div{
+    padding:4.5px 7px; font-size:9px; line-height:1.4;
+    border-right:1px solid var(--line2); color:var(--ink2);
+  }
+  .flow div:last-child{ border-right:0; }
+  .flow b{ display:block; color:var(--ink); font-size:9.4px; margin-bottom:1px; }
+  .flow .n{ color:var(--hl); font-weight:800; }
+
+  /* ---------- calendar ---------- */
+  .calwrap{ flex:1; display:flex; flex-direction:column; }
+  .cal{ display:grid; grid-template-columns:repeat(7,1fr); gap:2.5px; }
+  .dow{
+    text-align:center; font-size:8.6px; font-weight:700; color:var(--ink3);
+    letter-spacing:1.5px; padding-bottom:2px;
+  }
+  .cell{
+    border:1px solid var(--line); border-radius:2.5px;
+    min-height:60px; padding:2.5px 3px 0;
+    display:flex; flex-direction:column;
+  }
+  .cell.wknd{ background:var(--wk); }
+  .cell.past{ background:repeating-linear-gradient(135deg,#fff,#fff 4px,#f2f4f7 4px,#f2f4f7 8px); }
+  .cell .d{
+    font-size:8.8px; font-weight:700; color:var(--ink2);
+    display:flex; align-items:baseline; gap:3px; margin-bottom:1px;
+  }
+  .cell .d .m{ font-size:7.4px; color:var(--ink3); font-weight:600; }
+  .cell .d .tag{
+    margin-left:auto; font-size:7.4px; font-weight:800; letter-spacing:.2px;
+    color:var(--hl); background:var(--hlbg); border-radius:2px; padding:0 2.5px;
+  }
+  .cell .lines{ flex:1; display:flex; flex-direction:column; justify-content:flex-start; }
+  .cell .lines i{ display:block; border-bottom:1px dotted #d5dce4; height:9.5px; }
+
+  .wklabel{
+    grid-column:1 / -1; font-size:7.8px; font-weight:800; color:var(--ink3);
+    letter-spacing:1.2px; padding:3.5px 0 1px; border-top:1px solid var(--line2);
+    margin-top:1px;
+  }
+  .wklabel:first-of-type{ border-top:0; margin-top:0; }
+  .wklabel span{ color:var(--hl); }
+
+  /* ---------- bottom reference ---------- */
+  .ref{
+    display:grid; grid-template-columns:1.28fr 1fr 1.06fr; gap:7px;
+    margin-top:8px; padding-top:7px; border-top:1.6px solid var(--ink);
+  }
+  .box h2{
+    font-size:9.4px; font-weight:800; letter-spacing:.6px;
+    margin-bottom:3.5px; color:var(--ink);
+    display:flex; align-items:center; gap:4px;
+  }
+  .box h2::before{
+    content:""; width:3px; height:9px; background:var(--hl); border-radius:1px;
+  }
+  table{ width:100%; border-collapse:collapse; font-size:8.6px; }
+  th,td{ text-align:left; padding:2.2px 3px; border-bottom:1px solid var(--line2); line-height:1.32; }
+  th{ font-weight:700; color:var(--ink3); font-size:7.8px; letter-spacing:.4px; }
+  td.g{ font-weight:800; color:var(--hl); white-space:nowrap; }
+  .note{ font-size:7.8px; color:var(--ink3); line-height:1.45; margin-top:3.5px; }
+
+  .codes li{ list-style:none; font-size:8.6px; line-height:1.5; display:flex; gap:5px; margin-bottom:1.5px; }
+  .codes .k{
+    flex:none; width:15px; height:15px; border:1.3px solid var(--ink); border-radius:2.5px;
+    font-weight:800; font-size:8.6px; display:flex; align-items:center; justify-content:center;
+  }
+  .codes .t b{ display:block; }
+  .codes .t span{ color:var(--ink3); font-size:7.6px; }
+
+  .tally{
+    margin-top:5px; border:1px solid var(--line); border-radius:3px; padding:4px 5px;
+    background:var(--hlbg);
+  }
+  .tally b{ font-size:8.4px; display:block; margin-bottom:2.5px; }
+  .tally .row{ display:flex; gap:3px; align-items:center; font-size:7.6px; color:var(--ink2); margin-bottom:2.5px; }
+  .tally .row:last-child{ margin-bottom:0; }
+  .tally .row span{ flex:none; width:26px; font-weight:700; color:var(--ink); }
+  .tally .row i{ flex:1; border-bottom:1px solid var(--line); height:10px; display:block; }
+
+  .foot{
+    margin-top:6px; padding-top:4px; border-top:1px solid var(--line2);
+    font-size:7.7px; color:var(--ink3); display:flex; gap:12px;
+  }
+  .foot b{ color:var(--ink2); }
+
+  @media print{
+    body{ background:#fff; padding:0; }
+    .sheet{ width:auto; min-height:0; box-shadow:none; }
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="hd">
+    <h1>複習排程表</h1>
+    <div class="sub">116 電機控制組 · 紙本試跑 14 天</div>
+    <div class="rt">考試 2027-02-01 · 距考 <b>165</b> 天<br>起算 2026-08-16（衝刺 D1）</div>
+  </div>
+
+  <div class="flow">
+    <div><b><span class="n">1</span> 讀線索</b>看今天格子裡的卡號，翻 GoodNotes 對應頁</div>
+    <div><b><span class="n">2</span> 先自己做</b>蓋住解答，限時 5 分鐘，做不出來也要停</div>
+    <div><b><span class="n">3</span> 立刻對答案</b>不可略過。沒回饋的提取等於沒做</div>
+    <div><b><span class="n">4</span> 記代碼</b>做出來打 ✓；沒做出來記 A / B / C</div>
+    <div><b><span class="n">5</span> 查表排下次</b>把卡號寫進右邊查到的那一天</div>
+  </div>
+
+  <div class="calwrap">
+    <div class="cal" id="cal"></div>
+  </div>
+
+  <div class="ref">
+
+    <div class="box">
+      <h2>下次複習日查表</h2>
+      <table>
+        <tr><th style="width:38%">狀況</th><th>下次</th></tr>
+        <tr><td>這題第一次進表</td><td class="g">+3 天</td></tr>
+        <tr><td>第 2 次以後（距考 &gt;60 天）</td><td class="g">+14 天，之後 +28 天</td></tr>
+        <tr><td>距考 30–60 天（12/03 起）</td><td class="g">最多 +14 天</td></tr>
+        <tr><td>距考 &lt;30 天（1/02 起）</td><td class="g">最多 +5 天，全部回鍋</td></tr>
+        <tr><td>這次<b>沒做出來</b></td><td class="g">重設回 +3 天</td></tr>
+        <tr><td>連續 3 次做出來</td><td class="g">降到 +28 天（不移除）</td></tr>
+      </table>
+      <div class="note"><b>晚幾天沒關係，不要補。</b>間隔訂太長的代價遠小於訂太短，格子沒寫完就順延到明天，不累積「複習債」。</div>
+    </div>
+
+    <div class="box">
+      <h2>沒做出來，是哪一種</h2>
+      <ul class="codes">
+        <li><span class="k">A</span><span class="t"><b>不知道用哪個原理</b><span>看到題目沒有方向</span></span></li>
+        <li><span class="k">B</span><span class="t"><b>原理對，條件判斷錯</b><span>用了但套錯前提／範圍</span></span></li>
+        <li><span class="k">C</span><span class="t"><b>方向對，算錯</b><span>代數、符號、計算失誤</span></span></li>
+      </ul>
+      <div class="note">C 佔多數 → 你的問題是熟練度，多做題。A、B 佔多數 → 是判斷問題，該回頭讀原理與適用條件。<b>兩週後看哪一類最多，再決定要不要寫網頁版。</b></div>
+    </div>
+
+    <div class="box">
+      <h2>每日尾巴（混題）</h2>
+      <div class="note" style="margin-top:0">今天格子裡的卡號寫完後，<b>再從已讀完第一輪的章節隨機抓 3–5 題</b>，同一科內混不同題型，不跨科。上限 10 分鐘，做不完就跳過。控制系統 9/13 前不列入。</div>
+      <div class="tally">
+        <b>每日兩個數字（只記這兩個）</b>
+        <div class="row"><span>做幾題</span><i></i></div>
+        <div class="row"><span>幾分鐘</span><i></i></div>
+      </div>
+      <div class="note">兩週後只問一個問題：<b>14 天裡你實際打開這張紙幾天？</b>低於 10 天，網頁版也救不了，先修習慣。</div>
+    </div>
+
+  </div>
+
+  <div class="foot">
+    <div><b>卡號規則</b>科目首字＋流水號：控001、電001、數001。編號寫在 GoodNotes 該題旁邊</div>
+    <div><b>一格寫不下</b>就往下一格借，別另開紙</div>
+  </div>
+
+</div>
+
+<script>
+const START = new Date(2026, 7, 16);   // 2026-08-16，衝刺 D1
+const WEEKS = 7;
+const DOW = ['日','一','二','三','四','五','六'];
+const MARK = {
+  '2026-08-16':'D1 起跑',
+  '2026-08-29':'第2週檢視',
+  '2026-08-30':'紙本試跑結束',
+  '2026-09-13':'控制系統開始'
+};
+const key = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+
+const cal = document.getElementById('cal');
+DOW.forEach(d => {
+  const e = document.createElement('div');
+  e.className = 'dow'; e.textContent = d; cal.appendChild(e);
+});
+
+// align to the Sunday of the start week
+const first = new Date(START);
+first.setDate(first.getDate() - first.getDay());
+
+for (let w = 0; w < WEEKS; w++) {
+  const lab = document.createElement('div');
+  lab.className = 'wklabel';
+  const ws = new Date(first); ws.setDate(ws.getDate() + w * 7);
+  const we = new Date(ws);   we.setDate(we.getDate() + 6);
+  const trial = w < 2 ? ' <span>· 紙本試跑</span>' : '';
+  lab.innerHTML = `第 ${w + 1} 週　${ws.getMonth() + 1}/${ws.getDate()} – ${we.getMonth() + 1}/${we.getDate()}${trial}`;
+  cal.appendChild(lab);
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(first);
+    d.setDate(d.getDate() + w * 7 + i);
+    const c = document.createElement('div');
+    c.className = 'cell' + ((i === 0 || i === 6) ? ' wknd' : '') + (d < START ? ' past' : '');
+    const k = key(d);
+    const tag = MARK[k] ? `<span class="tag">${MARK[k]}</span>` : '';
+    const showMonth = d.getDate() === 1 || (w === 0 && i === 0);
+    c.innerHTML =
+      `<div class="d">${showMonth ? `<span class="m">${d.getMonth() + 1}月</span>` : ''}${d.getDate()}${tag}</div>` +
+      `<div class="lines">${'<i></i>'.repeat(4)}</div>`;
+    cal.appendChild(c);
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,226 @@
+<title>Feb 教材管線交接</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+:root{
+  --paper:#F7F8F7; --card:#FFFFFF; --sunk:#EDEFEE;
+  --ink:#1A1F1D; --ink-2:#4C5854; --ink-3:#7B8783;
+  --rule:#DDE1DF; --rule-2:#C6CCC9;
+  --ok:#2E7D57; --warn:#9A6410; --bad:#B23F2E; --info:#2B6584;
+  --accent:#2B6584;
+  --f:"Noto Sans TC",system-ui,-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
+  --m:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#121614; --card:#1A201E; --sunk:#0C100E;
+    --ink:#E6EBE8; --ink-2:#A6B2AD; --ink-3:#78847F;
+    --rule:#28302D; --rule-2:#374039;
+    --ok:#6CC094; --warn:#D9A54E; --bad:#E0806D; --info:#77B2D4;
+    --accent:#77B2D4;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#121614; --card:#1A201E; --sunk:#0C100E;
+  --ink:#E6EBE8; --ink-2:#A6B2AD; --ink-3:#78847F;
+  --rule:#28302D; --rule-2:#374039;
+  --ok:#6CC094; --warn:#D9A54E; --bad:#E0806D; --info:#77B2D4;
+  --accent:#77B2D4;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f);
+  font-size:15px;line-height:1.7;-webkit-text-size-adjust:100%}
+.wrap{max-width:78ch;margin:0 auto;padding:36px 22px 96px}
+code,.m{font-family:var(--m);font-size:.88em;font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.top{padding-bottom:20px;border-bottom:2px solid var(--ink)}
+.eyebrow{font-family:var(--m);font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3)}
+h1{margin:6px 0 4px;font-size:1.72rem;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+.stamp{font-family:var(--m);font-size:.8rem;color:var(--ink-2)}
+
+h2{margin:44px 0 4px;font-size:1.12rem;font-weight:700;
+  padding-bottom:7px;border-bottom:1px solid var(--rule-2);text-wrap:balance}
+h2 .idx{font-family:var(--m);font-size:.78rem;color:var(--ink-3);margin-right:9px}
+h3{margin:26px 0 6px;font-size:.98rem;font-weight:700}
+p{margin:10px 0}
+ul{margin:9px 0;padding-left:1.25em}
+li{margin:5px 0}
+.lead{color:var(--ink-2)}
+
+/* 現況面板：這份文件的讀者第一眼要看到的東西 */
+.now{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);
+  border-radius:9px;overflow:hidden;margin:22px 0 8px}
+@media(min-width:640px){.now{grid-template-columns:repeat(2,1fr)}}
+.now div{background:var(--card);padding:12px 15px}
+.now dt{font-size:.76rem;color:var(--ink-3);letter-spacing:.03em}
+.now dd{margin:3px 0 0;font-family:var(--m);font-size:1.02rem;font-weight:600}
+.now dd small{font-family:var(--f);font-weight:400;font-size:.78rem;color:var(--ink-2)}
+
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.9rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-size:.76rem;letter-spacing:.05em;color:var(--ink-3);font-weight:500;
+  border-bottom:1px solid var(--rule-2)}
+td.n{font-family:var(--m);font-variant-numeric:tabular-nums;white-space:nowrap}
+.scroll{overflow-x:auto}
+
+/* 狀態標記：形也要能辨識，不能只靠顏色 */
+.tag{display:inline-block;font-family:var(--m);font-size:.72rem;font-weight:600;
+  padding:1px 7px;border-radius:4px;border:1px solid currentColor;white-space:nowrap}
+.t-ok{color:var(--ok)} .t-run{color:var(--info)} .t-wait{color:var(--warn)} .t-bad{color:var(--bad)}
+
+/* 條目：日期在左、內容在右，時間軸靠一條細線串起來 */
+.log{margin:14px 0;padding-left:16px;border-left:2px solid var(--rule-2)}
+.log .item{margin:0 0 18px}
+.log .when{font-family:var(--m);font-size:.75rem;color:var(--ink-3)}
+.log .what{font-weight:700;margin:1px 0 3px}
+.log p{margin:5px 0}
+
+.note{margin:14px 0;padding:12px 15px;background:var(--sunk);border-radius:8px;
+  font-size:.9rem;color:var(--ink-2)}
+.note b{color:var(--ink)}
+.foot{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);
+  font-size:.8rem;color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">交接 · Handoff</div>
+  <h1>Feb 教材管線交接</h1>
+  <div class="stamp">2026-09-09 → 2026-09-10 10:12　·　撰寫時上傳仍在進行</div>
+</header>
+
+<p class="lead">這兩天的工作集中在一件事：讓 112 堂課在平板上能用 Feb 自己的播放器，而不是退回 Google 的陽春播放器。附帶修掉了三個會靜默失敗的缺陷。以下按「現況 → 做了什麼 → 待辦 → 踩過的坑」排列，接手的人先看現況就能決定要不要動。</p>
+
+<h2><span class="idx">01</span>現在的狀態</h2>
+
+<dl class="now">
+  <div><dt>本機教材</dt><dd>112 / 112 / 112 <small>影片 / 字幕 / 思考地圖</small></dd></div>
+  <div><dt>串流封裝（本機）</dt><dd>97 <small>／112 堂，缺 15（多益 13＋其他 2）</small></dd></div>
+  <div><dt>平板可原生播放</dt><dd>18 <small>堂（全為電子學）</small></dd></div>
+  <div><dt>尚待上傳</dt><dd>67 GB <small>79 堂封裝，約 22 小時</small></dd></div>
+</dl>
+
+<div class="scroll"><table>
+  <tr><th>項目</th><th>狀態</th><th>說明</th></tr>
+  <tr><td>Drive 上傳</td><td><span class="tag t-run">執行中</span></td>
+      <td>三科輪流，每科每輪 12 項。電子學 18 堂已好、線代與工數 0 堂</td></tr>
+  <tr><td>媒體伺服器 <code>8795</code></td><td><span class="tag t-ok">正常</span></td>
+      <td>本機與區網站台都靠它；平板走 <code>http://172.20.10.3:8795/app/</code></td></tr>
+  <tr><td>雲端站台</td><td><span class="tag t-ok">正常</span></td>
+      <td><code>feb-6ah.pages.dev</code>，含 <code>/maps/</code> 思考地圖頁</td></tr>
+  <tr><td>週日保鮮排程</td><td><span class="tag t-ok">Ready</span></td><td>下次 09/13 10:00</td></tr>
+  <tr><td>未提交的修改</td><td><span class="tag t-wait">待決定</span></td><td>兩個 repo 共 5 個檔案（見第 03 節）</td></tr>
+</table></div>
+
+<div class="note"><b>要維持上傳，電腦不能關、熱點不能斷。</b>上傳器已請求系統不進入睡眠，螢幕關掉沒關係。中斷不會損失已完成的部分——帳本 <code>data/drive-map.json</code> 記錄誰上去了，重跑只補缺口。</div>
+
+<h2><span class="idx">02</span>做了什麼</h2>
+
+<div class="log">
+  <div class="item">
+    <div class="when">09-09 · 平板無法播放影片</div>
+    <div class="what">修好一個會鎖死的旗標</div>
+    <p>症狀是點任何一集都跳出「複製檔名」的 VLC 交接面板。伺服器端全部正常：Range 請求回 <code>206</code>、<code>videos.json</code> 探測 <code>200</code>、桌機開同一個網址 89 顆按鈕全部有播放來源。</p>
+    <p>真因在 <code>site/js/09-render-study.js</code>：<code>SRV_LIVE</code> 被 <code>offline</code> 事件設成 <code>false</code> 之後，只能靠 <code>online</code> 事件翻回來，而 iOS 的 <code>online</code> 事件在切 App、鎖屏、熱點閃斷後常常不送。旗標卡住，網路早就恢復也沒用，重整頁面前不會好。</p>
+    <p>修法：落回面板前先補探一次（一個 HEAD 請求）。實測強制 <code>SRV_LIVE=false</code> 後點播，播放器正常開啟、旗標自動翻回 <code>true</code>。</p>
+  </div>
+
+  <div class="item">
+    <div class="when">09-09 · Drive 全量補傳</div>
+    <div class="what">從一次性改成多輪自癒</div>
+    <p>第一版跑法遇到熱點斷線就放棄檔案：單檔重試只有 15 秒與 30 秒的退避，第二次必然踩在斷線期間、0.0 分秒殺。<code>115暑電子05</code> 兩次都失敗被跳過，累計浪費 61 分鐘的傳輸。</p>
+    <p>改成多輪：整批跑完若還有缺口就等 5 分鐘重來，單檔重試提高到 3 次。腳本靠帳本判斷，重跑不重傳。改完之後<strong>整夜零放棄</strong>。</p>
+  </div>
+
+  <div class="item">
+    <div class="when">09-10 · 驗證 <code>.frag.mp4</code> 能否取代原片</div>
+    <div class="what">技術上可以，但省不到上傳時間</div>
+    <div class="scroll"><table>
+      <tr><th>比較項</th><th>原片</th><th>串流封裝</th></tr>
+      <tr><td>檔案大小</td><td class="n">1112.56 MB</td><td class="n">1106.23 MB</td></tr>
+      <tr><td>跳到 6290 秒</td><td class="n">誤差 0.0 秒</td><td class="n">誤差 0.0 秒</td></tr>
+      <tr><td>跳轉耗時</td><td class="n">235 ms</td><td class="n">191 ms</td></tr>
+    </table></div>
+    <p>原因是 ffmpeg 有寫入 <code>mfra</code> 隨機存取索引（59 KB、約 1555 個跳點）。但封裝檔目前只有 1 個上雲，不論之後刪不刪原片，那 67 GB 都得完整傳一次——省的是 Drive 空間，而空間本來就不缺（5 TB 用不到 100 GB）。</p>
+    <p>另外查了 <code>ADR-0010</code>：用 Cloudflare Worker 代理串流、或把 Drive 檔案設成公開連結，兩條更省的路當初都評估過並否決（違反「影片永不進 Cloudflare」鐵則；公開等於課程外流）。<strong>沒有捷徑。</strong></p>
+  </div>
+
+  <div class="item">
+    <div class="when">09-10 · 補做串流封裝</div>
+    <div class="what">35 支，2 分半跑完</div>
+    <p><code>remux-frag.py</code> 只做重新封裝不重新編碼，一支 4 到 9 秒。我原本估一兩小時，差了一個數量級。完成 20 支（電子 12、線代 3、微方 4、矩陣 1），失敗 0。</p>
+  </div>
+
+  <div class="item">
+    <div class="when">09-10 · 排序修正</div>
+    <div class="what">名額從 3 提高到 12</div>
+    <p>使用者說線代、電子學、工數三科都在看，所以改成三科輪流。但 <code>--limit</code> 算的是<strong>項目</strong>不是影片，線代與工數的佇列前面塞著大量小側車檔，每輪 3 個名額全被小檔用掉——跑了 7.7 小時，兩科的封裝檔一支都沒輪到。</p>
+    <p>把名額放大到 12，小檔幾秒清完、剩下的名額就會落在封裝檔上。這是我自己的實作缺陷在扼殺使用者明確要求的東西，發現後直接修，沒有等回覆。</p>
+  </div>
+</div>
+
+<h2><span class="idx">03</span>未提交的修改</h2>
+<p>兩個 repo 自 09-07 之後都<strong>沒有任何 commit</strong>。下列改動全在工作區。</p>
+
+<div class="scroll"><table>
+  <tr><th>檔案</th><th>誰改的</th><th>內容</th></tr>
+  <tr><td><code>feb2/site/js/09-render-study.js</code></td><td><span class="tag t-ok">我</span></td>
+      <td>播放旗標補探，修平板無法播放</td></tr>
+  <tr><td><code>feb2/scripts/cloud/build-dist.mjs</code></td><td><span class="tag t-ok">我</span></td>
+      <td>建置時產生 <code>/maps/</code> 思考地圖頁</td></tr>
+  <tr><td><code>feb2/scripts/cloud/maps-template.html</code></td><td><span class="tag t-ok">我</span></td>
+      <td>思考地圖頁的版面與程式（新檔）</td></tr>
+  <tr><td><code>istudy/tools/make_subs.py</code></td><td><span class="tag t-ok">我</span></td>
+      <td>分段轉錄，單支記憶體 2.1 GiB → 156 MB</td></tr>
+  <tr><td><code>istudy/tools/notes-scope-toeic.txt</code></td><td><span class="tag t-ok">我</span></td>
+      <td>多益範圍檔（新檔）</td></tr>
+  <tr><td><code>feb2/site/js/14-drive.js</code></td><td><span class="tag t-bad">不是我</span></td>
+      <td rowspan="4">應為另一個 Codex session 留下的。我沒有讀過也沒有動過，<strong>提交前要先確認</strong></td></tr>
+  <tr><td><code>feb2/tests/drive-actions.test.js</code></td><td><span class="tag t-bad">不是我</span></td></tr>
+  <tr><td><code>istudy/tools/serve_media.py</code></td><td><span class="tag t-bad">不是我</span></td></tr>
+  <tr><td><code>istudy/tools/setup_pi.sh</code></td><td><span class="tag t-bad">不是我</span></td></tr>
+  <tr><td><code>feb2/data/drive-map.json</code></td><td><span class="tag t-run">自動</span></td>
+      <td>上傳帳本，每傳一個檔就變動；上傳結束後再提交</td></tr>
+</table></div>
+
+<h2><span class="idx">04</span>待辦與未解</h2>
+
+<h3>50 個過期字幕</h3>
+<p>雲端的 <code>.vtt</code> 是 09-04 的舊版，本機在勘誤飛輪跑過後更新了（電子學累積 205 條生效勘誤），所以本機檔大 10% 到 14%。上傳器看到大小不同就跳過，警告訊息寫「上次斷在半路」，其實是誤判。</p>
+<p><strong>該修的是判準</strong>：改成比對修改時間或內容雜湊，本機較新就覆蓋。目前需要手動到 Drive 刪檔才會重傳。</p>
+
+<h3>多益 remux 找不到候選</h3>
+<p><code>remux-frag.py --only 多益</code> 回報「完成 0、跳過 0」，代表它一個候選都沒匹配到，與其他三科行為不同。<strong>尚未查明。</strong>多益排在上傳順序最後，還沒影響到。</p>
+
+<h3><code>.frag.mp4</code> 取代原片</h3>
+<p>技術上可行（見第 02 節），能省下約 67 GB 的 Drive 空間。但要動 <code>drive-upload.py</code> 的帳本鍵邏輯、<code>14-drive.js</code> 的取檔規則，還要刪掉 Drive 上的原片——刪雲端檔是腳本刻意不做的事。<strong>空間不缺，優先度低。</strong></p>
+
+<h3>行程洩漏</h3>
+<p>09-07 清掉 50 個從 08-24 累積的 <code>wrangler</code>／<code>npx</code> 殘留行程（認可額度 88% → 76%，放出 7.5 GB），以及 6 個活了最久 5.1 天的孤兒 <code>claude -p</code>。<strong>根因沒有堵住</strong>，還會再累積。另外 <code>skill_seekers</code> 與多個 <code>http.server</code> 也有同樣現象，尚未處理。</p>
+
+<h2><span class="idx">05</span>踩過的坑</h2>
+<p>都是會靜默失敗、或讓人誤判的類型，接手前值得先讀。</p>
+
+<div class="scroll"><table>
+  <tr><th>現象</th><th>真因與對策</th></tr>
+  <tr><td>用命令列關鍵字掃行程，數字永遠多一個；拿同條件去殺會 <code>exit 255</code></td>
+      <td>查詢指令自己的命令列就含那個字串。加 <code>$_.ProcessId -ne $PID</code>，殺行程時把關鍵字拼接（<code>'drive' + '-upload'</code>），或先印純數字 PID 再分兩段殺</td></tr>
+  <tr><td>停掉背景上傳後，新腳本每一科都秒退</td>
+      <td>只殺了外層 bash，<code>drive-upload.py</code> 還活著握著鎖。要連外層一起收，並重查到殘留為 0</td></tr>
+  <tr><td><code>gws</code> 失敗訊息是「Using keyring backend: keyring」</td>
+      <td>那行成功時也會印，是雜訊不是錯誤。真正的原因在下一行（多半是 <code>HTTP request failed</code>＝連線中斷）</td></tr>
+  <tr><td><code>--limit N</code> 沒有推進大檔</td>
+      <td>它算的是項目數，小側車檔會把名額吃光。要放大到足以穿過小檔</td></tr>
+  <tr><td>建置產出的堂數少了兩堂，數字卻很合理</td>
+      <td>過濾條件寫成「路徑含『講義』就排除」，但兩支課程的<strong>檔名</strong>裡有「補充講義」。改成只比對第一層目錄</td></tr>
+</table></div>
+
+<div class="foot">
+  本文只涵蓋 09-09 至 09-10 的工作。09-08 完成的思考地圖手機版（<code>/maps/</code>，112 堂、582 張觀念圖）已部署且資料會隨每次 <code>npm run deploy</code> 自動更新。<br>
+  相關路徑：<code>feb2/reports/upload-all.log</code>（上傳）、<code>F:\istudy-backup\notes.log</code>（思考地圖）、<code>feb2/reports/remux.log</code>（封裝）。
+</div>
+</div>

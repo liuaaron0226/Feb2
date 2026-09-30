@@ -1,0 +1,77 @@
+# ============================================================
+# 影片：一律不進 repo
+# 課程影片放在 media/（junction → F:\istudy-backup），不在這個資料夾裡。
+# 刻意不寫 *.ts / *.mts：這兩個副檔名也可能是 TypeScript 程式碼。
+# 真的出現 MPEG-TS 影片時，逐一列完整路徑（../check-feb2.ps1 會產生建議行）。
+# ============================================================
+media/
+*.mp4
+*.m4v
+*.mov
+*.mkv
+*.webm
+*.avi
+*.wmv
+*.flv
+*.mpg
+*.mpeg
+*.m2ts
+*.3gp
+*.m4s
+*.part
+*.ytdl
+
+# 影片的衍生物（字幕、思考地圖、板書快照）跟影片放在一起，同屬教材
+*.vtt
+*.notes.json
+*.snap_*.jpg
+
+# ============================================================
+# 金鑰與環境變數（值一律不進 git；範本檔 *.example 照常上傳）
+# ============================================================
+.env
+.env.*
+!.env.example
+# wrangler pages dev 的本機環境變數（Access 設定、通行碼、服務帳戶金鑰）
+.dev.vars
+
+# ============================================================
+# 相依套件與快取
+# ============================================================
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+.wrangler/
+.impeccable/
+
+# ============================================================
+# 建置產物與工作暫存
+# ============================================================
+# scripts/cloud/build-dist.mjs 組出來的部署目錄（site/ ＋ data/ 的複製，衍生物）
+dist/
+# 上傳日誌、鎖檔、帳本備份、實驗帳本、暫存補丁——全是 scripts/ 的工作暫存
+reports/
+*.log
+# Windows 捷徑（內含本機絕對路徑）
+*.lnk
+
+# ============================================================
+# 個人教材與個資：專案規定「不得匿名可讀」（CONTEXT.md、docs/影片上雲.md §7）
+# 只留本機，照常部署到有通行碼保護的站台；公開 repo 不收。
+# ============================================================
+data/exams/
+data/brochures/
+data/drive-map.json
+data/nblm/
+data/notebooks.json
+site/la-map.html
+site/me-map.html
+# 重設計期間留的兩張作戰地圖備份，內容同上
+.scratch/redesign/map-backup/
+scripts/la-map/data/
+scripts/me-map/data/
+scripts/la-map/la_eps.json
+scripts/la-map/la_deep_merged.json
+scripts/me-map/me_eps.json

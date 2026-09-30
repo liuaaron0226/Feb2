@@ -1,0 +1,313 @@
+{
+ "ust-control": {
+  "notebook": "0debd517-286c-4d6e-a643-8e1bd12ecd3e",
+  "added": [
+   "106.pdf",
+   "107.pdf",
+   "108.pdf",
+   "109.pdf",
+   "110.pdf",
+   "111.pdf",
+   "112.pdf",
+   "113.pdf",
+   "114.pdf",
+   "115.pdf"
+  ],
+  "sources_ready": true,
+  "done": true
+ },
+ "ntu-control": {
+  "notebook": "a59fe7fa-7c30-4618-a5f2-c77ee1d7b57e",
+  "added": [
+   "106.pdf",
+   "107.pdf",
+   "108.pdf",
+   "109.pdf",
+   "110.pdf",
+   "112.pdf",
+   "113.pdf",
+   "114.pdf",
+   "115.pdf"
+  ],
+  "sources_ready": true,
+  "done": true
+ },
+ "nthupme-control": {
+  "notebook": "8e16caf3-b4b5-441a-91b8-3dabc776fe96",
+  "added": [
+   "111.pdf",
+   "112.pdf",
+   "113.pdf",
+   "114.pdf",
+   "115.pdf"
+  ],
+  "sources_ready": true,
+  "done": true
+ },
+ "nsysu-control": {
+  "notebook": "add67930-7cde-4a99-a39c-d593cbe63d69",
+  "added": [
+   "106.pdf",
+   "107.pdf",
+   "108.pdf",
+   "109.pdf",
+   "110.pdf",
+   "111.pdf",
+   "112.pdf",
+   "113.pdf",
+   "114.pdf",
+   "115.pdf"
+  ],
+  "sources_ready": true,
+  "done": true
+ },
+ "nsysu-math": {
+  "notebook": "add67930-7cde-4a99-a39c-d593cbe63d69",
+  "sources_ready": true,
+  "done": true
+ },
+ "ntut-control": {
+  "notebook": "28696231-9e5d-4972-ac6d-ad97ade622e9",
+  "added": [
+   "106.pdf",
+   "107.pdf",
+   "108.pdf",
+   "109.pdf",
+   "110.pdf",
+   "111.pdf",
+   "112.pdf",
+   "113.pdf",
+   "114.pdf",
+   "115.pdf"
+  ],
+  "sources_ready": true,
+  "done": true
+ },
+ "ncku-control": {
+  "notebook": "ed051ba6-c68a-4a24-a299-af0d00ea5e98",
+  "added": [
+   "106.pdf",
+   "107.pdf",
+   "108.pdf",
+   "109.pdf",
+   "110.pdf",
+   "111.pdf",
+   "112.pdf",
+   "113.pdf",
+   "114.pdf",
+   "115.pdf"
+  ],
+  "sources_ready": true,
+  "done": true
+ },
+ "nckues-control": {
+  "notebook": "9d8b3e68-e0d1-402a-b41e-89bde184f8ee",
+  "added": [
+   "106.pdf",
+   "107.pdf",
+   "108.pdf",
+   "109.pdf",
+   "110.pdf",
+   "111.pdf",
+   "112.pdf",
+   "113.pdf",
+   "114.pdf",
+   "115.pdf"
+  ],
+  "sources_ready": true,
+  "done": true
+ },
+ "ust-math": {
+  "notebook": "5e5a981d-645a-4bd0-9cbb-211135b4149f",
+  "added": [
+   "106.pdf",
+   "107.pdf",
+   "108.pdf",
+   "109.pdf",
+   "110.pdf",
+   "111.pdf",
+   "112.pdf",
+   "113.pdf",
+   "114.pdf",
+   "115.pdf"
+  ],
+  "sources_ready": true,
+  "done": true
+ },
+ "ntu-math": {
+  "notebook": "21934b11-e65c-4f38-845d-d30b4d44724e",
+  "added": [
+   "106.pdf",
+   "107.pdf",
+   "108.pdf",
+   "109.pdf",
+   "110.pdf",
+   "112.pdf",
+   "113.pdf",
+   "114.pdf",
+   "115.pdf"
+  ],
+  "sources_ready": true,
+  "done": true
+ },
+ "ntust-math": {
+  "notebook": "c57fa48b-b075-4a32-81be-b71b420d4fa2",
+  "added": [
+   "106.pdf",
+   "107.pdf",
+   "108.pdf",
+   "109.pdf",
+   "110.pdf",
+   "111.pdf",
+   "112.pdf",
+   "113.pdf",
+   "114.pdf",
+   "115.pdf"
+  ],
+  "sources_ready": true,
+  "done": true
+ },
+ "ntut-math": {
+  "notebook": "429deb5c-2a8e-4f90-ae8e-7ea2cd1e8a95",
+  "added": [
+   "106.pdf",
+   "107.pdf",
+   "108.pdf",
+   "109.pdf",
+   "110.pdf",
+   "111.pdf",
+   "112.pdf",
+   "113.pdf",
+   "114.pdf",
+   "115.pdf"
+  ],
+  "sources_ready": true,
+  "done": true
+ },
+ "ncku-math": {
+  "notebook": "cd42f006-436d-42bc-9dc2-e307b3b0a79f",
+  "added": [
+   "106.pdf",
+   "107.pdf",
+   "108.pdf",
+   "109.pdf",
+   "110.pdf",
+   "111.pdf",
+   "112.pdf",
+   "113.pdf",
+   "114.pdf",
+   "115.pdf"
+  ],
+  "sources_ready": true,
+  "done": true
+ },
+ "nckues-math": {
+  "notebook": "398ac3e3-54c7-422e-b496-03a646e6d430",
+  "added": [
+   "106.pdf",
+   "107.pdf",
+   "108.pdf",
+   "109.pdf",
+   "110.pdf",
+   "111.pdf",
+   "112.pdf",
+   "113.pdf",
+   "114.pdf",
+   "115.pdf"
+  ],
+  "sources_ready": true,
+  "done": true
+ },
+ "ust-elec": {
+  "notebook": "092f9783-51b8-4df7-9191-72de781c0daa",
+  "added": [
+   "106.pdf",
+   "107.pdf",
+   "108.pdf",
+   "109.pdf",
+   "110.pdf",
+   "111.pdf",
+   "112.pdf",
+   "113.pdf",
+   "114.pdf",
+   "115.pdf"
+  ],
+  "sources_ready": true,
+  "done": true
+ },
+ "ntust-ctrl": {
+  "notebook": "776bc542-8624-4335-91aa-1986ab6f3f39",
+  "added": [
+   "106.pdf",
+   "107.pdf",
+   "108.pdf",
+   "109.pdf",
+   "110.pdf",
+   "111.pdf",
+   "112.pdf"
+  ],
+  "sources_ready": true
+ },
+ "nckues-circ": {
+  "notebook": "d8f71115-e9bd-4e16-a701-66d886ff9af1",
+  "added": [
+   "106.pdf",
+   "107.pdf",
+   "108.pdf",
+   "109.pdf",
+   "110.pdf",
+   "111.pdf",
+   "112.pdf",
+   "113.pdf",
+   "114.pdf",
+   "115.pdf"
+  ],
+  "sources_ready": true,
+  "done": true
+ },
+ "nckues-sig": {
+  "notebook": "1826a278-3195-450f-8df4-e7a802459ba7",
+  "sources_ready": true,
+  "done": true
+ },
+ "nckues-la": {
+  "notebook": "98491ca2-5d54-4af0-b002-64924b7702b5",
+  "sources_ready": true,
+  "done": true
+ },
+ "ncu-math": {
+  "notebook": "78590fa9-49d0-4ce6-9ed2-39674c676adc",
+  "added": [
+   "106.pdf",
+   "107.pdf",
+   "108.pdf",
+   "109.pdf",
+   "110.pdf",
+   "111.pdf",
+   "115.pdf"
+  ],
+  "sources_ready": true,
+  "done": true
+ },
+ "ncu-elec": {
+  "notebook": "1919584d-2952-41ba-a281-184608deaab8",
+  "added": [
+   "106.pdf",
+   "107.pdf",
+   "108.pdf",
+   "109.pdf",
+   "110.pdf",
+   "115.pdf"
+  ],
+  "sources_ready": true,
+  "done": true
+ },
+ "ncu-sig": {
+  "notebook": "062e4b7b-31ec-4d84-bd6a-89a11fafd08c",
+  "added": [
+   "106.pdf"
+  ],
+  "sources_ready": true,
+  "done": true
+ }
+}

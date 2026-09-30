@@ -1,0 +1,1068 @@
+<!doctype html>
+<html lang="zh-Hant-TW" data-intensity="full">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Feb 設計語言 002 · 夜湖儀表</title>
+<link rel="stylesheet" href="vendor/fonts-ui/fonts.css?v37">
+<link rel="stylesheet" href="css/tokens.css">
+<script>document.documentElement.classList.add('js')</script>
+<style>
+/* =====================================================================
+   design-system.html — 活規格書 rev B（去框化）。
+   它自己就是融合語言的第一個實作：內容直接站在 aurora 場上，
+   結構全靠眉標＋髮絲線＋留白＋縮排＋字階＋z 深度——
+   全頁唯一的四邊框浮層，是「今日複習條」那一條 overlay。
+   所有色／字／距一律走 css/tokens.css，此處只有版面與示範件。
+   ===================================================================== */
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;color-scheme:dark}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:var(--font-ui);font-size:var(--w-body);line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:clip;   /* 出血元素用 100vw，捲軸誤差在此吸收 */
+  min-height:100vh;
+}
+::selection{background:var(--warm);color:var(--bg)}
+a{color:var(--ink-dim)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+/* ---- aurora 光斑（容器與強度邏輯在 tokens.css）---- */
+.au-a{width:78vmax;height:78vmax;left:-18vmax;top:-24vmax;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--sc-la-hi) 16%,transparent),transparent 68%);
+  animation:drift-a 84s var(--ease) infinite alternate}
+.au-b{width:64vmax;height:64vmax;right:-16vmax;bottom:-20vmax;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--warm) 13%,transparent),transparent 70%);
+  animation:drift-b 112s var(--ease) infinite alternate}
+.au-c{width:52vmax;height:52vmax;right:-8vmax;top:-14vmax;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--sc-ctrl-hi) 9%,transparent),transparent 70%);
+  animation:drift-c 96s var(--ease) infinite alternate}
+@keyframes drift-a{to{transform:translate3d(11vw,9vh,0) scale(1.14)}}
+@keyframes drift-b{to{transform:translate3d(-10vw,-8vh,0) scale(1.09)}}
+@keyframes drift-c{to{transform:translate3d(-6vw,10vh,0) scale(1.12)}}
+
+/* ---- 版心與出血 ---- */
+.page{position:relative;z-index:1}
+.col{max-width:1120px;margin:0 auto;padding-inline:clamp(20px,5vw,56px)}
+.bleed{width:100vw;margin-left:calc(50% - 50vw)}   /* 由 .col 內部貫穿全視窗 */
+
+/* ---- section 分隔：mono 眉標＋一條向右出血的髮絲線（去框化的骨架）---- */
+section.spec{margin-top:clamp(96px,14vh,170px)}
+.sec-mark{display:flex;align-items:center;gap:18px}
+.sec-mark::after{content:"";height:1px;flex:1;background:var(--line);
+  margin-right:calc(50% - 50vw)}   /* 線一路刷到視窗右緣 */
+.sec-mark .no{color:var(--accent)}
+.sec-title{font-size:var(--w-title);letter-spacing:var(--ls-title);font-weight:700;line-height:1.15;margin-top:18px}
+.sec-title .en{font-family:var(--font-mono);font-size:var(--w-meta);font-weight:500;
+  letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint);margin-left:14px;vertical-align:middle}
+.sec-lead{margin-top:10px;color:var(--ink-dim);max-width:42em}
+.law{font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.law b{color:var(--accent);font-weight:600}
+
+/* ---- 進場：自 aurora 凝結（B 簽名；blur 唯一豁免）---- */
+html.js .fx-cd{opacity:0;transform:translateY(14px);filter:blur(10px)}
+html.js .in .fx-cd,html.js .fx-cd.in{opacity:1;transform:none;filter:none;
+  transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),filter var(--dur) var(--ease);
+  transition-delay:calc(var(--i,0) * var(--stagger))}
+
+/* =====================================================================
+   S-01 宣言
+   ===================================================================== */
+.hero{padding-top:clamp(72px,12vh,140px)}
+.hero h1{font-size:calc(var(--w-title)*1.6);letter-spacing:var(--ls-title);font-weight:800;line-height:1.08;margin-top:20px}
+.hero h1 .en{display:block;font-family:var(--font-mono);font-size:var(--w-meta);font-weight:500;
+  letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint);margin-top:12px}
+.thesis{margin-top:16px;font-size:var(--w-sub);color:var(--ink-dim);max-width:36em}
+.verdicts{margin-top:44px;display:flex;flex-direction:column;gap:26px}
+.verdict{padding-left:22px;border-left:2px solid var(--warm);max-width:44em}
+.verdict p{font-size:var(--w-sub);color:var(--ink)}
+.verdict .src{display:block;margin-top:6px}
+
+/* ---- 簽名件：D-154 巨讀數 ＋ 全寬出血倒數尺 ---- */
+.dband{margin-top:clamp(64px,10vh,120px);position:relative;padding-bottom:8px}
+.dhero{position:relative;z-index:2;display:flex;align-items:flex-end;gap:26px;flex-wrap:wrap;margin-bottom:-14px}
+.dnum{
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:clamp(5rem,15vw,10.5rem);font-weight:600;line-height:.86;
+  letter-spacing:var(--ls-title);color:var(--accent);
+  text-shadow:0 0 60px rgba(194,94,46,.4),0 0 18px rgba(194,94,46,.25);
+}
+.dlab{padding-bottom:14px}
+.dlab .mono{color:var(--ink-dim);font-size:var(--w-meta)}
+.dlab .sub{display:block;margin-top:3px}
+.rail-bleed{position:relative;z-index:1;padding-top:24px}
+.rail{display:flex;justify-content:space-between;align-items:flex-end;height:30px}
+.tick{flex:none;width:2px;height:12px;border-radius:1px;background:var(--ink-dim);opacity:var(--o,.6)}
+.tick.m1{height:22px;background:var(--ink)}
+.tick.today{width:3px;height:30px;border-radius:1.5px;background:var(--warm);
+  box-shadow:0 0 3px rgba(194,94,46,.9),0 0 16px rgba(194,94,46,.55)}
+@keyframes tickin{from{opacity:0;transform:translateY(6px)}}
+.boot .tick{animation:tickin 200ms var(--ease) backwards;animation-delay:calc(var(--i,0)*7ms)}
+.rail-months{position:relative;height:20px;margin-top:9px;
+  font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);
+  color:var(--ink-faint);font-variant-numeric:tabular-nums;text-transform:uppercase}
+.mlabel{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+.mlabel.start{left:0;transform:none;color:var(--accent);padding-left:clamp(8px,2vw,20px)}
+.mlabel.end{left:auto;right:0;transform:none;color:var(--accent);padding-right:clamp(8px,2vw,20px)}
+.rail-law{margin-top:22px}
+
+/* =====================================================================
+   S-02 色 —— 全寬色場，不做色票卡
+   ===================================================================== */
+.f-lab{display:flex;align-items:baseline;gap:14px;margin:56px 0 0;flex-wrap:wrap}
+.f-lab .zh{font-size:var(--w-sub);font-weight:700}
+.f-use{color:var(--ink-dim);font-size:var(--w-meta);max-width:52em;margin-top:8px}
+
+/* 底：兩塊地面對切，你正站在左邊那塊上 */
+.ground-strip{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.ground-strip>div{min-height:120px;display:flex;align-items:flex-end;padding:16px clamp(20px,5vw,56px)}
+.ground-strip .raise{background:var(--bg-raise)}
+.gs-tag{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.06em;color:var(--ink-faint);font-variant-numeric:tabular-nums}
+.gs-tag b{color:var(--ink-dim);font-weight:500}
+
+/* 墨：字本身就是色票 */
+.ink-rows{margin-top:18px}
+.ink-rows p{padding:13px 0;border-bottom:1px solid var(--line);display:flex;gap:20px;align-items:baseline;flex-wrap:wrap}
+.ink-rows p:first-child{border-top:1px solid var(--line)}
+.ink-rows .nm{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.06em;
+  font-variant-numeric:tabular-nums;flex:none;width:200px}
+.ink-1{color:var(--ink)} .ink-2{color:var(--ink-dim)} .ink-3{color:var(--ink-faint)}
+
+/* 餘燼：一團從左緣燒進來的火，雙階直接寫在火上 */
+.ember-band{margin-top:18px;padding:44px 0 48px;
+  background:radial-gradient(760px 360px at 8% 50%,rgba(194,94,46,.26),transparent 70%)}
+.ember-band .col{display:flex;flex-direction:column;gap:14px}
+.ember-line{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap}
+.ember-line .big{font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:var(--w-title);font-weight:600;letter-spacing:var(--ls-title);color:var(--accent);
+  text-shadow:0 0 22px rgba(194,94,46,.35)}
+.burn-tick{display:inline-block;width:3px;height:26px;border-radius:1.5px;background:var(--warm);
+  vertical-align:middle;box-shadow:0 0 3px rgba(194,94,46,.9),0 0 14px rgba(194,94,46,.55)}
+
+/* 學科：五道垂直色瀑，出血貫穿 */
+.sc-band{margin-top:18px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
+.sc-field{padding:64px 16px 18px;background:linear-gradient(180deg,color-mix(in srgb,var(--c) 22%,transparent),transparent 90%)}
+.sc-field .nm{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.06em;color:var(--c);display:block}
+.sc-field .hx{font-family:var(--font-mono);font-size:var(--w-tag);color:var(--ink-faint);font-variant-numeric:tabular-nums}
+.sc-field .hi{font-family:var(--font-mono);font-size:var(--w-tag);color:var(--ink-faint);display:block;margin-top:4px}
+
+/* 雙階實演：同一列章，rest 與 -hi */
+.ch-demo{margin-top:34px}
+.ch-row{position:relative;display:grid;grid-template-columns:1fr auto;gap:4px 18px;
+  padding:16px 0 17px 22px;border-bottom:1px solid var(--line)}
+.ch-row:first-of-type{border-top:1px solid var(--line)}
+.ch-row::before{content:"";position:absolute;left:0;top:15px;bottom:15px;width:2px;border-radius:1px;
+  background:color-mix(in srgb,var(--c) 68%,transparent)}
+.ch-sub{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);
+  color:var(--c);font-variant-numeric:tabular-nums}
+.ch-title{font-size:var(--w-sub);font-weight:600;grid-column:1}
+.ch-st{grid-row:1 / span 2;align-self:center;font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:.08em;color:var(--ink-faint);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ch-bar{grid-column:1 / -1;height:3px;border-radius:2px;margin-top:9px;
+  background:color-mix(in srgb,var(--ink) 9%,transparent);overflow:hidden}
+.ch-bar i{display:block;height:100%;border-radius:2px;background:color-mix(in srgb,var(--c) 62%,transparent)}
+/* -hi：色場向左出血到視窗邊，柔光只在脊線上——沒有框，是光 */
+.ch-row.is-active{--c:var(--sc-math-hi)}
+.ch-row.is-active::after{content:"";position:absolute;z-index:-1;top:0;bottom:0;
+  left:calc(50% - 50vw);right:-8px;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--c) 8%,transparent) 58%,transparent)}
+.ch-row.is-active::before{background:var(--c);
+  box-shadow:0 0 30px -2px color-mix(in srgb,var(--c) 62%,transparent)}
+.ch-row.is-active .ch-st{color:var(--c)}
+.ch-row.is-active .ch-bar i{background:var(--c)}
+
+/* 湖面與髮絲線讀數 */
+.val-rows{margin-top:14px}
+.val-rows p{display:flex;align-items:center;gap:12px 18px;padding:11px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.val-rows p:first-child{border-top:1px solid var(--line)}
+.val-rows .nm{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.06em;
+  color:var(--ink-dim);font-variant-numeric:tabular-nums;flex:none;width:200px}
+.val-rows .demo-line{flex:1;height:1px;background:var(--line)}
+.val-rows .demo-line.strong{background:var(--line-strong)}
+.val-rows .note{color:var(--ink-faint);font-size:var(--w-tag);font-family:var(--font-mono);letter-spacing:.06em}
+
+/* =====================================================================
+   S-03 字 —— 純字階，站在地上
+   ===================================================================== */
+.ladder{margin-top:34px}
+.lrow{display:grid;grid-template-columns:212px 1fr;gap:22px;align-items:baseline;
+  padding:17px 0;border-bottom:1px solid var(--line)}
+.lrow:first-child{border-top:1px solid var(--line)}
+.lrow .nm{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.06em;
+  color:var(--ink-faint);font-variant-numeric:tabular-nums}
+.smp-title{font-size:var(--w-title);letter-spacing:var(--ls-title);font-weight:700;line-height:1.15}
+.smp-sub{font-size:var(--w-sub);font-weight:600}
+.smp-body{font-size:var(--w-body);color:var(--ink-dim)}
+.smp-meta{font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.smp-tag{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);
+  text-transform:uppercase;color:var(--ink-faint);font-variant-numeric:tabular-nums}
+/* 儀表讀數列：一條活的 */
+.readout{margin-top:44px;padding:13px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  font-family:var(--font-mono);font-size:var(--w-meta);font-variant-numeric:tabular-nums;color:var(--ink-dim)}
+.readout .hot{color:var(--accent);font-weight:600}
+.readout .sep{width:1px;height:14px;background:var(--line-strong)}
+.microbar{width:64px;height:3px;border-radius:2px;background:color-mix(in srgb,var(--ink) 10%,transparent);overflow:hidden}
+.microbar i{display:block;height:100%;background:var(--ink-dim)}
+
+/* =====================================================================
+   S-04 面 —— 什麼可以浮，什麼不准浮
+   ===================================================================== */
+.surface-grid{margin-top:36px;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:44px;align-items:start}
+.float-demo{padding:26px 28px;max-width:340px}
+.float-demo .zh{font-size:var(--w-sub);font-weight:700}
+.float-demo p{color:var(--ink-dim);font-size:var(--w-meta);margin-top:6px}
+.anno{margin-top:6px}
+.anno p{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--line);
+  font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.anno p::before{content:"";width:36px;height:1px;background:var(--line-strong);flex:none}
+.anno .nm{color:var(--ink)}
+.noframe{margin-top:24px}
+
+/* =====================================================================
+   S-05 件 —— 元件直接站在地上，逐列示範
+   ===================================================================== */
+.crow{display:grid;grid-template-columns:212px 1fr;gap:22px;align-items:center;
+  padding:19px 0;border-bottom:1px solid var(--line)}
+.crow:first-of-type{border-top:1px solid var(--line)}
+.crow .nm{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.06em;
+  color:var(--ink-faint);font-variant-numeric:tabular-nums;align-self:start;padding-top:6px}
+.crow .demo{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.comps{margin-top:34px}
+
+/* 按鈕（融合：A 的墨實心＋B 的懸浮回應與漣漪） */
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  height:var(--bh,var(--btn-h));padding:0 16px;border-radius:var(--r-sm);
+  font-size:var(--w-meta);font-weight:600;line-height:1;letter-spacing:.02em;
+  transition:transform 150ms var(--ease),box-shadow 150ms var(--ease),
+             background-color 150ms var(--ease),border-color 150ms var(--ease)}
+.btn:active{transform:translateY(1px)}
+.btn .fx{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none}
+.ripple{position:absolute;border-radius:50%;background:color-mix(in srgb,var(--ink) 22%,transparent);
+  transform:translate(-50%,-50%) scale(0);opacity:.5;animation:rip var(--dur) var(--ease) forwards}
+@keyframes rip{to{transform:translate(-50%,-50%) scale(1);opacity:0}}
+.ui-solid{background:var(--ink);color:var(--bg)}
+.ui-solid:hover{transform:translateY(-1px);box-shadow:0 6px 24px -10px color-mix(in srgb,var(--ink) 45%,transparent)}
+.ui-solid .ripple{background:color-mix(in srgb,var(--bg) 22%,transparent)}
+.ui-ghost{box-shadow:inset 0 0 0 1px var(--line-strong)}
+.ui-ghost:hover{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 40%,transparent);
+  background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.ui-seg{display:inline-flex;align-items:stretch;height:var(--bh,var(--btn-h));border-radius:var(--r-sm);
+  box-shadow:inset 0 0 0 1px var(--line-strong);overflow:hidden}
+.ui-seg button{padding:0 13px;font-size:var(--w-meta);color:var(--ink-faint);display:inline-flex;align-items:center}
+.ui-seg button + button{border-left:1px solid var(--line)}
+.ui-seg button.on{background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink);font-weight:600}
+.btn[disabled],.ui-seg button[disabled]{opacity:.38;cursor:not-allowed}
+.btn[disabled]:hover{transform:none;box-shadow:inset 0 0 0 1px var(--line-strong)}
+.demo-focus{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.st-note{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.06em;color:var(--ink-faint)}
+
+/* 學科 pills 雙階 */
+.pill{display:inline-flex;align-items:center;gap:8px;height:var(--btn-h-sm);padding:0 13px;border-radius:999px;
+  font-size:var(--w-meta);font-weight:500;color:var(--c,var(--ink-dim));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c,var(--ink-dim)) 40%,transparent)}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--c,var(--ink-dim))}
+.pill.is-hi{color:var(--ch);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ch) 55%,transparent),
+  0 0 30px -6px color-mix(in srgb,var(--ch) 42%,transparent);
+  background:color-mix(in srgb,var(--ch) 9%,transparent)}
+.pill.is-hi::before{background:var(--ch)}
+
+/* 狀態燈 */
+.lamps{width:100%;max-width:520px}
+.lamp-row{display:flex;align-items:center;gap:12px;min-height:44px}
+.lamp-row + .lamp-row{border-top:1px solid var(--line)}
+.lamp{width:8px;height:8px;border-radius:50%;flex:none}
+.lamp.ok{background:var(--sc-toeic)}
+.lamp.busy{background:var(--sc-elec);animation:pulse 2.4s var(--ease) infinite;animation-play-state:var(--ambient-play)}
+.lamp.miss{background:var(--warm);box-shadow:0 0 8px rgba(194,94,46,.6)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.lamp-row .l-note{margin-left:auto;font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:.08em;color:var(--ink-faint);font-variant-numeric:tabular-nums}
+.lamp-row .l-note.hot{color:var(--accent)}
+
+/* todo：一條行，不是一張卡 */
+.todo-line{display:flex;align-items:center;gap:14px;min-height:52px;width:100%;max-width:520px}
+.todo-line .box{width:16px;height:16px;border-radius:4px;flex:none;padding:0;
+  box-shadow:inset 0 0 0 1px var(--line-strong);background:none}
+.todo-line .t-due{margin-left:auto;font-family:var(--font-mono);font-size:var(--w-meta);
+  font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
+
+/* 今日複習條：全頁唯一合法浮層（真的浮：sticky overlay） */
+.review-float{position:sticky;bottom:24px;z-index:6;margin-top:64px;
+  padding:14px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  box-shadow:var(--glass-inner),0 18px 48px rgba(0,0,0,.5)}
+.review-float .rv-lab{flex:none}
+.review-float .rv-code{font-family:var(--font-mono);font-size:var(--w-meta);font-weight:600;
+  font-variant-numeric:tabular-nums}
+.review-float .rv-src{font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);
+  font-variant-numeric:tabular-nums}
+.review-float .rv-btns{display:flex;gap:8px}
+.review-float .rv-q{margin-left:auto;display:flex;align-items:center;gap:12px}
+.review-float .rv-wait{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);
+  text-transform:uppercase;color:var(--ink-dim)}
+.float-note{margin-top:18px}
+
+/* =====================================================================
+   S-06 動 —— 動效字彙，一列一課
+   ===================================================================== */
+.curve-wrap{margin-top:34px;display:flex;gap:36px;align-items:flex-end;flex-wrap:wrap}
+.curve-wrap svg{display:block;overflow:visible}
+.mrow{display:grid;grid-template-columns:212px minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:center;
+  padding:21px 0;border-bottom:1px solid var(--line)}
+.mrow:first-of-type{border-top:1px solid var(--line)}
+.mrow .nm{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.06em;
+  color:var(--ink-faint);font-variant-numeric:tabular-nums}
+.mrow .demo{display:flex;align-items:center;gap:14px;flex-wrap:wrap;min-height:48px}
+.mrow .law{max-width:34em}
+.mrows{margin-top:40px}
+/* 進出場 chip */
+.m-chip{display:inline-flex;align-items:center;gap:8px;height:var(--btn-h-sm);padding:0 13px;
+  border-radius:var(--r-sm);box-shadow:inset 0 0 0 1px var(--line-strong);
+  font-family:var(--font-mono);font-size:var(--w-meta);font-variant-numeric:tabular-nums}
+.m-chip.enter-out{opacity:0;transform:translateY(10px);
+  transition:opacity var(--dur-exit) var(--ease),transform var(--dur-exit) var(--ease)}
+.m-chip.enter-in{opacity:1;transform:none;
+  transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease)}
+/* 凝結 chip（blur 唯一豁免） */
+.m-cd{opacity:1;transform:none;filter:none;
+  transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),filter var(--dur) var(--ease)}
+.m-cd.pre{opacity:0;transform:translateY(14px) scale(.986);filter:blur(12px);transition:none}
+/* stagger ticks */
+.sg-ticks{display:flex;gap:10px;align-items:flex-end;height:26px}
+.sg-ticks i{width:3px;height:18px;border-radius:1.5px;background:var(--ink-dim);display:block}
+.sg-ticks.play i{animation:tickin 200ms var(--ease) backwards;animation-delay:calc(var(--i,0)*var(--stagger))}
+
+/* =====================================================================
+   S-07 度 —— 一片連續色場的三個地帶，不是三個箱子
+   ===================================================================== */
+.dial-band{margin-top:36px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.zone{position:relative;overflow:hidden;min-height:300px;padding:30px clamp(18px,3vw,40px);
+  text-align:left;display:flex;flex-direction:column;gap:8px;cursor:pointer}
+.zone + .zone{border-left:1px solid var(--line)}
+.zone-au{position:absolute;left:-40%;top:-55%;width:180%;aspect-ratio:1;border-radius:50%;pointer-events:none;
+  opacity:var(--aurora-opacity);transition:opacity var(--dur) var(--ease);
+  animation:zdrift 11s var(--ease) infinite alternate;animation-play-state:var(--ambient-play)}
+@keyframes zdrift{to{transform:translate3d(6%,8%,0) scale(1.08)}}
+.zone>*:not(.zone-au){position:relative;z-index:1}
+.zone .z-name{font-size:var(--w-sub);font-weight:700;margin-top:auto}
+.zone .z-read{font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.zone[aria-pressed="true"] .z-read{color:var(--accent)}
+.zone[aria-pressed="true"]::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--warm);
+  box-shadow:0 0 12px rgba(194,94,46,.6)}
+.dial-read{margin-top:20px}
+
+/* =====================================================================
+   S-08 景 —— 兩片存活的地面，出血半頁實演
+   ===================================================================== */
+.g-list{margin-top:26px}
+.g-list p{display:flex;gap:18px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line);
+  font-family:var(--font-mono);font-size:var(--w-meta);font-variant-numeric:tabular-nums;color:var(--ink-dim);flex-wrap:wrap}
+.g-list p:first-child{border-top:1px solid var(--line)}
+.g-list .nm{color:var(--ink);flex:none;width:200px}
+.g-list .dead{text-decoration:line-through;color:var(--ink-faint)}
+.g-list .dead-note{color:var(--ink-faint)}
+
+.ground-demo{margin-top:22px;padding:52px 0 56px}
+.ground-demo .col{display:flex;flex-direction:column;gap:26px}
+.gd-head{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.gd-head .zh{font-size:var(--w-sub);font-weight:700}
+/* 描圖紙 vellum：亮色地面 = body.lt 路徑。同一套變數名，換值不換件。 */
+.g-vellum{
+  background:
+    radial-gradient(900px 420px at 82% -10%,rgba(160,78,20,.07),transparent 70%),
+    linear-gradient(180deg,#F4EFE5,#F2EDE2 40%,#EDE6D6);
+  color:var(--ink);
+  --bg:#F2EDE2; --bg-raise:#EAE2D0;
+  --ink:#26221B; --ink-dim:#575142; --ink-faint:#6E6754;
+  --accent:#A04E14; --warm:#8F4212;
+  --line:rgba(38,34,27,.15); --line-strong:rgba(38,34,27,.34);
+  --glass:rgba(255,255,255,.5); --glass-line:rgba(38,34,27,.12);
+  --sc-elec:#8A5F2C; --sc-math:#2F6B66; --sc-math-hi:#0F7B72;
+  --sc-la:#3D5E80; --sc-ctrl:#5A4F8A; --sc-toeic:#3F7050;
+}
+/* 黑板 chalk：暗色地面，墨階原班可用，線改粉筆灰 */
+.g-chalk{
+  background:
+    radial-gradient(820px 380px at 14% 110%,rgba(143,189,159,.08),transparent 70%),
+    linear-gradient(180deg,#182620,#16241F 45%,#132019);
+  --bg:#16241F; --bg-raise:#1C2C26;
+  --line:rgba(214,236,224,.14); --line-strong:rgba(214,236,224,.3);
+}
+.gd-readout{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px 0;
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  font-family:var(--font-mono);font-size:var(--w-meta);font-variant-numeric:tabular-nums;color:var(--ink-dim)}
+.gd-readout .hot{color:var(--accent);font-weight:600}
+.gd-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+
+/* =====================================================================
+   S-09 規 —— 紀律逐條，掛行編號
+   ===================================================================== */
+.rules{margin-top:36px;counter-reset:rule}
+.rule-item{display:grid;grid-template-columns:64px 1fr;gap:22px;padding:19px 0;border-bottom:1px solid var(--line)}
+.rule-item:first-child{border-top:1px solid var(--line)}
+.rule-item::before{counter-increment:rule;content:"0" counter(rule);
+  font-family:var(--font-mono);font-size:var(--w-meta);color:var(--accent);font-variant-numeric:tabular-nums}
+.rule-item p{color:var(--ink-dim)}
+.rule-item b{color:var(--ink);font-weight:600}
+.rule-item .mono-note{display:block;margin-top:5px;font-family:var(--font-mono);
+  font-size:var(--w-tag);letter-spacing:.06em;color:var(--ink-faint);font-variant-numeric:tabular-nums}
+.deblaw{margin-top:44px;padding-left:22px;border-left:2px solid var(--warm);max-width:44em}
+.deblaw .q{font-size:calc(var(--w-title)*.72);line-height:1.35;font-weight:700;letter-spacing:-.02em}
+.deblaw .a{margin-top:12px;color:var(--ink-dim)}
+
+/* 頁尾 */
+.colophon{margin:clamp(96px,14vh,160px) 0 72px;padding-top:16px;
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  border-top:1px solid var(--line)}
+
+/* =====================================================================
+   RWD
+   ===================================================================== */
+@media (max-width:920px){
+  .surface-grid{grid-template-columns:1fr}
+  .mrow{grid-template-columns:140px 1fr;grid-template-rows:auto auto}
+  .mrow .law{grid-column:2}
+  .dial-band{grid-template-columns:1fr}
+  .zone{min-height:200px}
+  .zone + .zone{border-left:0;border-top:1px solid var(--line)}
+}
+@media (max-width:680px){
+  .lrow,.crow{grid-template-columns:1fr;gap:8px}
+  .lrow .nm,.crow .nm{padding-top:0}
+  .mrow{grid-template-columns:1fr}
+  .mrow .law{grid-column:1}
+  .ink-rows .nm,.val-rows .nm,.g-list .nm{width:100%}
+  .sc-band{grid-template-columns:1fr}
+  .sc-field{padding:14px clamp(20px,5vw,56px);
+    background:linear-gradient(90deg,color-mix(in srgb,var(--c) 20%,transparent),transparent 78%);
+    display:flex;gap:14px;align-items:baseline}
+  .sc-field .hi{margin:0 0 0 auto}
+  .tick{width:1px}
+  .tick.today{width:2px}
+  .dnum{font-size:clamp(4rem,20vw,6rem)}
+  .review-float{bottom:12px}
+  .ground-strip{grid-template-columns:1fr}
+}
+
+/* reduced-motion：tokens.css 已全滅動效；此處補「靜止即完成態」 */
+@media (prefers-reduced-motion:reduce){
+  html.js .fx-cd{opacity:1;transform:none;filter:none}
+  .m-chip.enter-out{opacity:1;transform:none}
+  .m-cd.pre{opacity:1;transform:none;filter:none}
+}
+</style>
+</head>
+<body>
+
+<div class="aurora" aria-hidden="true"><i class="au-a"></i><i class="au-b"></i><i class="au-c"></i></div>
+
+<div class="page">
+
+<!-- =================== S-01 宣言 =================== -->
+<header class="col hero" data-reveal aria-label="宣言">
+  <p class="eyebrow fx-cd" style="--i:0"><span class="no">S-01</span> · 宣言 MANIFESTO · FEB DESIGN LANGUAGE 002 · REV B</p>
+  <h1 class="fx-cd" style="--i:1">夜湖儀表<span class="en">Nightlake Instrument — A 的讀數 × B 的湖面</span></h1>
+  <p class="thesis fx-cd" style="--i:2">湖面之下夜色流動，湖面之上只發必要的光。每個數字都是讀數，每片玻璃都真的浮著——頁面內容不住在框裡，直接站在 aurora 場上。</p>
+
+  <div class="verdicts">
+    <blockquote class="verdict fx-cd" style="--i:3">
+      <p>「我覺得可以把A跟B融合，我覺得A資訊的呈現方式我很喜歡不過缺少湖面玻璃的效果。」</p>
+      <span class="src eyebrow">ADR-0002 · 2026-08-31 · 融合裁定：資訊層全取 A，表面層全取 B，C 出局</span>
+    </blockquote>
+    <blockquote class="verdict fx-cd" style="--i:4">
+      <p>「你使用太多框框了，我希望可以多增加一些創意。」</p>
+      <span class="src eyebrow">ADR-0002 · 2026-08-31 · 去框化裁定：框是例外，不是預設：本頁自身即為示範</span>
+    </blockquote>
+  </div>
+
+  <!-- 簽名件：巨讀數壓在全寬出血倒數尺上 -->
+  <div class="dband fx-cd" style="--i:5">
+    <div class="dhero">
+      <span class="dnum" aria-label="倒數 154 天">D-154</span>
+      <span class="dlab mono">距 2027-02-01 筆試
+        <span class="sub eyebrow">154 格 · 一格一夜 · 貫穿全寬</span></span>
+    </div>
+    <div class="rail-bleed bleed">
+      <div class="rail boot" id="rail" role="img" aria-label="倒數尺：自今夜至 2027 年 2 月 1 日筆試，共 154 夜，每格一夜，今夜為燃點，貫穿整個視窗寬度"></div>
+      <div class="rail-months" id="railMonths" aria-hidden="true"><span class="mlabel start">08·31 今夜</span><span class="mlabel end">02·01 筆試</span></div>
+    </div>
+    <p class="rail-law law col" style="padding-inline:0">簽名件許可出血：<b>倒數尺貫穿視窗</b>，開機掃描一次即熄（reduced-motion 直接靜止呈現）。</p>
+    <noscript><p class="law">（JavaScript 關閉：倒數尺未渲染，讀數仍為 D-154。）</p></noscript>
+  </div>
+</header>
+
+<!-- =================== S-02 色 =================== -->
+<section class="spec" data-reveal aria-label="色彩">
+  <div class="col">
+    <p class="eyebrow sec-mark fx-cd" style="--i:0"><span><span class="no">S-02</span> · 色 COLOR</span></p>
+    <h2 class="sec-title fx-cd" style="--i:1">色不是色票，是地形<span class="en">Fields, not swatches</span></h2>
+    <p class="sec-lead fx-cd" style="--i:2">顏色以「場」的方式出現在頁面上：出血、漸淡、被字直接站上去。每個場旁邊就是它的變數名、值與用法律。</p>
+
+    <div class="f-lab fx-cd" style="--i:3"><span class="zh">底 GROUND</span><span class="eyebrow">頁面站立的地方</span></div>
+  </div>
+  <div class="ground-strip bleed" aria-label="底色兩級">
+    <div><span class="gs-tag"><b>--bg</b> · #0B0D12 · 頁底。你現在就站在上面</span></div>
+    <div class="raise"><span class="gs-tag"><b>--bg-raise</b> · #12151D · 平面浮起一級：右半即是</span></div>
+  </div>
+  <div class="col">
+    <div class="f-lab"><span class="zh">墨 INK</span><span class="eyebrow">字本身就是色票 · 對比 vs --bg</span></div>
+    <div class="ink-rows">
+      <p><span class="nm ink-1">--ink · #E9EDF4</span><span class="ink-1">正文與讀數的墨。15.9:1，凌晨兩點也讀得動。</span></p>
+      <p><span class="nm ink-2">--ink-dim · #A3ADC2</span><span class="ink-2">次要說明、表格內文。7.8:1。</span></p>
+      <p><span class="nm ink-3">--ink-faint · #75809E</span><span class="ink-3">眉標與註記。4.9:1，限平面；玻璃上最低用 dim。</span></p>
+    </div>
+
+    <div class="f-lab"><span class="zh">餘燼 EMBER</span><span class="eyebrow">雙階 · 同一團火，兩種用途</span></div>
+  </div>
+  <div class="ember-band bleed">
+    <div class="col">
+      <div class="ember-line"><span class="big">D-154</span><span class="law"><b>--accent · #E07840</b> ember lit：被吹亮的那面，給可讀文字：讀數、倒數、熱點。6.4:1 on bg · 5.5:1 on glass。</span></div>
+      <div class="ember-line"><span class="burn-tick" aria-hidden="true"></span><span class="law"><b>--warm · #C25E2E</b> ember core：火心本體，只給正在燒的東西：today 刻度、熱度格、選中脊線、光暈。3.9:1，故意不及格：<b>永遠不當 body text</b>。</span></div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="f-lab"><span class="zh">學科 SUBJECT</span><span class="eyebrow">雙階 · 結構在下（去飽和），活性在上（-hi 全彩＋柔光）</span></div>
+  </div>
+  <div class="sc-band bleed" aria-label="學科五色">
+    <div class="sc-field" style="--c:var(--sc-elec)"><span class="nm">--sc-elec 電子學</span><span class="hx">#D2A377</span><span class="hi">-hi #E8A75C</span></div>
+    <div class="sc-field" style="--c:var(--sc-math)"><span class="nm">--sc-math 工數</span><span class="hx">#6FB5B0</span><span class="hi">-hi #57C7C0</span></div>
+    <div class="sc-field" style="--c:var(--sc-la)"><span class="nm">--sc-la 線代</span><span class="hx">#7FA3C9</span><span class="hi">-hi #6FA8E8</span></div>
+    <div class="sc-field" style="--c:var(--sc-ctrl)"><span class="nm">--sc-ctrl 自控</span><span class="hx">#9F94CF</span><span class="hi">-hi #9D8DF1</span></div>
+    <div class="sc-field" style="--c:var(--sc-toeic)"><span class="nm">--sc-toeic 多益</span><span class="hx">#8FBD9F</span><span class="hi">-hi #86CF9E</span></div>
+  </div>
+  <div class="col">
+    <div class="ch-demo" aria-label="雙階實演：同一列章">
+      <p class="law" style="margin-bottom:14px">同一列章，兩個階。rest 用結構色安靜導航；選中的那一列點 <b>-hi</b>，色場向左出血到視窗邊，柔光只落在脊線上。<b>全頁同時最多一個 -hi。</b></p>
+      <div class="ch-row" style="--c:var(--sc-math)">
+        <span class="ch-sub">工數 · 考點 95%</span>
+        <span class="ch-st">rest · 未選</span>
+        <span class="ch-title">拉普拉斯轉換</span>
+        <span class="ch-bar" aria-hidden="true"><i style="width:95%"></i></span>
+      </div>
+      <div class="ch-row is-active" aria-current="true">
+        <span class="ch-sub">工數 · 考點 95%</span>
+        <span class="ch-st">-hi · 進行中</span>
+        <span class="ch-title">拉普拉斯轉換</span>
+        <span class="ch-bar" aria-hidden="true"><i style="width:95%"></i></span>
+      </div>
+    </div>
+
+    <div class="f-lab"><span class="zh">湖面與髮絲線 GLASS / LINE</span><span class="eyebrow">值先記在這，形在 S-04</span></div>
+    <div class="val-rows">
+      <p><span class="nm">--glass</span><span class="note">白 7% · blur 14px 下的材質臨界</span></p>
+      <p><span class="nm">--glass-line</span><span class="note">白 14% · 折射邊比面亮一級</span></p>
+      <p><span class="nm">--glass-inner</span><span class="note">inset 0 1px 0 白10% · 頂緣受光線，B 的靈魂</span></p>
+      <p><span class="nm">--line 12%</span><span class="demo-line" aria-hidden="true"></span><span class="note">看得見，數不出來</span></p>
+      <p><span class="nm">--line-strong 28%</span><span class="demo-line strong" aria-hidden="true"></span><span class="note">摸得到邊界的元件用</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- =================== S-03 字 =================== -->
+<section class="spec" data-reveal aria-label="字階">
+  <div class="col">
+    <p class="eyebrow sec-mark fx-cd" style="--i:0"><span><span class="no">S-03</span> · 字 TYPE</span></p>
+    <h2 class="sec-title fx-cd" style="--i:1">五級，沒有第六級<span class="en">Five steps, no interpolation</span></h2>
+    <p class="sec-lead fx-cd" style="--i:2">Inter＋Noto Sans TC 撐正文；Geist Mono 包辦所有讀數、代號與眉標，tabular-nums 強制。要「介於中間」的字，代表層級沒想清楚。</p>
+
+    <div class="ladder">
+      <div class="lrow"><span class="nm">--w-title · 2.5rem · ls -.035em</span><span class="smp-title">拉普拉斯轉換</span></div>
+      <div class="lrow"><span class="nm">--w-sub · 1.0625rem</span><span class="smp-sub">特徵值與對角化 · 未開始</span></div>
+      <div class="lrow"><span class="nm">--w-body · .9375rem</span><span class="smp-body">今晚 21:47，距 2027-02-01 筆試還有 154 天。讀書模式接續工數 W2，ME-E07 自 42:10 續播。</span></div>
+      <div class="lrow"><span class="nm">--w-meta · .8125rem · mono</span><span class="smp-meta">ME-E07 · 169min · 台大113 第3題 · 成大112 第1題</span></div>
+      <div class="lrow"><span class="nm">--w-tag · .6875rem · ls .16em</span><span class="smp-tag">S-03 · Type · Geist Mono · Tabular</span></div>
+    </div>
+
+    <p class="law" style="margin-top:26px">超大讀數（D-154 巨字、時鐘）＝ title 的 calc 倍數，是<b>展示位</b>不是第六級。</p>
+
+    <div class="readout" role="status" aria-label="儀表讀數列">
+      <span class="hot">D-154</span>
+      <span class="sep" aria-hidden="true"></span>
+      <span>總進度 42%</span><span class="microbar" aria-hidden="true"><i style="width:42%"></i></span>
+      <span class="sep" aria-hidden="true"></span>
+      <span>W2</span>
+      <span class="sep" aria-hidden="true"></span>
+      <span id="liveClock">21:47:00</span>
+      <span class="sep" aria-hidden="true"></span>
+      <span>晴 31°</span>
+    </div>
+    <p class="law" style="margin-top:12px">讀數列直接躺在兩條髮絲線之間：秒針在跳，tabular-nums 讓它<b>一格都不位移</b>。</p>
+  </div>
+</section>
+
+<!-- =================== S-04 面 =================== -->
+<section class="spec" data-reveal aria-label="表面">
+  <div class="col">
+    <p class="eyebrow sec-mark fx-cd" style="--i:0"><span><span class="no">S-04</span> · 面 SURFACE</span></p>
+    <h2 class="sec-title fx-cd" style="--i:1">浮的才配玻璃<span class="en">Glass floats or it doesn't exist</span></h2>
+    <p class="sec-lead fx-cd" style="--i:2">全站唯二的四邊框配方是 .glass 與 .glass-quiet，保留給真正浮起的 overlay：modal、播放器控制列、今日複習條。其餘一切站在地上。</p>
+
+    <div class="surface-grid">
+      <div>
+        <div class="f-lab" style="margin-top:0"><span class="zh">可以浮</span><span class="eyebrow">.glass 解剖</span></div>
+        <div class="glass float-demo" style="margin-top:18px">
+          <span class="zh">浮層</span>
+          <p>此塊之所以有邊框，因為它示範的正是「浮起」本身。</p>
+        </div>
+        <div class="anno" aria-label="玻璃配方註記">
+          <p><span class="nm">fill</span>rgba(255,255,255,.07) · 白 7%</p>
+          <p><span class="nm">edge</span>1px --glass-line 白 14%</p>
+          <p><span class="nm">inner light</span>inset 0 1px 0 白 10% · 頂緣受光</p>
+          <p><span class="nm">blur</span>14px · hover:none（iPad）降級實心省電</p>
+          <p><span class="nm">radius</span>--r-lg 18 · 浮層專用級</p>
+        </div>
+      </div>
+      <div>
+        <div class="f-lab" style="margin-top:0"><span class="zh">不准浮</span><span class="eyebrow">頁面內容的結構工具</span></div>
+        <div class="noframe">
+          <p class="law">同樣的資訊不進箱子也站得直，靠的是：<b>字階</b>（大小即層級）、<b>縮排</b>（脊線＋左讓）、<b>一條髮絲線</b>（分隔不包圍）、<b>色場</b>（出血漸淡）、<b>z 深度</b>（亮度與模糊差）。</p>
+          <div class="ch-demo" style="margin-top:22px">
+            <div class="ch-row" style="--c:var(--sc-elec)">
+              <span class="ch-sub">電子學 · 考點 80%</span>
+              <span class="ch-st">已完成 ✓</span>
+              <span class="ch-title">BJT 與 FET</span>
+              <span class="ch-bar" aria-hidden="true"><i style="width:80%"></i></span>
+            </div>
+            <div class="ch-row" style="--c:var(--sc-la)">
+              <span class="ch-sub">線代 · 考點 60%</span>
+              <span class="ch-st">未開始 ○</span>
+              <span class="ch-title">特徵值與對角化</span>
+              <span class="ch-bar" aria-hidden="true"><i style="width:60%"></i></span>
+            </div>
+          </div>
+          <p class="law" style="margin-top:18px">章列＝脊線＋行線，表格＝行線無外框，section＝眉標＋一條線。<b>正要包 .glass？先問：它浮嗎？</b></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== S-05 件 =================== -->
+<section class="spec" data-reveal aria-label="元件">
+  <div class="col">
+    <p class="eyebrow sec-mark fx-cd" style="--i:0"><span><span class="no">S-05</span> · 件 COMPONENTS</span></p>
+    <h2 class="sec-title fx-cd" style="--i:1">元件站在地上<span class="en">Components on the ground</span></h2>
+    <p class="sec-lead fx-cd" style="--i:2">三型三高、學科雙階、狀態燈、待辦。沒有一件被裝進示範箱；列與列之間只有髮絲線。視覺高照 token，命中區一律 ≥44px。</p>
+
+    <div class="comps">
+      <div class="crow">
+        <span class="nm">BTN · --btn-h 32</span>
+        <div class="demo" style="--bh:var(--btn-h)">
+          <button type="button" class="btn ui-solid hit">開始讀書</button>
+          <button type="button" class="btn ui-ghost hit">查逐字稿</button>
+          <span class="ui-seg" role="group" aria-label="範圍切換 32"><button type="button" class="on hit">今日</button><button type="button" class="hit">本週</button><button type="button" class="hit">全部</button></span>
+        </div>
+      </div>
+      <div class="crow">
+        <span class="nm">BTN · --btn-h-sm 28</span>
+        <div class="demo" style="--bh:var(--btn-h-sm)">
+          <button type="button" class="btn ui-solid hit" style="padding:0 13px">開始讀書</button>
+          <button type="button" class="btn ui-ghost hit" style="padding:0 13px">查逐字稿</button>
+          <span class="ui-seg" role="group" aria-label="範圍切換 28"><button type="button" class="on hit">今日</button><button type="button" class="hit">本週</button><button type="button" class="hit">全部</button></span>
+        </div>
+      </div>
+      <div class="crow">
+        <span class="nm">BTN · --btn-h-xs 24</span>
+        <div class="demo" style="--bh:var(--btn-h-xs);font-size:var(--w-tag)">
+          <button type="button" class="btn ui-solid hit" style="padding:0 10px;font-size:var(--w-tag)">開始讀書</button>
+          <button type="button" class="btn ui-ghost hit" style="padding:0 10px;font-size:var(--w-tag)">查逐字稿</button>
+          <span class="ui-seg" role="group" aria-label="範圍切換 24"><button type="button" class="on hit" style="font-size:var(--w-tag)">今日</button><button type="button" class="hit" style="font-size:var(--w-tag)">本週</button><button type="button" class="hit" style="font-size:var(--w-tag)">全部</button></span>
+        </div>
+      </div>
+      <div class="crow">
+        <span class="nm">BTN · 狀態</span>
+        <div class="demo" style="--bh:var(--btn-h)">
+          <button type="button" class="btn ui-solid hit">rest</button>
+          <button type="button" class="btn ui-solid demo-focus hit">:focus-visible</button>
+          <button type="button" class="btn ui-solid hit" disabled>disabled</button>
+          <button type="button" class="btn ui-ghost hit" disabled>disabled</button>
+          <span class="st-note">hover＝上浮 1px＋柔光 · active＝下沉 1px＋漣漪 · disabled 38% 不承載唯一資訊</span>
+        </div>
+      </div>
+      <div class="crow">
+        <span class="nm">SC · 結構階</span>
+        <div class="demo">
+          <span class="pill" style="--c:var(--sc-elec)">電子學</span>
+          <span class="pill" style="--c:var(--sc-math)">工數</span>
+          <span class="pill" style="--c:var(--sc-la)">線代</span>
+          <span class="pill" style="--c:var(--sc-ctrl)">自控</span>
+          <span class="pill" style="--c:var(--sc-toeic)">多益</span>
+        </div>
+      </div>
+      <div class="crow">
+        <span class="nm">SC · 活性階 -hi</span>
+        <div class="demo">
+          <span class="pill is-hi" style="--c:var(--sc-math);--ch:var(--sc-math-hi)">工數 · 進行中</span>
+          <span class="st-note">全頁同時最多一個 -hi；都亮＝沒亮</span>
+        </div>
+      </div>
+      <div class="crow">
+        <span class="nm">ST · 狀態燈</span>
+        <div class="lamps">
+          <div class="lamp-row"><span class="lamp ok" aria-hidden="true"></span><span>離線就緒</span><span class="l-note">12/12 在機</span></div>
+          <div class="lamp-row"><span class="lamp busy" aria-hidden="true"></span><span>補檔中</span><span class="l-note">2 檔傳輸</span></div>
+          <div class="lamp-row"><span class="lamp miss" aria-hidden="true"></span><span>缺 3</span><span class="l-note hot">字幕未載</span></div>
+        </div>
+      </div>
+      <div class="crow">
+        <span class="nm">TD · 待辦</span>
+        <div class="todo-line">
+          <button type="button" class="box hit" role="checkbox" aria-checked="false" aria-label="多益報名 未完成"></button>
+          <span>多益報名</span>
+          <span class="t-due">剩 4 天</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 全頁唯一合法浮層：今日複習條（sticky overlay，真的浮） -->
+    <aside class="glass review-float" aria-label="今日複習浮層">
+      <span class="rv-lab eyebrow">RV · 今日複習</span>
+      <span class="rv-code">控001</span>
+      <span class="rv-src">GoodNotes p.12</span>
+      <span class="rv-btns" style="--bh:var(--btn-h-sm)">
+        <button type="button" class="btn ui-ghost hit" style="padding:0 12px">pass</button>
+        <button type="button" class="btn ui-ghost hit" style="padding:0 12px">A</button>
+        <button type="button" class="btn ui-ghost hit" style="padding:0 12px">B</button>
+        <button type="button" class="btn ui-ghost hit" style="padding:0 12px">C</button>
+      </span>
+      <span class="rv-q"><span class="rv-code">數003</span><span class="rv-src">p.31</span><span class="rv-wait">待複習</span></span>
+    </aside>
+    <p class="law float-note">它有邊框，因為它<b>真的浮</b>：捲動這一節時，它以 overlay 之姿貼在視窗下緣（sticky）。這是全頁唯一的四邊框浮層；modal 與播放器控制列比照辦理。</p>
+  </div>
+</section>
+
+<!-- =================== S-06 動 =================== -->
+<section class="spec" data-reveal aria-label="動效">
+  <div class="col">
+    <p class="eyebrow sec-mark fx-cd" style="--i:0"><span><span class="no">S-06</span> · 動 MOTION</span></p>
+    <h2 class="sec-title fx-cd" style="--i:1">快出發，長剎車<span class="en">One curve, four words</span></h2>
+
+    <div class="curve-wrap fx-cd" style="--i:2">
+      <svg width="264" height="168" viewBox="0 0 264 168" role="img" aria-label="動效曲線 cubic-bezier .22 1 .36 1：前段陡升後段長收">
+        <line x1="0" y1="164" x2="264" y2="164" stroke="var(--line-strong)" stroke-width="1"/>
+        <line x1="2" y1="0" x2="2" y2="168" stroke="var(--line-strong)" stroke-width="1"/>
+        <line x1="2" y1="164" x2="59" y2="4" stroke="var(--line)" stroke-width="1"/>
+        <line x1="264" y1="4" x2="97" y2="4" stroke="var(--line)" stroke-width="1"/>
+        <path d="M2 164 C 59 4, 97 4, 262 4" fill="none" stroke="var(--accent)" stroke-width="2"/>
+        <circle cx="59" cy="4" r="3" fill="var(--warm)"/>
+        <circle cx="97" cy="4" r="3" fill="var(--warm)"/>
+      </svg>
+      <div>
+        <p class="smp-meta">cubic-bezier(.22, 1, .36, 1)</p>
+        <p class="law" style="margin-top:6px">全站唯一曲線。玻璃「凝結感」全部來自這條：<b>快出發、長剎車</b>。</p>
+      </div>
+    </div>
+
+    <div class="mrows">
+      <div class="mrow">
+        <span class="nm">ENTER / EXIT</span>
+        <div class="demo">
+          <button type="button" class="btn ui-ghost hit" id="playEnter" style="--bh:var(--btn-h-sm);padding:0 13px">重播</button>
+          <span class="m-chip enter-in" id="enterChip">ME-E07 · 169min</span>
+        </div>
+        <p class="law">進場 <b>320ms</b>，出場 <b>208ms＝65%</b>：離開的東西不值得看完整段。</p>
+      </div>
+      <div class="mrow">
+        <span class="nm">CONDENSE</span>
+        <div class="demo">
+          <button type="button" class="btn ui-ghost hit" id="playCd" style="--bh:var(--btn-h-sm);padding:0 13px">重播</button>
+          <span class="m-chip m-cd" id="cdChip">自光暈中凝結</span>
+        </div>
+        <p class="law">B 的簽名進場：opacity＋translate＋<b>blur 12→0</b>。全站唯一合法的 blur 動畫（豁免條款）。</p>
+      </div>
+      <div class="mrow">
+        <span class="nm">RIPPLE</span>
+        <div class="demo" style="--bh:var(--btn-h)">
+          <button type="button" class="btn ui-solid hit rippled">按我 · 湖面回應</button>
+        </div>
+        <p class="law">按壓落點漾開一圈，只動 transform／opacity，320ms 走完自行蒸發。</p>
+      </div>
+      <div class="mrow">
+        <span class="nm">STAGGER 38ms</span>
+        <div class="demo">
+          <button type="button" class="btn ui-ghost hit" id="playSg" style="--bh:var(--btn-h-sm);padding:0 13px">重播</button>
+          <span class="sg-ticks" id="sgTicks" aria-hidden="true"><i style="--i:0"></i><i style="--i:1"></i><i style="--i:2"></i><i style="--i:3"></i><i style="--i:4"></i><i style="--i:5"></i></span>
+        </div>
+        <p class="law">清單逐項凝結，步距 <b>--stagger 38ms</b>；一批超過 8 項就整批進，不逐項。</p>
+      </div>
+      <div class="mrow">
+        <span class="nm">KILL SWITCH</span>
+        <div class="demo"><span class="st-note">prefers-reduced-motion: reduce</span></div>
+        <p class="law">全滅。凝結態直接以完成態呈現，開機掃描不跑，aurora 減半靜止。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== S-07 度 =================== -->
+<section class="spec" data-reveal aria-label="強度儀">
+  <div class="col">
+    <p class="eyebrow sec-mark fx-cd" style="--i:0"><span><span class="no">S-07</span> · 度 INTENSITY</span></p>
+    <h2 class="sec-title fx-cd" style="--i:1">一片湖，三種夜<span class="en">One field, three zones</span></h2>
+    <p class="sec-lead fx-cd" style="--i:2">html[data-intensity] 是唯一的檔位開關：同一片 aurora，home 全開、exam 收半、study 近熄。下面不是三個箱子——是同一條出血色場的三個地帶，點下去整頁跟著換檔。</p>
+  </div>
+  <div class="dial-band bleed" role="group" aria-label="強度儀三檔實演">
+    <button type="button" class="zone" data-intensity="full" data-set="full" aria-pressed="true">
+      <span class="zone-au" style="background:radial-gradient(closest-side,color-mix(in srgb,var(--sc-la-hi) 26%,transparent),transparent 70%)" aria-hidden="true"></span>
+      <span class="eyebrow">home · 待機門面</span>
+      <span class="z-name">full</span>
+      <span class="z-read">--aurora-opacity 1.00 · ambient running</span>
+    </button>
+    <button type="button" class="zone" data-intensity="mid" data-set="mid" aria-pressed="false">
+      <span class="zone-au" style="background:radial-gradient(closest-side,color-mix(in srgb,var(--warm) 26%,transparent),transparent 70%)" aria-hidden="true"></span>
+      <span class="eyebrow">exam · 考古題</span>
+      <span class="z-name">mid</span>
+      <span class="z-read">--aurora-opacity 0.45 · ambient running</span>
+    </button>
+    <button type="button" class="zone" data-intensity="quiet" data-set="quiet" aria-pressed="false">
+      <span class="zone-au" style="background:radial-gradient(closest-side,color-mix(in srgb,var(--sc-math-hi) 26%,transparent),transparent 70%)" aria-hidden="true"></span>
+      <span class="eyebrow">study · 讀書</span>
+      <span class="z-name">quiet</span>
+      <span class="z-read">--aurora-opacity 0.08 · ambient paused</span>
+    </button>
+  </div>
+  <div class="col">
+    <p class="law dial-read">目前檔位 <b class="mono" id="dialNow">FULL · AURORA 100%</b>：湖面亮度是變數不是主題；quiet 保住 blur 材質（身份），凍結 ambient（動效），aurora 壓到 8%（省電）。</p>
+  </div>
+</section>
+
+<!-- =================== S-08 景 =================== -->
+<section class="spec" data-reveal aria-label="背景">
+  <div class="col">
+    <p class="eyebrow sec-mark fx-cd" style="--i:0"><span><span class="no">S-08</span> · 景 GROUNDS · 使用者拍板定案</span></p>
+    <h2 class="sec-title fx-cd" style="--i:1">存活的地面<span class="en">Grounds, stamped final</span></h2>
+    <blockquote class="verdict fx-cd" style="margin-top:22px;--i:2">
+      <p>「描圖紙、黑板是我最喜歡的兩個風格，其他都可以刪除。」</p>
+      <span class="src eyebrow">ADR-0002 · 2026-08-31 · T01 背景清單裁定（定案，非提案）</span>
+    </blockquote>
+    <blockquote class="verdict fx-cd" style="margin-top:18px;--i:3">
+      <p>「背景設計風格都很單一，沒有不同的元素主題以及材質。」</p>
+      <span class="src eyebrow">ADR-0002 修訂三 #1#2 · 2026-09-01 晚 · 15 組調色×地面僅「描圖紙×餘燼」「夜湖×松青」存活——每片地面重造材質語彙＋簽名 motif，並出廠帶 curated 調色（切地面自動配對，點實名盤才覆蓋）</span>
+    </blockquote>
+
+    <div class="g-list">
+      <p><span class="nm">aurora 氛圍場</span><span>內建基底層＋夜湖地面的簽名 motif（三團光斑慢漂）· curated 調色＝松青 · 錨點組合之一</span></p>
+      <p><span class="nm">描圖紙 vellum</span><span>亮 · #F2EDE2 · 繼續驅動 body.lt 亮色路徑 · 素紙＋角落暖暈 · curated 調色＝餘燼 · 錨點組合之二</span></p>
+      <p><span class="nm">黑板 chalk</span><span>暗 · #16241F · 修訂三升級：粉筆塵（互質微粒 tile）＋板底擦痕霧＋板緣公式塗鴉 motif（∫ Σ 正弦 √ x²，SVG 粉筆殘句）· --ink-faint 重繫粉塵灰綠 4.8:1 · curated 調色＝松青粉綠步（#5FD1AC）</span></p>
+      <p><span class="nm">自訂上傳</span><span>T03 既定範圍 · curated 調色＝餘燼（媒體蓋景，燈色回預設）</span></p>
+      <p><span class="nm">墨水 ink</span><span>暗 · #0A0F1E · 修訂三重造：宣紙簾紋暗底＋單一墨暈 140s 慢滲（--ambient-play，study 凍結）＋右緣筆鋒 motif（SVG 濕邊寬筆×乾芯細筆）· curated 調色＝靛夜墨藍步（#9DB1F6）</span></p>
+      <p><span class="nm">牛皮紙 kraft</span><span>亮 · #D3B584 · 驅動 body.lt · 修訂三重造：纖維紋＋鉛筆行線（44px 行距）＋咖啡環魅影＋左緣縫線 motif（SVG 斜針腳 repeat-y）· 鉛筆頁界線照走 var(--warm) · curated 調色＝餘燼深褐步（kraft 重繫 #7A3708）</span></p>
+      <p><span class="nm dead">方格紙 graph</span><span class="dead-note">退役 · feb-bg 舊值 fallback 到預設</span></p>
+      <p><span class="nm dead">水磨石 terrazzo</span><span class="dead-note">退役</span></p>
+      <p><span class="nm dead">藍曬 blueprint</span><span class="dead-note">退役（方向 C 一併出局）</span></p>
+      <p><span class="nm dead">曜黑 onyx</span><span class="dead-note">退役</span></p>
+    </div>
+  </div>
+
+  <!-- 描圖紙：出血半頁地面，同一套變數名換值不換件 -->
+  <div class="ground-demo g-vellum bleed" aria-label="描圖紙地面實演">
+    <div class="col">
+      <div class="gd-head"><span class="zh">描圖紙 VELLUM</span><span class="eyebrow">body.lt 路徑 · 同一套變數名，重繫值即可，元件一行不改</span></div>
+      <div class="gd-readout"><span class="hot">D-154</span><span>總進度 42%</span><span>W2</span><span>ME-E07 · 169min</span></div>
+      <div class="ch-demo" style="margin-top:0">
+        <div class="ch-row is-active">
+          <span class="ch-sub">工數 · 考點 95%</span>
+          <span class="ch-st">-hi · 進行中</span>
+          <span class="ch-title">拉普拉斯轉換</span>
+          <span class="ch-bar" aria-hidden="true"><i style="width:95%"></i></span>
+        </div>
+      </div>
+      <div class="gd-row" style="--bh:var(--btn-h)">
+        <button type="button" class="btn ui-solid hit" style="background:var(--ink);color:var(--bg)">開始讀書</button>
+        <button type="button" class="btn ui-ghost hit">查逐字稿</button>
+        <span class="pill" style="--c:var(--sc-math)">工數</span>
+        <span class="st-note">墨階、餘燼、學科色全部在亮地重繫，對比照樣 ≥4.5:1</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 黑板：出血半頁地面 -->
+  <div class="ground-demo g-chalk bleed" aria-label="黑板地面實演">
+    <div class="col">
+      <div class="gd-head"><span class="zh">黑板 CHALK</span><span class="eyebrow">暗 · 墨階原班可用，髮絲線改粉筆灰</span></div>
+      <div class="gd-readout"><span class="hot">D-154</span><span>總進度 42%</span><span>W2</span><span>台大113 第3題</span></div>
+      <div class="ch-demo" style="margin-top:0">
+        <div class="ch-row" style="--c:var(--sc-toeic)">
+          <span class="ch-sub">多益 · 報名剩 4 天</span>
+          <span class="ch-st">待辦</span>
+          <span class="ch-title">多益報名</span>
+          <span class="ch-bar" aria-hidden="true"><i style="width:30%"></i></span>
+        </div>
+      </div>
+      <div class="gd-row" style="--bh:var(--btn-h)">
+        <button type="button" class="btn ui-solid hit">開始讀書</button>
+        <button type="button" class="btn ui-ghost hit">查逐字稿</button>
+        <span class="pill" style="--c:var(--sc-toeic)">多益</span>
+        <span class="st-note">aurora 場仍在地面之下呼吸；景是地面，不是貼紙</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== S-09 規 =================== -->
+<section class="spec" data-reveal aria-label="紀律">
+  <div class="col">
+    <p class="eyebrow sec-mark fx-cd" style="--i:0"><span><span class="no">S-09</span> · 規 RULES</span></p>
+    <h2 class="sec-title fx-cd" style="--i:1">紀律<span class="en">The discipline</span></h2>
+
+    <div class="deblaw fx-cd" style="--i:2">
+      <p class="q">「你使用太多框框了，我希望可以多增加一些創意。」</p>
+      <p class="a">去框化法，逐字入規：<b>框是例外，不是預設。</b>結構優先用字階、留白、縮排、單一髮絲線、色彩與 z 深度（亮度／模糊）表達；四邊框＋圓角的面板保留給真正「浮起」的東西（modal、播放器控制列、今日複習條這類 overlay）。頁面內容直接活在 aurora 場上。簽名元素允許出血（tick-rail 貫穿全寬）；表格用行線不用外框；section 分隔＝眉標＋一條線或純留白。</p>
+    </div>
+
+    <div class="rules">
+      <div class="rule-item"><p><b>字階五級，禁止內插。</b>2.5rem／1.0625／.9375／.8125／.6875，超大讀數走 calc 倍數。<span class="mono-note">--w-title …… --w-tag · 值凍結於 specimen contract</span></p></div>
+      <div class="rule-item"><p><b>圓角三級、按鈕三高。</b>18／12／9；32／28／24。圓角只長在浮層與元件身上：頁面結構沒有角可圓。<span class="mono-note">--r-lg/md/sm · --btn-h/-sm/-xs</span></p></div>
+      <div class="rule-item"><p><b>數字一律 mono＋tabular-nums。</b>時鐘、倒數、百分比跳動時不准橫向位移。<span class="mono-note">.mono · Geist Mono</span></p></div>
+      <div class="rule-item"><p><b>Ember 雙階不互換。</b>--accent 給可讀文字，--warm 只給正在燒的東西，永遠不當 body text。<span class="mono-note">#E07840 lit · #C25E2E core</span></p></div>
+      <div class="rule-item"><p><b>學科雙階，-hi 全頁最多一個。</b>rest 去飽和作結構，選中才點亮＋柔光。都亮＝沒亮。<span class="mono-note">--sc-* · --sc-*-hi · glow 42% 上限</span></p></div>
+      <div class="rule-item"><p><b>狀態不寫進 DOM。</b>is-active、data-intensity 是資料層狀態的渲染結果，不是狀態本身；單一來源在資料，DOM 只負責長出來。<span class="mono-note">state-not-in-DOM · 換頁重繪即重建</span></p></div>
+      <div class="rule-item"><p><b>強度儀三檔。</b>html[data-intensity]：home=full、exam=mid、study=quiet（aurora 1／.45／.08，quiet 凍結 ambient）。<span class="mono-note">唯一檔位開關 · 各頁不得自行 hardcode</span></p></div>
+      <div class="rule-item"><p><b>S5 硬檢，違者不出貨。</b>對比 ≥4.5:1（glass 上 faint 禁用）· :focus-visible 可見 · reduced-motion 全滅 · 觸控命中 ≥44px · 無 emoji 圖示 · 只動 transform／opacity（凝結 blur 唯一豁免）。<span class="mono-note">quality floor · 逐條可被 checklist 驗收</span></p></div>
+    </div>
+  </div>
+</section>
+
+<footer class="col colophon">
+  <span class="eyebrow">FEB · DESIGN LANGUAGE 002 · REV B（去框化）· 2026-08-31</span>
+  <span class="eyebrow">css/tokens.css 為唯一來源 · ADR-0002</span>
+</footer>
+
+</div><!-- /page -->
+
+<script>
+(function(){
+  "use strict";
+  var rm=window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  /* ---- 簽名件：D-154 倒數尺（154 格，一格一夜，全寬出血）---- */
+  var rail=document.getElementById("rail");
+  var months=document.getElementById("railMonths");
+  if(rail){
+    var N=154,frag=document.createDocumentFragment();
+    for(var i=0;i<N;i++){
+      var d=new Date(2026,7,31+i);
+      var t=document.createElement("i");
+      t.className="tick";
+      var o;
+      if(i===0){t.classList.add("today");o=1;}
+      else{o=Math.max(.24,.9-(i/N)*.62);}
+      if(i>0&&d.getDate()===1){
+        t.classList.add("m1");o=Math.min(1,o+.2);
+        var s=document.createElement("span");
+        s.className="mlabel";
+        s.style.left=(i/(N-1)*100)+"%";
+        s.textContent=(d.getMonth()+1<10?"0":"")+(d.getMonth()+1);
+        months.appendChild(s);
+      }
+      t.style.setProperty("--o",o);
+      t.style.setProperty("--i",i);
+      frag.appendChild(t);
+    }
+    rail.appendChild(frag);
+    /* 開機掃描只跑一次（reduced-motion 由 tokens.css 全滅） */
+    setTimeout(function(){rail.classList.remove("boot");},N*7+400);
+  }
+
+  /* ---- 凝結進場：38ms stagger（reduced-motion 直接完成態）---- */
+  var secs=document.querySelectorAll("[data-reveal]");
+  function revealAll(){secs.forEach(function(s){s.classList.add("in");});}
+  if(rm.matches||!("IntersectionObserver" in window)){revealAll();}
+  else{
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);}});
+    },{threshold:.06,rootMargin:"0px 0px -4% 0px"});
+    secs.forEach(function(s){io.observe(s);});
+    setTimeout(revealAll,1800); /* 保險絲 */
+  }
+
+  /* ---- 活讀數：秒針跳，tabular-nums 不位移 ---- */
+  var clk=document.getElementById("liveClock");
+  if(clk){
+    var p2=function(n){return (n<10?"0":"")+n;};
+    var tickClock=function(){
+      var d=new Date();
+      clk.textContent=p2(d.getHours())+":"+p2(d.getMinutes())+":"+p2(d.getSeconds());
+    };
+    tickClock();setInterval(tickClock,1000);
+  }
+
+  /* ---- 動效示範：enter/exit ---- */
+  var enterChip=document.getElementById("enterChip");
+  var playEnter=document.getElementById("playEnter");
+  if(playEnter&&enterChip){
+    playEnter.addEventListener("click",function(){
+      if(rm.matches)return;
+      enterChip.classList.remove("enter-in");
+      enterChip.classList.add("enter-out");            /* 出場 208ms */
+      setTimeout(function(){
+        enterChip.classList.remove("enter-out");
+        enterChip.classList.add("enter-in");           /* 進場 320ms */
+      },260);
+    });
+  }
+
+  /* ---- 動效示範：condense（blur 唯一豁免）---- */
+  var cdChip=document.getElementById("cdChip");
+  var playCd=document.getElementById("playCd");
+  if(playCd&&cdChip){
+    playCd.addEventListener("click",function(){
+      if(rm.matches)return;
+      cdChip.classList.add("pre");
+      void cdChip.offsetWidth;                          /* reflow 落地 */
+      cdChip.classList.remove("pre");
+    });
+  }
+
+  /* ---- 動效示範：stagger 38ms ---- */
+  var sg=document.getElementById("sgTicks");
+  var playSg=document.getElementById("playSg");
+  if(playSg&&sg){
+    sg.classList.add("play");
+    playSg.addEventListener("click",function(){
+      if(rm.matches)return;
+      sg.classList.remove("play");
+      void sg.offsetWidth;
+      sg.classList.add("play");
+    });
+  }
+
+  /* ---- 漣漪：按壓落點漾開（transform/opacity only）---- */
+  document.addEventListener("pointerdown",function(e){
+    if(rm.matches)return;
+    var b=e.target.closest?e.target.closest(".btn"):null;
+    if(!b||b.disabled)return;
+    var fx=b.querySelector(".fx");
+    if(!fx){fx=document.createElement("span");fx.className="fx";fx.setAttribute("aria-hidden","true");b.appendChild(fx);}
+    var r=b.getBoundingClientRect();
+    var dm=Math.max(r.width,r.height)*2.3;
+    var s=document.createElement("span");
+    s.className="ripple";
+    s.style.width=s.style.height=dm+"px";
+    s.style.left=(e.clientX-r.left)+"px";
+    s.style.top=(e.clientY-r.top)+"px";
+    fx.appendChild(s);
+    s.addEventListener("animationend",function(){s.remove();});
+    setTimeout(function(){if(s.parentNode)s.remove();},600);
+  });
+
+  /* ---- 強度儀：點地帶換整頁檔位（局部三帶維持各自預覽）---- */
+  var zones=document.querySelectorAll(".zone[data-set]");
+  var dialNow=document.getElementById("dialNow");
+  var pct={full:"100%",mid:"45%",quiet:"8%"};
+  zones.forEach(function(z){
+    z.addEventListener("click",function(){
+      var v=z.getAttribute("data-set");
+      document.documentElement.setAttribute("data-intensity",v);
+      zones.forEach(function(x){x.setAttribute("aria-pressed",String(x===z));});
+      if(dialNow)dialNow.textContent=v.toUpperCase()+" · AURORA "+pct[v];
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>第一輪執行規則 · 116 控制組</title>
+<style>
+  @page { size: A4 portrait; margin: 9mm 8mm; }
+
+  :root{
+    --ink:#14181d;
+    --ink2:#4a5460;
+    --ink3:#8a95a3;
+    --line:#c8d0da;
+    --line2:#e4e9ef;
+    --hl:#a8620d;
+    --hlbg:#fdf6ec;
+    --wk:#f6f8fa;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  body{
+    font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif;
+    color:var(--ink); background:#e8ecf1; padding:14px;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .sheet{
+    width:194mm; min-height:279mm; margin:0 auto; background:#fff;
+    display:flex; flex-direction:column;
+    box-shadow:0 2px 18px rgba(20,24,29,.14);
+  }
+
+  /* ---------- header ---------- */
+  .hd{
+    display:flex; align-items:baseline; gap:10px;
+    border-bottom:1.6px solid var(--ink); padding-bottom:5px; margin-bottom:7px;
+  }
+  .hd h1{ font-size:15.5px; font-weight:800; letter-spacing:.4px; }
+  .hd .sub{ font-size:9.6px; color:var(--ink2); }
+  .hd .rt{ margin-left:auto; font-size:9.2px; color:var(--ink2); text-align:right; line-height:1.45; }
+  .hd .rt b{ color:var(--hl); }
+
+  h2{
+    font-size:10px; font-weight:800; letter-spacing:.6px; color:var(--ink);
+    display:flex; align-items:center; gap:5px; margin-bottom:4px;
+  }
+  h2::before{ content:""; width:3px; height:10px; background:var(--hl); border-radius:1px; }
+  h2 em{ font-style:normal; font-weight:600; font-size:8.4px; color:var(--ink3); letter-spacing:0; }
+
+  /* ---------- video rules ---------- */
+  .vid{
+    border:1px solid var(--line); border-radius:3px; overflow:hidden;
+    display:grid; grid-template-columns:repeat(4,1fr); margin-bottom:8px;
+  }
+  .vid div{ padding:5px 7px; border-right:1px solid var(--line2); font-size:8.8px; line-height:1.45; color:var(--ink2); }
+  .vid div:last-child{ border-right:0; }
+  .vid b{ display:block; color:var(--ink); font-size:9.2px; margin-bottom:1.5px; }
+  .vid .stop{ background:var(--hlbg); }
+  .vid .stop b{ color:var(--hl); }
+
+  /* ---------- fading ladder ---------- */
+  .fade{ display:grid; grid-template-columns:1fr 1.12fr 1fr; gap:6px; margin-bottom:8px; }
+  .step{ border:1px solid var(--line); border-radius:3px; padding:6px 7px 7px; position:relative; }
+  .step.key{ border:1.6px solid var(--hl); background:var(--hlbg); }
+  .step .n{
+    font-size:8px; font-weight:800; letter-spacing:.8px; color:var(--ink3);
+    display:flex; align-items:center; gap:4px; margin-bottom:2.5px;
+  }
+  .step.key .n{ color:var(--hl); }
+  .step .n span{
+    width:13px; height:13px; border-radius:50%; border:1.4px solid currentColor;
+    display:flex; align-items:center; justify-content:center; font-size:8px; flex:none;
+  }
+  .step h3{ font-size:10.4px; font-weight:800; margin-bottom:2.5px; }
+  .step p{ font-size:8.6px; line-height:1.5; color:var(--ink2); }
+  .step .pass{
+    margin-top:4px; padding-top:3.5px; border-top:1px dotted var(--line);
+    font-size:8.2px; color:var(--ink);
+  }
+  .step .pass b{ color:var(--hl); }
+  .step .warn{
+    margin-top:4px; font-size:8.2px; font-weight:700; color:var(--hl); line-height:1.4;
+  }
+
+  /* ---------- two small boxes ---------- */
+  .duo{ display:grid; grid-template-columns:1.15fr 1fr; gap:7px; margin-bottom:8px; }
+  .box{ border:1px solid var(--line); border-radius:3px; padding:6px 8px 7px; }
+  table{ width:100%; border-collapse:collapse; font-size:8.8px; }
+  td{ padding:2.4px 2px; border-bottom:1px solid var(--line2); line-height:1.35; }
+  tr:last-child td{ border-bottom:0; }
+  td.g{ font-weight:800; color:var(--hl); white-space:nowrap; text-align:right; }
+  .never{
+    margin-top:4px; padding:3.5px 5px; background:var(--hlbg); border-radius:2px;
+    font-size:8.4px; font-weight:700; color:var(--hl); line-height:1.4;
+  }
+  .crit{ font-size:9px; line-height:1.55; color:var(--ink2); }
+  .crit b{ color:var(--ink); }
+  .crit .big{
+    display:block; margin:3px 0; padding:4px 6px; background:var(--hlbg);
+    border-radius:2px; font-size:9.4px; font-weight:800; color:var(--hl); line-height:1.4;
+  }
+
+  /* ---------- daily log ---------- */
+  .log{ flex:1; display:flex; flex-direction:column; }
+  .logtable{ width:100%; border-collapse:collapse; }
+  .logtable th{
+    font-size:7.8px; font-weight:700; color:var(--ink3); letter-spacing:.4px;
+    text-align:left; padding:0 3px 2.5px; border-bottom:1.2px solid var(--ink);
+  }
+  .logtable td{
+    border-bottom:1px solid var(--line2); padding:0 3px; height:6.6mm;
+    font-size:8.6px; color:var(--ink2);
+  }
+  .logtable tr.wknd td{ background:var(--wk); }
+  .logtable td.dt{ font-weight:700; color:var(--ink2); white-space:nowrap; width:15mm; }
+  .logtable td.dt i{ font-style:normal; color:var(--ink3); font-weight:600; font-size:7.6px; }
+  .logtable td.stage{ width:20mm; text-align:center; letter-spacing:3px; color:var(--line); font-size:9.4px; }
+  .logtable td.hr{ width:13mm; }
+  .logtable td.ok{ width:11mm; }
+  .logtable td.mk{ font-size:7.4px; color:var(--hl); font-weight:800; width:24mm; }
+
+  .foot{
+    margin-top:5px; padding-top:4px; border-top:1px solid var(--line2);
+    font-size:7.7px; color:var(--ink3); display:flex; gap:14px;
+  }
+  .foot b{ color:var(--ink2); }
+
+  @media print{
+    body{ background:#fff; padding:0; }
+    .sheet{ width:auto; min-height:0; box-shadow:none; }
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="hd">
+    <h1>第一輪執行規則</h1>
+    <div class="sub">116 電機控制組 · 貼在 iPad 旁</div>
+    <div class="rt">影片是<b>卡住時的解答來源</b>，不是要看完的東西</div>
+  </div>
+
+  <h2>一、影片怎麼看 <em>時間黑洞在這裡</em></h2>
+  <div class="vid">
+    <div class="stop"><b>播到例題 → 暫停</b>先自己做，不要看他算。這是整張紙最重要的一條</div>
+    <div><b>推導段落 → 2x 不停</b>定理怎麼推出來的，第一輪不用跟。考題不考推導</div>
+    <div><b>一堂不看完</b>169 分鐘一堂，2x 也要 85 分。看到章節結束就停，去做題</div>
+    <div><b>回頭找片段</b>做題卡住才回影片，只看那一段。不要從頭複習</div>
+  </div>
+
+  <h2>二、每章跑 fading 三階 <em>「看懂」到「會解」中間缺的是第 2 階</em></h2>
+  <div class="fade">
+    <div class="step">
+      <div class="n"><span>1</span>WORKED</div>
+      <h3>範例</h3>
+      <p>跟著影片或講義算一遍，<b>手要動</b>。看他算不算，自己抄一遍也不算。</p>
+      <div class="pass">過關：<b>整題能重寫一次</b></div>
+    </div>
+    <div class="step key">
+      <div class="n"><span>2</span>你缺的就是這階</div>
+      <h3>半完成題</h3>
+      <p>找同型題，<b>遮住後半段</b>自己補完。或把例題的數字換掉重算。</p>
+      <div class="pass">過關：<b>後半段不看解能補完</b></div>
+      <div class="warn">絕不從 1 直接跳 3。你考古題寫不動就是跳了這階</div>
+    </div>
+    <div class="step">
+      <div class="n"><span>3</span>SOLO</div>
+      <h3>自解</h3>
+      <p>考古題完整自己做，從讀題到答案。依熱力表挑有考該章的年份。</p>
+      <div class="pass">過關：<b>不看解做出 2 題</b></div>
+    </div>
+  </div>
+
+  <div class="duo">
+    <div class="box">
+      <h2>三、卡關時限 <em>要開計時器才算數</em></h2>
+      <table>
+        <tr><td>例題卡住</td><td class="g">3 分鐘 → 放行看下一步</td></tr>
+        <tr><td>半完成題卡住</td><td class="g">4 分鐘 → 看下一步</td></tr>
+        <tr><td>考古題卡住</td><td class="g">5 分鐘 → 只看第一步</td></tr>
+      </table>
+      <div class="never">看解答一次只掀一步，看完立刻蓋回去自己往下推。永遠不一次讀完整份解答</div>
+    </div>
+
+    <div class="box">
+      <h2>四、一章算完成了沒</h2>
+      <div class="crit">
+        判準不是「影片看完」，是：
+        <span class="big">不看解答，做出該章 2 題考古題</span>
+        沒達標就<b>不要往下一章</b>——寧可 W2 少一章，也不要五章都停在第 1 階。
+      </div>
+    </div>
+  </div>
+
+  <h2>五、每日收工記兩個數字 <em>這兩欄餵給看板重排 W2–W4</em></h2>
+  <div class="log">
+    <table class="logtable">
+      <thead>
+        <tr>
+          <th>日期</th><th>科目 · 章節</th><th style="text-align:center">跑到第幾階</th>
+          <th>實際時數</th><th>達標</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+
+  <div class="foot">
+    <div><b>時限是可調參數</b>3／4／5 分鐘文獻上沒有精確依據，跑一週後用實測校準</div>
+    <div><b>搭配</b>複習排程表（review-sheet）一起用</div>
+  </div>
+
+</div>
+
+<script>
+const START = new Date(2026, 7, 20);   // 2026-08-20，規則卡啟用日
+const DAYS = 14;
+const DOW = ['日','一','二','三','四','五','六'];
+const MARK = {
+  '2026-08-22':'W1 收尾 · 小測',
+  '2026-08-23':'W2 開始',
+  '2026-08-29':'W2 小測',
+  '2026-08-30':'W3 開始'
+};
+const key = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+
+const tb = document.getElementById('rows');
+for (let i = 0; i < DAYS; i++) {
+  const d = new Date(START);
+  d.setDate(d.getDate() + i);
+  const wknd = d.getDay() === 0 || d.getDay() === 6;
+  const tr = document.createElement('tr');
+  if (wknd) tr.className = 'wknd';
+  const mk = MARK[key(d)] || '';
+  tr.innerHTML =
+    `<td class="dt">${d.getMonth()+1}/${d.getDate()} <i>${DOW[d.getDay()]}</i></td>` +
+    `<td></td>` +
+    `<td class="stage">① ② ③</td>` +
+    `<td class="hr"></td>` +
+    `<td class="ok"></td>` +
+    `<td class="mk">${mk}</td>`;
+  tb.appendChild(tr);
+}
+</script>
+</body>
+</html>

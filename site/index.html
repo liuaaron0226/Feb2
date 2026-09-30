@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-intensity="full">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Feb · 研究所備考平台</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛰️</text></svg>">
+<!-- 裝到 iPad／iPhone 主畫面：全螢幕、無網址列、離線可開 -->
+<!-- use-credentials 不可省：manifest 預設不帶 cookie，會被通行碼擋成 401，
+     iOS 就抓不到 App 名稱與圖示（表現是「加入主畫面」變成普通書籤） -->
+<link rel="manifest" href="app.webmanifest" crossorigin="use-credentials">
+<meta name="theme-color" content="#0B0D12">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Feb">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="vendor/fonts-ui/fonts.css?v50">
+<!-- tokens.css 必須先於 app.css：全站設計語言唯一來源（ADR-0002） -->
+<link rel="stylesheet" href="css/tokens.css?v50">
+<link rel="stylesheet" href="css/app.css?v50">
+</head>
+<body data-mode="home" data-theme="aurora" data-wx="clear">
+
+<!-- 地面：aurora 氛圍場（所有模式的基底，ADR-0002）＋晝夜＋天氣層。
+     退役主題 graph/terrazzo/blueprint/onyx 的圖層已於 T03 移除。
+     此區塊永不 innerHTML 重建，只做 class/hidden 切換（render-discipline）。 -->
+<div class="scene" aria-hidden="true">
+  <div class="sky"></div>
+  <video class="bgvid" loop muted playsinline preload="auto"></video>
+  <div class="cbg"></div>
+  <div class="aurora"><i class="au-a"></i><i class="au-b"></i><i class="au-c"></i></div>
+  <!-- T15 墨水地面的墨暈層：只在 body[data-theme="ink"] 顯形（CSS 開關）。
+       修訂三 #2：收斂為單一墨暈（.ik-a 深芯＋靛暈 140s 慢滲，只動 transform、
+       吃 --ambient-play）；.ik-b 由 CSS 退役隱藏，節點保留＝此區塊永不重建。 -->
+  <div class="inkwash"><i class="ik-a"></i><i class="ik-b"></i></div>
+  <div class="stars"></div>
+  <div class="sun2"></div><div class="moon"></div>
+  <div class="dayglow"></div>
+  <!-- 天氣層（data-wx 開關；home＋exam 顯示，study 隱藏；徽章讀數不在此、全模式可見） -->
+  <div class="wx clouds"><i></i><i></i><i></i></div>
+  <canvas class="wx rain" id="rainCv"></canvas>
+  <div class="wx snow"></div>
+  <div class="wx fogL"><i></i><i></i></div>
+  <div class="wx flash"></div>
+</div>
+
+<!-- ============ 待機畫面（去框化：讀數直接站在 aurora 場上） ============ -->
+<div id="home">
+  <div class="eyebrow boot d1">FEB · GRAD EXAM HUB</div>
+  <div class="clock mono boot d2" id="clock">--:--</div>
+  <div class="readline boot d3">
+    <span id="homeDate"></span>
+    <span class="sep" aria-hidden="true"></span>
+    <span id="wxBadge" aria-label="即時天氣"></span>
+  </div>
+  <div class="railband boot d4">
+    <div class="count" id="homeCount"></div>
+    <!-- T15 rail-life：尺升格為可巡的夜曆（slider 語意，aria-value* 由 JS 對正）；
+         hover 講夜（#vizTip）、點擊在尺下開安靜讀出、鍵盤 ←→↑↓ 巡夜 -->
+    <div class="rail-bleed">
+      <div class="rail" id="homeRail" role="slider" aria-readonly="true" aria-orientation="horizontal" tabindex="0" aria-label="倒數尺"></div>
+      <div class="rail-months" id="homeRailMonths" aria-hidden="true"></div>
+    </div>
+    <div class="rail-under">
+      <button class="rail-tonight mono hit" id="railTonight" type="button" aria-label="今夜讀數與倒數算術"></button>
+    </div>
+    <div class="rail-live mono" id="railLive" hidden></div>
+  </div>
+  <div class="modes boot d5">
+    <button class="btn ui-solid hit" id="btnStudy">開始讀書</button>
+    <button class="btn ui-ghost hit" id="btnExam">考古題</button>
+  </div>
+  <div class="hint boot d5">二月見。</div>
+</div>
+
+<!-- 頂欄：無欄框，只有一條髮絲底線（去框化法） -->
+<header class="top boot">
+  <button class="brand" id="brandHome" data-tip="回待機畫面" aria-label="回待機畫面">Feb<em>.</em></button>
+  <nav class="menu" id="menu">
+    <a class="nav-a seclink only-exam hit" href="#overview">總覽</a>
+    <a class="nav-a seclink only-exam hit" href="#finder">反向選校</a>
+    <a class="nav-a hit" href="la-map.html">線代地圖</a>
+    <a class="nav-a hit" href="me-map.html">工數地圖</a>
+    <span class="wxtop" id="wxTop"></span>
+    <button class="btn ui-ghost hit only-exam" id="toStudy">讀書模式</button>
+    <button class="btn ui-ghost hit only-study" id="toExam">考古題模式</button>
+  </nav>
+</header>
+
+<div class="wrap">
+  <section class="hero">
+    <div class="eyebrow boot d1">電機控制組 · 116 學年度</div>
+    <h1 class="boot d2">八校<span>總覽</span></h1>
+    <p class="sub boot d3">台大、清大、陽明交大、中央、中山、成大、台科大、北科大——電機控制組的簡章、推甄與考試資訊、近十年考古題與精準考科比對，整合在這一頁。</p>
+    <div class="stats boot d4" id="stats"></div>
+  </section>
+
+  <section id="overview" class="reveal">
+    <p class="eyebrow xsec-mark"><span><span class="no">EX-01</span> · 總覽 OVERVIEW</span></p>
+    <h2>總覽</h2>
+    <p class="sec-note">八校一張表：報名日、筆試日、考科、免筆試路徑、題庫與分析進度。點<b>學校名稱</b>開該校完整資料：系所組考科、名額審查、十年題庫、各科章節出題分析。</p>
+    <!-- ov-shell：橫捲提示層（左右 edge-fade 覆蓋）；ov-wrap 才是捲動容器 -->
+    <div class="ov-shell"><div class="ov-wrap"><table class="ov"><thead><tr>
+      <th>學校</th><th>報名</th><th>筆試</th><th>筆試科目</th><th>免筆試</th><th class="num">題庫</th><th class="num">分析</th>
+    </tr></thead><tbody id="ovBody"></tbody></table></div></div>
+    <p class="ov-note">日程與考科逐字核對自 115 學年度官方簡章；116 簡章公告後（每年 10–11 月）需再核對一次。</p>
+    <p class="eyebrow xsec-mark agg-mark"><span><span class="no">EX-02</span> · 共同必考章節 CROSS-SCHOOL</span></p>
+    <h3 class="agg-h">共同必考章節</h3>
+    <p class="agg-note">已完成的 NotebookLM 分析跨校彙整，隨進度自動更新。</p>
+    <div class="agg" id="aggArea"></div>
+  </section>
+
+  <div id="schoolModal" class="modal" hidden>
+    <div class="modal-back" data-close></div>
+    <div class="modal-panel glass" role="dialog" aria-modal="true">
+      <button class="modal-x lq" type="button" data-close aria-label="關閉">✕</button>
+      <div class="modal-body school" id="modalBody"></div>
+    </div>
+  </div>
+
+  <section id="finder" class="reveal acc">
+    <div class="sec-head" data-acc><h2>反向選校</h2><span class="hintline">勾強項 → 看哪裡能考</span><span class="arrow">▸</span></div>
+    <div class="sec-body"><div class="sec-inner">
+      <p class="sec-note">勾選你的<b>強項科目</b>（工數可細到章節），即時比對各校筆試要求。資料來源是 115 簡章逐字核對的考科組合，含「二選一」選考規則與各校工數卷別範圍。</p>
+      <!-- 去框化（ADR-0002）：finder 直接站在 aurora 場上，結構＝眉標＋髮絲線 -->
+      <div class="finder">
+        <h4 class="eyebrow f-lab">我的強項科目</h4>
+        <div class="pills" id="subjPills"></div>
+        <h4 class="eyebrow f-lab">工程數學章節（勾了「工程數學」後細選）</h4>
+        <div class="pills" id="chapPills"></div>
+        <div class="verdicts" id="verdicts"></div>
+        <div class="disclaimer">⚠ 章節比對依據各校簡章載明範圍與考卷實測；「各校特別愛出的章節」由考題分析（NotebookLM）完成後回填，屆時此區會加上出題頻率權重。標示「範圍未載明」者以歷年考卷為準。</div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- ============ 讀書模式：進度追蹤器 ============ -->
+  <section id="study">
+    <div class="tk-head">
+      <h2>讀書模式</h2>
+    </div>
+    <p class="sec-note" id="studyNote">脊柱為地圖：左緣的燃線就是整段衝刺——過去壓縮、今夜撐開、未來收攏。今夜是劇場：複習 → 今日章節 → 錯題 → 收工，捲動即導航（鍵盤 1–4 直達）。點任何章節列可<b>原地展開</b>該章的集數與考古題；列底細脊是<b>十年出題覆蓋</b>。切到<b>影片庫</b>可以看所有課程。</p>
+
+    <!-- T14 去框化照舊：工作台內容直接站在 aurora 場上（quiet 檔）。
+         玻璃只留給真浮層：搜尋結果、wm-more 選單、modal、今日複習條、「今夜」錨。 -->
+    <div class="wm" id="wm" hidden>
+      <div class="todo" id="wmTodo" hidden></div>
+      <div class="wm-bar" id="wmBar"></div>
+      <!-- T07 今日複習條：工作台唯一浮動玻璃 overlay（ADR-0004）。
+           內容由 12-review.js renderReview() 輸出（狀態在 feb-review-v1，DOM write-only）。
+           T14（ADR-0008）：此節點由 09 的 rvDock() 在「衝刺視圖＝站01 內」與
+           「影片庫視圖＝此處」之間搬動【同一個節點】，永不 innerHTML 重建。 -->
+      <div class="wm-slot" id="rvSlot"><span class="eyebrow">RV · 今日複習</span></div>
+      <!-- T14 時間脊柱（衝刺視圖）：renderSpine() 的唯一重建區 -->
+      <div class="spine" id="wmSpine" hidden></div>
+      <!-- 影片庫視圖沿用主從版面（決策 E） -->
+      <div class="wm-body" id="wmBody" hidden>
+        <div class="wm-list" id="wmList"></div>
+        <div class="wm-detail" id="wmDetail"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<div id="wipe" aria-hidden="true"></div>
+
+<!-- 影片選擇器：一定要放在永不重繪的地方。
+     原本放在 #wmBar 裡，但 renderWmBar() 是 innerHTML 整條重建，
+     使用者點開選擇器後只要背景重繪一次，這顆 input 就被銷毀，
+     iOS 把檔案交回來時元素已經不在，change 事件無處可去
+     ——症狀就是「選完按打開沒反應」。 -->
+<input type="file" id="diskPick" accept="video/*" multiple hidden>
+
+<!-- T14「今夜」錨點：全站唯一浮動導航元素（ADR-0008）。
+     body 直屬、永不重繪（渲染紀律）；顯隱＝CSS data-mode ＋ JS 視圖 hidden。 -->
+<button class="glass sp-anchor hit" id="spAnchor" type="button" hidden aria-label="回到今夜">
+  <span class="ar" aria-hidden="true">●</span>今夜
+</button>
+
+<!-- ============ 角落設定：合法浮層（真的浮，de-boxing 法豁免） ============ -->
+<button class="setbtn hit" id="setBtn" type="button" aria-label="設定" aria-expanded="false"><span class="ico-lead ico-gear"></span></button>
+<div class="setpanel glass" id="setPanel" hidden>
+  <h3>設定</h3>
+  <p class="note">全部存在這台電腦的瀏覽器裡</p>
+
+  <h4>背景</h4>
+  <div class="pills" id="bgPills"></div>
+  <div class="setrow">
+    <input type="text" id="bgUrl" placeholder="影片或圖片網址／assets/xxx.mp4">
+    <input type="text" id="bgName" placeholder="名稱">
+    <button class="btn ui-ghost hit" id="bgAdd" type="button">新增</button>
+  </div>
+  <!-- 值夜 #3：原生 file input 藏起來（保持可聚焦，不用 display:none），
+       外觀交給 .btn ui-ghost 的 label；焦點環由 CSS「input:focus-visible + label」
+       畫在 label 上。檔名讀數是選檔回饋（同 toast 性質的暫態 UI，非狀態）。 -->
+  <div class="setfile">或從電腦挑一張圖片（存進瀏覽器，上限 1.5MB）
+    <div class="setfile-row">
+      <input type="file" id="bgFile" class="vh-input" accept="image/*">
+      <label class="btn ui-ghost hit" for="bgFile">選擇圖片</label>
+      <span class="setfile-name mono" id="bgFileName">未選擇</span>
+    </div>
+  </div>
+  <p class="setmsg" id="bgMsg"></p>
+
+  <!-- T15 調色：只換 ember 雙階的燈色（tokens body[data-pal]）；
+       學科色／狀態色是 reserved semantics，不受調色影響。
+       修訂三 #1：預設「隨地面」＝curated 出廠配對（夜湖→松青、描圖紙→餘燼、
+       黑板→松青粉綠、墨水→靛夜、牛皮紙→餘燼深褐）；點實名盤才成為覆蓋，
+       切地面即回到配對。「隨地面」膠囊文字由 syncSetPills 讀出當前燈色。 -->
+  <h4>調色</h4>
+  <div class="pills" id="palPills">
+    <button class="pill hit" data-pal="auto">隨地面</button>
+    <button class="pill hit" data-pal="ember">餘燼</button>
+    <button class="pill hit" data-pal="indigo">靛夜</button>
+    <button class="pill hit" data-pal="pine">松青</button>
+  </div>
+
+  <h4>晝夜</h4>
+  <div class="pills" id="dayPills">
+    <button class="pill hit" data-day="auto">自動</button>
+    <button class="pill hit" data-day="day">白天</button>
+    <button class="pill hit" data-day="night">夜晚</button>
+  </div>
+
+  <h4>天氣</h4>
+  <div class="pills" id="wxPills">
+    <button class="pill hit" data-wxset="auto">自動</button>
+    <button class="pill hit" data-wxset="clear">晴</button>
+    <button class="pill hit" data-wxset="cloud">雲</button>
+    <button class="pill hit" data-wxset="rain">雨</button>
+    <button class="pill hit" data-wxset="snow">雪</button>
+    <button class="pill hit" data-wxset="fog">霧</button>
+    <button class="pill hit" data-wxset="storm">雷雨</button>
+  </div>
+
+  <h4>筆試日期</h4>
+  <div class="setrow"><input type="date" id="examDate"></div>
+</div>
+
+<script src="js/00-config.js?v50"></script>
+<script src="js/01-state.js?v50"></script>
+<script src="js/02-settings.js?v50"></script>
+<script src="js/03-data.js?v50"></script>
+<script src="js/04-render-exam.js?v50"></script>
+<script src="js/05-media.js?v50"></script>
+<script src="js/06-state-study.js?v50"></script>
+<script src="js/07-disk.js?v50"></script>
+<script src="js/08-sync.js?v50"></script>
+<script src="js/09-render-study.js?v50"></script>
+<script src="js/10-player.js?v50"></script>
+<!-- T07 今日複習：core 是純函式（node --test 同一支檔），12 才碰 DOM；
+     一定在 11-boot 之前——boot 的 load 流程假設所有 render 函式已就位 -->
+<script src="js/review-core.js?v50"></script>
+<script src="js/12-review.js?v50"></script>
+<!-- T08 落後重排：核心純函式＋modal UI；入口在工具列（09 於執行期綁 openReplan） -->
+<script src="js/13-replan.js?v50"></script>
+<script src="js/14-drive.js?v50"></script>
+<script src="js/11-boot.js?v50"></script>
+</body>
+</html>

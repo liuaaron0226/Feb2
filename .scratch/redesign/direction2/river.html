@@ -1,0 +1,841 @@
+<!doctype html>
+<html lang="zh-Hant-TW" data-intensity="quiet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Feb 變體 R · 今日一頁流 Today River</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../../site/css/tokens.css">
+<script>document.documentElement.classList.add('js')</script>
+<style>
+/* =====================================================================
+   VARIANT R ·「今日一頁流」TODAY RIVER
+   ---------------------------------------------------------------------
+   結構論綱：殺掉 master-detail。畫面本身就是「今天」——
+   一條按執行順序排列的縱向河道：
+     日首（D-153 巨讀數＋一行任務）
+     → 站 00 複習（到期卡就地內嵌，第一站，不浮）
+     → 站 01/02 今日章節（就地全展開：集數靜列、考古連結、
+        三階天梯化為三座巨編號站台——讀書規則變成頁面結構）
+     → 站 99 收工（河的終點，勾下去這夜入帳）
+   其他週＝細窄 W1–W4 跳軌，「整條河換水」，永遠沒有側欄。
+   捲動即一天。計畫已決定，選擇是摩擦。
+   ---------------------------------------------------------------------
+   去框化法遵循：本頁四邊框浮層數＝0。結構全靠眉標＋髮絲線＋
+   留白＋縮排脊線＋出血色場＋字階。aurora 靜場 8%（study=quiet）。
+   🔇 播放器只是安靜的示意 affordance，本頁絕不出聲。
+   所有色／字／距一律走 ../../../site/css/tokens.css。
+   ===================================================================== */
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;color-scheme:dark}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:var(--font-ui);font-size:var(--w-body);line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:clip;min-height:100vh;
+}
+::selection{background:var(--warm);color:var(--bg)}
+a{color:var(--ink-dim)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+
+/* ---- aurora 靜場（quiet 8%，機制照 tokens 強度儀）---- */
+.au-a{width:78vmax;height:78vmax;left:-18vmax;top:-24vmax;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--sc-la-hi) 16%,transparent),transparent 68%);
+  animation:drift-a 84s var(--ease) infinite alternate}
+.au-b{width:64vmax;height:64vmax;right:-16vmax;bottom:-20vmax;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--warm) 13%,transparent),transparent 70%);
+  animation:drift-b 112s var(--ease) infinite alternate}
+.au-c{width:52vmax;height:52vmax;right:-8vmax;top:-14vmax;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--sc-ctrl-hi) 9%,transparent),transparent 70%);
+  animation:drift-c 96s var(--ease) infinite alternate}
+@keyframes drift-a{to{transform:translate3d(11vw,9vh,0) scale(1.14)}}
+@keyframes drift-b{to{transform:translate3d(-10vw,-8vh,0) scale(1.09)}}
+@keyframes drift-c{to{transform:translate3d(-6vw,10vh,0) scale(1.12)}}
+
+/* ---- 版心與出血 ---- */
+.page{position:relative;z-index:1}
+.col{max-width:1080px;margin:0 auto;padding-inline:clamp(20px,5vw,56px)}
+.bleed{width:100vw;margin-left:calc(50% - 50vw)}
+
+/* ---- 進場：自光暈凝結（blur 唯一豁免）---- */
+html.js .fx-cd{opacity:0;transform:translateY(14px);filter:blur(10px)}
+html.js .in .fx-cd,html.js .fx-cd.in{opacity:1;transform:none;filter:none;
+  transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),filter var(--dur) var(--ease);
+  transition-delay:calc(var(--i,0) * var(--stagger))}
+
+/* =====================================================================
+   日首 DAY HEAD —— 河的源頭
+   ===================================================================== */
+.day-head{padding-top:clamp(56px,9vh,110px)}
+.dhero{display:flex;align-items:flex-end;gap:26px;flex-wrap:wrap;margin-top:18px}
+.dnum{
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:clamp(4.5rem,13vw,9.5rem);font-weight:600;line-height:.86;
+  letter-spacing:var(--ls-title);color:var(--accent);
+  text-shadow:0 0 60px rgba(194,94,46,.4),0 0 18px rgba(194,94,46,.25);
+}
+.dlab{padding-bottom:12px}
+.dlab .mono{color:var(--ink-dim);font-size:var(--w-meta)}
+.dlab .sub{display:block;margin-top:3px}
+/* 一行任務：今天唯一需要讀的句子 */
+.duty{margin-top:26px;font-size:var(--w-sub);line-height:1.85;max-width:44em}
+.duty b{font-weight:700}
+.duty .sc{font-weight:700}
+.duty-law{margin-top:8px}
+.law{font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.law b{color:var(--accent);font-weight:600}
+/* 儀表讀數列 */
+.readout{margin-top:30px;padding:13px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:14px 16px;flex-wrap:wrap;
+  font-family:var(--font-mono);font-size:var(--w-meta);font-variant-numeric:tabular-nums;color:var(--ink-dim)}
+.readout .hot{color:var(--accent);font-weight:600}
+.readout .sep{width:1px;height:14px;background:var(--line-strong)}
+.microbar{width:64px;height:3px;border-radius:2px;background:color-mix(in srgb,var(--ink) 10%,transparent);overflow:hidden}
+.microbar i{display:block;height:100%;background:var(--ink-dim)}
+
+/* ---- 簽名件：D-153 全寬出血倒數尺 ---- */
+.rail-bleed{position:relative;padding-top:22px}
+.rail{display:flex;justify-content:space-between;align-items:flex-end;height:30px}
+.tick{flex:none;width:2px;height:12px;border-radius:1px;background:var(--ink-dim);opacity:var(--o,.55)}
+.tick.m1{height:22px;background:var(--ink);opacity:.9}
+.tick.today{width:3px;height:30px;border-radius:1.5px;background:var(--warm);
+  box-shadow:0 0 3px rgba(194,94,46,.9),0 0 16px rgba(194,94,46,.55)}
+@keyframes tickin{from{opacity:0;transform:translateY(6px)}}
+.boot .tick{animation:tickin 200ms var(--ease) backwards;animation-delay:calc(var(--i,0)*7ms)}
+.rail-months{position:relative;height:20px;margin-top:9px;
+  font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);
+  color:var(--ink-faint);font-variant-numeric:tabular-nums;text-transform:uppercase}
+.mlabel{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+.mlabel.start{left:0;transform:none;color:var(--accent);padding-left:clamp(8px,2vw,20px)}
+.mlabel.end{left:auto;right:0;transform:none;color:var(--accent);padding-right:clamp(8px,2vw,20px)}
+
+/* =====================================================================
+   跳軌 CHANNEL RAIL —— 細窄 W1–W4：換檔＝整條河換水，永無側欄
+   ===================================================================== */
+.wrail{position:sticky;top:0;z-index:5;margin-top:clamp(44px,7vh,80px);
+  background:color-mix(in srgb,var(--bg) 96%,transparent);
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.wr-in{display:flex;align-items:center;gap:18px;min-height:52px;flex-wrap:nowrap;overflow-x:auto}
+.wr-lab{flex:none}
+.wr-seg{display:inline-flex;align-items:stretch;height:var(--btn-h);border-radius:var(--r-sm);
+  box-shadow:inset 0 0 0 1px var(--line-strong);overflow:hidden;flex:none}
+.wr-seg button{padding:0 14px;font-size:var(--w-meta);color:var(--ink-faint);display:inline-flex;align-items:center;gap:6px;
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+  transition:background-color 150ms var(--ease),color 150ms var(--ease)}
+.wr-seg button + button{border-left:1px solid var(--line)}
+.wr-seg button[aria-pressed="true"]{background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink);font-weight:600}
+.wr-seg button .wh{font-family:var(--font-mono);font-size:var(--w-tag);color:var(--ink-faint)}
+.wr-note{margin-left:auto;flex:none}
+
+/* =====================================================================
+   河道 RIVER —— 站的骨架：眉標站牌＋向右出血髮絲線＋大留白
+   ===================================================================== */
+.station{margin-top:clamp(76px,11vh,140px)}
+.st-mark{display:flex;align-items:center;gap:18px}
+.st-mark::after{content:"";height:1px;flex:1;background:var(--line);margin-right:calc(50% - 50vw)}
+.st-mark .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ink-faint);
+  margin-right:10px;vertical-align:1px}
+.st-mark .dot.burn{background:var(--warm);box-shadow:0 0 8px rgba(194,94,46,.7)}
+.st-mark .no{color:var(--accent)}
+.eyebrow{font-family:var(--font-mono);font-size:var(--w-tag);font-weight:500;
+  letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint);font-variant-numeric:tabular-nums}
+.st-lead{margin-top:10px;max-width:44em;color:var(--ink-dim)}
+/* 站尾：往下一站（河的流向） */
+.next-stop{margin-top:34px}
+.next-stop a{font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);
+  text-decoration:none;font-variant-numeric:tabular-nums}
+.next-stop a::before{content:"↓ ";color:var(--accent)}
+.next-stop a:hover{color:var(--ink)}
+
+/* =====================================================================
+   站 00 · 今日複習 —— 到期卡就地內嵌：不是浮條，是今天的第一步
+   ===================================================================== */
+.rv-rows{margin-top:26px}
+.rv-row{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:8px 22px;align-items:center;
+  min-height:64px;padding:10px 0;border-bottom:1px solid var(--line);
+  transition:opacity var(--dur) var(--ease)}
+.rv-row:first-child{border-top:1px solid var(--line)}
+.rv-code{font-family:var(--font-mono);font-size:var(--w-sub);font-weight:600;font-variant-numeric:tabular-nums}
+.rv-src{font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.rv-act{display:flex;gap:8px;align-items:center}
+.rv-row.graded{opacity:.5}
+.rv-row.graded .rv-code{color:var(--ink-dim)}
+.rv-res{font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.rv-clear{margin-top:18px;font-size:var(--w-meta);color:var(--ink-dim)}
+.rv-clear .ok{color:var(--status-good);font-weight:600}
+.rv-clear a{color:var(--ink)}
+
+/* 按鈕（照 S-05：墨實心／幽靈，命中 ≥44）*/
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  height:var(--bh,var(--btn-h));padding:0 14px;border-radius:var(--r-sm);
+  font-size:var(--w-meta);font-weight:600;line-height:1;letter-spacing:.02em;
+  transition:transform 150ms var(--ease),box-shadow 150ms var(--ease),
+             background-color 150ms var(--ease)}
+.btn:active{transform:translateY(1px)}
+.ui-solid{background:var(--ink);color:var(--bg)}
+.ui-solid:hover{transform:translateY(-1px);box-shadow:0 6px 24px -10px color-mix(in srgb,var(--ink) 45%,transparent)}
+.ui-ghost{box-shadow:inset 0 0 0 1px var(--line-strong)}
+.ui-ghost:hover{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 40%,transparent);
+  background:color-mix(in srgb,var(--ink) 6%,transparent)}
+
+/* =====================================================================
+   站 01/02 · 章節站台 —— 就地全展開；活章＝-hi 色場自左緣燒進來
+   ===================================================================== */
+.st-ch{position:relative;padding-left:22px}
+.st-ch::before{content:"";position:absolute;left:0;top:44px;bottom:8px;width:2px;border-radius:1px;
+  background:color-mix(in srgb,var(--c) 68%,transparent)}
+.st-ch.is-live::before{background:var(--ch);
+  box-shadow:0 0 30px -2px color-mix(in srgb,var(--ch) 62%,transparent)}
+.st-ch.is-live .ch-field{content:"";position:absolute;z-index:-1;top:0;bottom:0;
+  left:calc(50% - 50vw);right:12%;pointer-events:none;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--ch) 7%,transparent),transparent 78%)}
+.ch-name{font-size:var(--w-title);letter-spacing:var(--ls-title);font-weight:700;line-height:1.15;margin-top:14px;
+  display:flex;align-items:baseline;gap:18px;flex-wrap:wrap}
+.ch-name .st-status{font-family:var(--font-mono);font-size:var(--w-meta);font-weight:500;
+  letter-spacing:0;color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.st-ch.is-live .ch-name .st-status{color:var(--ch)}
+
+/* 集數靜列：mono 一行，播放只是安靜的 affordance（🔇 本頁不出聲）*/
+.ep-row,.pe-row{display:flex;align-items:center;gap:10px 16px;flex-wrap:wrap;
+  margin-top:20px;padding:11px 0;border-bottom:1px solid var(--line);
+  font-family:var(--font-mono);font-size:var(--w-meta);font-variant-numeric:tabular-nums;color:var(--ink-faint)}
+.ep-row{border-top:1px solid var(--line)}
+.pe-row{margin-top:0}
+.row-lab{flex:none;width:64px;color:var(--ink-faint);font-size:var(--w-tag);letter-spacing:var(--ls-tag);text-transform:uppercase}
+.ep{color:var(--ink-faint)}
+.ep.done{color:var(--ink-dim)}
+.ep.done::after{content:" ✓";color:var(--ink-faint)}
+.ep-play{display:inline-flex;align-items:center;gap:8px;height:var(--btn-h-sm);padding:0 13px;border-radius:var(--r-sm);
+  box-shadow:inset 0 0 0 1px var(--line-strong);color:var(--ink);font-weight:600;
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:var(--w-meta);
+  transition:box-shadow 150ms var(--ease),background-color 150ms var(--ease)}
+.ep-play::before{content:"▶";font-size:.72em;color:var(--accent)}
+.ep-play:hover{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 40%,transparent);
+  background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.pe-link{font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);
+  font-variant-numeric:tabular-nums;padding:0;
+  text-decoration:underline;text-underline-offset:4px;text-decoration-color:var(--line-strong);
+  transition:color 150ms var(--ease)}
+.pe-link:hover{color:var(--ink);text-decoration-color:var(--ink-dim)}
+.row-tail{margin-left:auto;color:var(--ink-faint)}
+
+/* ---- 三階天梯 LADDER：一條出血色場的三個地帶＝三座巨編號站台 ----
+   範例 → 半完成 → 自解。讀書規則不再是說明文字，是頁面結構本身。 */
+.ladder3{margin-top:34px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.zone{position:relative;overflow:hidden;min-height:236px;padding:26px clamp(18px,3vw,40px) 30px;
+  text-align:left;display:flex;flex-direction:column;gap:8px;cursor:pointer}
+.zone + .zone{border-left:1px solid var(--line)}
+.z-num{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-weight:600;
+  font-size:clamp(2.8rem,6.5vw,4.4rem);line-height:1;letter-spacing:var(--ls-title);
+  color:color-mix(in srgb,var(--c) 42%,transparent);
+  transition:color var(--dur) var(--ease)}
+.z-name{font-size:var(--w-sub);font-weight:700;margin-top:auto}
+.z-name .en{font-family:var(--font-mono);font-size:var(--w-tag);font-weight:500;letter-spacing:var(--ls-tag);
+  text-transform:uppercase;color:var(--ink-faint);margin-left:10px}
+.z-law{font-size:var(--w-meta);color:var(--ink-dim);max-width:24em}
+.z-read{font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-faint);font-variant-numeric:tabular-nums}
+.zone[aria-pressed="true"] .z-num{color:var(--c)}
+.zone[aria-pressed="true"] .z-read{color:var(--accent)}
+.zone[aria-pressed="true"]::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--warm);
+  box-shadow:0 0 12px rgba(194,94,46,.6)}
+.zone.z-lock{cursor:default}
+.zone.z-lock .z-num{color:color-mix(in srgb,var(--c) 22%,transparent)}
+.ladder-law{margin-top:16px}
+
+/* =====================================================================
+   站 99 · 收工 —— 河的終點：勾下去這夜入帳
+   ===================================================================== */
+.terminus{margin-top:26px;display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:start}
+.t-box{width:24px;height:24px;border-radius:6px;flex:none;margin-top:6px;padding:0;
+  box-shadow:inset 0 0 0 1px var(--line-strong);position:relative;
+  transition:background-color 150ms var(--ease),box-shadow 150ms var(--ease)}
+.t-box:hover{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 45%,transparent)}
+.t-box[aria-checked="true"]{background:var(--ink);box-shadow:none}
+.t-box[aria-checked="true"]::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;
+  color:var(--bg);font-weight:700;font-size:15px;line-height:1}
+.t-title{font-size:var(--w-sub);font-weight:700}
+.terminus.done .t-title{color:var(--ink-dim);text-decoration:line-through;text-decoration-color:var(--ink-faint)}
+.t-err{margin-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  font-size:var(--w-meta);color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.stp{width:28px;height:28px;border-radius:var(--r-sm);display:inline-grid;place-items:center;
+  box-shadow:inset 0 0 0 1px var(--line-strong);font-family:var(--font-mono);color:var(--ink-dim)}
+.stp:hover{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 40%,transparent);color:var(--ink)}
+.errn{min-width:2ch;text-align:center;color:var(--ink);font-weight:600}
+.t-err .sep{width:1px;height:14px;background:var(--line-strong)}
+.t-done{margin-top:16px;font-size:var(--w-meta);color:var(--accent);font-weight:600;
+  display:flex;align-items:center;gap:12px}
+.burn-tick{display:inline-block;width:3px;height:22px;border-radius:1.5px;background:var(--warm);
+  box-shadow:0 0 3px rgba(194,94,46,.9),0 0 14px rgba(194,94,46,.55)}
+
+/* =====================================================================
+   W 河道視圖 —— 換水後的河：章列（脊線＋行線，無框）
+   ===================================================================== */
+.wview .sec-title{font-size:var(--w-title);letter-spacing:var(--ls-title);font-weight:700;line-height:1.15;margin-top:16px}
+.wview .sec-title .en{font-family:var(--font-mono);font-size:var(--w-meta);font-weight:500;
+  letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint);margin-left:14px;vertical-align:middle}
+.ch-demo{margin-top:30px}
+.ch-row{position:relative;display:grid;grid-template-columns:1fr auto;gap:4px 18px;
+  padding:16px 0 17px 22px;border-bottom:1px solid var(--line)}
+.ch-row:first-of-type{border-top:1px solid var(--line)}
+.ch-row::before{content:"";position:absolute;left:0;top:15px;bottom:15px;width:2px;border-radius:1px;
+  background:color-mix(in srgb,var(--c) 68%,transparent)}
+.ch-sub{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);
+  color:var(--c);font-variant-numeric:tabular-nums}
+.ch-title{font-size:var(--w-sub);font-weight:600;grid-column:1}
+.ch-st{grid-row:1 / span 2;align-self:center;font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:.08em;color:var(--ink-faint);font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.ch-st.hot{color:var(--accent)}
+.ch-st.warn{color:var(--status-warn)}
+.ch-bar{grid-column:1 / -1;height:3px;border-radius:2px;margin-top:9px;
+  background:color-mix(in srgb,var(--ink) 9%,transparent);overflow:hidden}
+.ch-bar i{display:block;height:100%;border-radius:2px;background:color-mix(in srgb,var(--c) 62%,transparent)}
+/* 下游：W4 之後的水 */
+.g-list{margin-top:34px}
+.g-list p{display:flex;gap:18px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--line);
+  font-family:var(--font-mono);font-size:var(--w-meta);font-variant-numeric:tabular-nums;color:var(--ink-dim);flex-wrap:wrap}
+.g-list p:first-child{border-top:1px solid var(--line)}
+.g-list .nm{color:var(--ink);flex:none;width:172px}
+
+/* ---- 觸控命中區外擴（tokens .hit 已含；此處僅保險引用）---- */
+
+/* 頁尾 */
+.colophon{margin:clamp(96px,14vh,160px) 0 72px;padding-top:16px;
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  border-top:1px solid var(--line)}
+
+/* =====================================================================
+   RWD —— 1280 主場，390 也活著
+   ===================================================================== */
+@media (max-width:920px){
+  .ladder3{grid-template-columns:1fr}
+  .zone{min-height:0;display:grid;grid-template-columns:76px 1fr;gap:4px 18px;padding:20px clamp(18px,3vw,40px)}
+  .z-num{grid-row:1 / span 3;align-self:center;font-size:clamp(2.4rem,9vw,3rem)}
+  .z-name{margin-top:0}
+  .zone + .zone{border-left:0;border-top:1px solid var(--line)}
+  .zone[aria-pressed="true"]::after{left:0;right:auto;top:0;bottom:0;width:2px;height:auto}
+}
+@media (max-width:680px){
+  .dnum{font-size:clamp(3.6rem,19vw,5.5rem)}
+  .tick{width:1px}
+  .tick.today{width:2px}
+  .mlabel.mid{display:none}
+  .wr-note{display:none}
+  .wr-seg button .wh{display:none}
+  .rv-row{grid-template-columns:1fr;gap:6px;padding:14px 0}
+  .rv-act{margin-top:2px}
+  .row-lab{width:100%}
+  .row-tail{margin-left:0}
+  .st-ch{padding-left:16px}
+  .terminus{grid-template-columns:auto 1fr;gap:16px}
+  .g-list .nm{width:100%}
+}
+
+/* reduced-motion：tokens 已全滅動效；此處補「靜止即完成態」 */
+@media (prefers-reduced-motion:reduce){
+  html.js .fx-cd{opacity:1;transform:none;filter:none}
+}
+</style>
+</head>
+<body>
+
+<div class="aurora" aria-hidden="true"><i class="au-a"></i><i class="au-b"></i><i class="au-c"></i></div>
+
+<div class="page">
+
+<!-- =================== 日首：河的源頭 =================== -->
+<header class="col day-head" data-reveal aria-label="今日">
+  <p class="eyebrow fx-cd" style="--i:0"><span class="no" style="color:var(--accent)">VARIANT R</span> · 今日一頁流 TODAY RIVER · 2026-09-01 週二 · W2 · 靜場 QUIET 8%</p>
+  <div class="dhero fx-cd" style="--i:1">
+    <span class="dnum" aria-label="倒數 153 天">D-153</span>
+    <span class="dlab mono">距 2027-02-01 筆試
+      <span class="sub eyebrow">153 夜 · 捲動即一天 · 沒有側欄</span></span>
+  </div>
+  <p class="duty fx-cd" style="--i:2">今晚兩站：續看 <b class="sc" style="color:var(--sc-elec)">電子學 · BJT 小訊號放大器</b>（EP-34 自 42:10 · 2×），開章 <b class="sc" style="color:var(--sc-la)">線代 · 特徵值與對角化</b>。到期複習 3 張，先清再上路。</p>
+  <p class="law duty-law fx-cd" style="--i:3">計畫已經替你選好了——<b>出現，開始</b>。選擇是摩擦。</p>
+
+  <div class="readout fx-cd" style="--i:4" role="status" aria-label="儀表讀數列">
+    <span class="hot">D-153</span>
+    <span class="sep" aria-hidden="true"></span>
+    <span>總進度 22.6 / 118.8h</span><span class="microbar" aria-hidden="true"><i style="width:19%"></i></span>
+    <span class="sep" aria-hidden="true"></span>
+    <span>W2 · 6/24 天</span>
+    <span class="sep" aria-hidden="true"></span>
+    <span>今日配額 5.0h</span>
+    <span class="sep" aria-hidden="true"></span>
+    <span class="hot">多益報名 · 剩 3 天（09/04 截止）</span>
+  </div>
+
+  <div class="rail-bleed bleed fx-cd" style="--i:5">
+    <div class="rail boot" id="rail" role="img" aria-label="倒數尺：自今夜至 2027 年 2 月 1 日筆試共 153 夜，每格一夜，今夜為燃點，貫穿整個視窗寬度"></div>
+    <div class="rail-months" aria-hidden="true">
+      <span class="mlabel start">09·01 今夜</span>
+      <span class="mlabel mid" style="left:19.7%">10·01</span>
+      <span class="mlabel mid" style="left:40.1%">11·01</span>
+      <span class="mlabel mid" style="left:59.9%">12·01</span>
+      <span class="mlabel mid" style="left:80.3%">01·01</span>
+      <span class="mlabel end">02·01 筆試</span>
+    </div>
+  </div>
+  <noscript><p class="law">（JavaScript 關閉：倒數尺未渲染，讀數仍為 D-153。）</noscript>
+</header>
+
+<!-- =================== 跳軌：W1–W4 換整條河 =================== -->
+<nav class="wrail bleed" id="channel" aria-label="河道切換">
+  <div class="col wr-in">
+    <span class="eyebrow wr-lab">河道 CHANNEL</span>
+    <div class="wr-seg" role="group" aria-label="週次跳軌">
+      <button type="button" class="hit" data-view="today" aria-pressed="true">今日</button>
+      <button type="button" class="hit" data-view="w1" aria-pressed="false">W1<span class="wh">39.7h</span></button>
+      <button type="button" class="hit" data-view="w2" aria-pressed="false">W2<span class="wh">29.9h</span></button>
+      <button type="button" class="hit" data-view="w3" aria-pressed="false">W3<span class="wh">33.0h</span></button>
+      <button type="button" class="hit" data-view="w4" aria-pressed="false">W4<span class="wh">16.2h</span></button>
+    </div>
+    <span class="eyebrow wr-note">換檔＝整條河換水 · 不開側欄</span>
+  </div>
+</nav>
+
+<main id="flow">
+
+<!-- ============================================================
+     今日之河（預設河道）
+     ============================================================ -->
+<div class="tview" data-view="today">
+
+  <!-- 站 00 · 今日複習：第一站，就地內嵌，不浮 -->
+  <section class="col station" id="st0" data-reveal aria-label="站 00 今日複習">
+    <p class="eyebrow st-mark fx-cd" style="--i:0"><span><span class="dot burn" aria-hidden="true"></span><span class="no">站 00</span> · 今日複習 REVIEW DUE · <span id="rvCount" aria-live="polite">3 張到期</span></span></p>
+    <p class="st-lead fx-cd" style="--i:1">開站先還債。評完自動重排間隔，河才會流。</p>
+
+    <div class="rv-rows fx-cd" style="--i:2">
+      <div class="rv-row">
+        <span class="rv-code">控001</span>
+        <span class="rv-src">GoodNotes p.12 · 根軌跡分支數與漸近線</span>
+        <span class="rv-act" style="--bh:var(--btn-h-sm)">
+          <button type="button" class="btn ui-ghost hit" data-g="pass">pass</button>
+          <button type="button" class="btn ui-ghost hit" data-g="A">A</button>
+          <button type="button" class="btn ui-ghost hit" data-g="B">B</button>
+          <button type="button" class="btn ui-ghost hit" data-g="C">C</button>
+        </span>
+      </div>
+      <div class="rv-row">
+        <span class="rv-code">數003</span>
+        <span class="rv-src">GoodNotes p.31 · 拉氏轉換之摺積定理</span>
+        <span class="rv-act" style="--bh:var(--btn-h-sm)">
+          <button type="button" class="btn ui-ghost hit" data-g="pass">pass</button>
+          <button type="button" class="btn ui-ghost hit" data-g="A">A</button>
+          <button type="button" class="btn ui-ghost hit" data-g="B">B</button>
+          <button type="button" class="btn ui-ghost hit" data-g="C">C</button>
+        </span>
+      </div>
+      <div class="rv-row">
+        <span class="rv-code">電014</span>
+        <span class="rv-src">GoodNotes p.08 · 二極體小訊號模型近似</span>
+        <span class="rv-act" style="--bh:var(--btn-h-sm)">
+          <button type="button" class="btn ui-ghost hit" data-g="pass">pass</button>
+          <button type="button" class="btn ui-ghost hit" data-g="A">A</button>
+          <button type="button" class="btn ui-ghost hit" data-g="B">B</button>
+          <button type="button" class="btn ui-ghost hit" data-g="C">C</button>
+        </span>
+      </div>
+    </div>
+    <p id="rvClear" class="rv-clear mono" hidden><span class="ok">✓</span> 複習清空 · 河道暢通 · <a href="#st1">往站 01</a></p>
+
+    <p class="next-stop fx-cd" style="--i:3"><a href="#st1">下一站 · 01 電子學 BJT 小訊號放大器</a></p>
+  </section>
+
+  <!-- 站 01 · 電子學（活章：-hi 色場自左緣燒進來，全頁唯一 -hi） -->
+  <section class="col station st-ch is-live" id="st1" data-reveal aria-label="站 01 電子學"
+           style="--c:var(--sc-elec);--ch:var(--sc-elec-hi)">
+    <span class="ch-field" aria-hidden="true" style="position:absolute;z-index:-1;top:0;bottom:0;left:calc(50% - 50vw);right:12%;pointer-events:none;background:linear-gradient(90deg,color-mix(in srgb,var(--ch) 7%,transparent),transparent 78%)"></span>
+    <p class="eyebrow st-mark fx-cd" style="--i:0"><span><span class="dot burn" aria-hidden="true"></span><span class="no">站 01</span> · 電子學 ELEC · W2 · 9.9H（看 8.9 ＋ 考古 1.0）</span></p>
+    <h2 class="ch-name fx-cd" style="--i:1">BJT 小訊號放大器 <span class="st-status">進行中 · 已看 3.4 / 8.9h</span></h2>
+
+    <div class="ep-row fx-cd" style="--i:2" aria-label="集數靜列">
+      <span class="row-lab">集數 EP</span>
+      <span class="ep done">EL-E31</span>
+      <span class="ep done">EL-E32</span>
+      <span class="ep done">EL-E33</span>
+      <button type="button" class="ep-play hit" title="播放器示意 · 本頁不出聲" aria-label="續播 EL-E34 自 42 分 10 秒，兩倍速（示意）">EL-E34 · 42:10 · 2×</button>
+      <span class="ep">EL-E35</span>
+      <span class="ep">EL-E36</span>
+      <span class="ep">EL-E37</span>
+      <span class="row-tail">影片 17.7h · 2× ≈ 8.9h</span>
+    </div>
+    <div class="pe-row fx-cd" style="--i:3" aria-label="考古題連結">
+      <span class="row-lab">考古 PE</span>
+      <button type="button" class="pe-link hit">台聯大 113 · 第3題</button>
+      <button type="button" class="pe-link hit">中央 112 · 第1題</button>
+      <button type="button" class="pe-link hit">成大 111 · 第4題</button>
+      <span class="row-tail">抓 1.0h · 三階之 03 用</span>
+    </div>
+
+    <!-- 三階天梯：讀書規則變成頁面結構 -->
+    <div class="ladder3 bleed fx-cd" style="--i:4" role="group" aria-label="淡出三階：範例、半完成、自解">
+      <button type="button" class="zone" data-zone aria-pressed="false" style="--c:var(--sc-elec)">
+        <span class="z-num" aria-hidden="true">01</span>
+        <span class="z-name">範例<span class="en">Example</span></span>
+        <span class="z-law">跟著影片抄範例，抄到手不抖為止。</span>
+        <span class="z-read">✓ 已通過 · 08/31 · 12 題</span>
+      </button>
+      <button type="button" class="zone" data-zone aria-pressed="true" style="--c:var(--sc-elec)">
+        <span class="z-num" aria-hidden="true">02</span>
+        <span class="z-name">半完成<span class="en">Half-faded</span></span>
+        <span class="z-law">遮住解答，自己推到卡住才翻。</span>
+        <span class="z-read">▶ 現在在這 · 剩 3 題</span>
+      </button>
+      <button type="button" class="zone z-lock" data-zone aria-pressed="false" style="--c:var(--sc-elec)" aria-disabled="true">
+        <span class="z-num" aria-hidden="true">03</span>
+        <span class="z-name">自解<span class="en">Solo</span></span>
+        <span class="z-law">白紙重解考古題，計時，不翻書。</span>
+        <span class="z-read">○ 鎖 · 02 清空後開</span>
+      </button>
+    </div>
+    <p class="law ladder-law fx-cd" style="--i:5">三階是頁面結構不是說明文字：<b>站台過了才有下一座</b>。點地帶可改標當前位置。</p>
+
+    <p class="next-stop fx-cd" style="--i:6"><a href="#st2">下一站 · 02 線代 特徵值與對角化</a></p>
+  </section>
+
+  <!-- 站 02 · 線代（開章夜：rest 色，尚未點燃） -->
+  <section class="col station st-ch" id="st2" data-reveal aria-label="站 02 線代"
+           style="--c:var(--sc-la);--ch:var(--sc-la-hi)">
+    <p class="eyebrow st-mark fx-cd" style="--i:0"><span><span class="dot" aria-hidden="true"></span><span class="no">站 02</span> · 線代 LA · W2 · 7.7H（看 6.7 ＋ 考古 1.0）</span></p>
+    <h2 class="ch-name fx-cd" style="--i:1">特徵值與對角化 <span class="st-status">今晚開章 · 0 / 6.7h</span></h2>
+
+    <div class="ep-row fx-cd" style="--i:2" aria-label="集數靜列">
+      <span class="row-lab">集數 EP</span>
+      <button type="button" class="ep-play hit" title="播放器示意 · 本頁不出聲" aria-label="開始 LA-C21，兩倍速（示意）">LA-C21 · 開章 · 2×</button>
+      <span class="ep">LA-C22</span>
+      <span class="ep">LA-C23</span>
+      <span class="ep">LA-C24</span>
+      <span class="ep">LA-C25</span>
+      <span class="row-tail">影片 13.4h · 2× ≈ 6.7h</span>
+    </div>
+    <div class="pe-row fx-cd" style="--i:3" aria-label="考古題連結">
+      <span class="row-lab">考古 PE</span>
+      <button type="button" class="pe-link hit">台大 113 · 第2題</button>
+      <button type="button" class="pe-link hit">成大 112 · 第5題</button>
+      <button type="button" class="pe-link hit">北科 111 · 第3題</button>
+      <span class="row-tail">抓 1.0h</span>
+    </div>
+
+    <div class="ladder3 bleed fx-cd" style="--i:4" role="group" aria-label="淡出三階：範例、半完成、自解（未啟動）">
+      <button type="button" class="zone" data-zone aria-pressed="false" style="--c:var(--sc-la)">
+        <span class="z-num" aria-hidden="true">01</span>
+        <span class="z-name">範例<span class="en">Example</span></span>
+        <span class="z-law">開章夜先進這裡：LA-C21 例題跟抄。</span>
+        <span class="z-read">○ 今晚進場</span>
+      </button>
+      <button type="button" class="zone z-lock" data-zone aria-pressed="false" style="--c:var(--sc-la)" aria-disabled="true">
+        <span class="z-num" aria-hidden="true">02</span>
+        <span class="z-name">半完成<span class="en">Half-faded</span></span>
+        <span class="z-law">遮解自推，01 通過後開。</span>
+        <span class="z-read">○ 鎖</span>
+      </button>
+      <button type="button" class="zone z-lock" data-zone aria-pressed="false" style="--c:var(--sc-la)" aria-disabled="true">
+        <span class="z-num" aria-hidden="true">03</span>
+        <span class="z-name">自解<span class="en">Solo</span></span>
+        <span class="z-law">白紙考古，計時。</span>
+        <span class="z-read">○ 鎖</span>
+      </button>
+    </div>
+
+    <p class="next-stop fx-cd" style="--i:5"><a href="#st9">下一站 · 99 收工</a></p>
+  </section>
+
+  <!-- 站 99 · 收工：河的終點 -->
+  <section class="col station" id="st9" data-reveal aria-label="站 99 收工">
+    <p class="eyebrow st-mark fx-cd" style="--i:0"><span><span class="dot" aria-hidden="true"></span><span class="no">站 99</span> · 收工 CLOSE · 河的終點</span></p>
+
+    <div class="terminus fx-cd" style="--i:1" id="terminus">
+      <button type="button" id="closeBox" class="t-box hit" role="checkbox" aria-checked="false" aria-label="今日收工"></button>
+      <div>
+        <p class="t-title">今日收工</p>
+        <p class="law" style="margin-top:6px">勾下去，這一夜入帳。錯題先記數就好，明早河道自動把它們排進站 00。</p>
+        <div class="t-err mono" aria-label="錯題計數">
+          <span>錯題</span>
+          <button type="button" class="stp hit" id="errMinus" aria-label="錯題減一">−</button>
+          <span class="errn" id="errN" aria-live="polite">0</span>
+          <button type="button" class="stp hit" id="errPlus" aria-label="錯題加一">＋</button>
+          <span class="sep" aria-hidden="true"></span>
+          <span style="color:var(--ink-faint)">收工時一併入庫</span>
+        </div>
+        <p class="t-done mono" id="tDone" hidden><span class="burn-tick" aria-hidden="true"></span> D-153 燒完 · 明晚是 D-152 · 複習與錯題已排</p>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /tview today -->
+
+<!-- ============================================================
+     W1 —— 已過的水域
+     ============================================================ -->
+<section class="wview col station" data-view="w1" hidden data-reveal aria-label="第一週">
+  <p class="eyebrow st-mark fx-cd" style="--i:0"><span><span class="no">W1</span> · 08/20 → 08/26 · 7 夜 · 39.7H</span></p>
+  <h2 class="sec-title fx-cd" style="--i:1">已過的水域<span class="en">Week one, upstream</span></h2>
+  <p class="st-lead law fx-cd" style="--i:2">這不是側欄，是整條河換了水。點「今日」回到今晚。</p>
+  <div class="ch-demo fx-cd" style="--i:3">
+    <div class="ch-row" style="--c:var(--sc-elec)">
+      <span class="ch-sub">電子學 · 4.4h</span><span class="ch-st">✓ 08/21</span>
+      <span class="ch-title">基本電路學（第零章）</span>
+      <span class="ch-bar" aria-hidden="true"><i style="width:100%"></i></span>
+    </div>
+    <div class="ch-row" style="--c:var(--sc-elec)">
+      <span class="ch-sub">電子學 · 8.0h</span><span class="ch-st">✓ 08/24</span>
+      <span class="ch-title">二極體電路</span>
+      <span class="ch-bar" aria-hidden="true"><i style="width:100%"></i></span>
+    </div>
+    <div class="ch-row" style="--c:var(--sc-math)">
+      <span class="ch-sub">工數 · 6.5h</span><span class="ch-st">✓ 08/26</span>
+      <span class="ch-title">拉氏轉換</span>
+      <span class="ch-bar" aria-hidden="true"><i style="width:100%"></i></span>
+    </div>
+    <div class="ch-row" style="--c:var(--sc-la)">
+      <span class="ch-sub">線代 · 3.7h</span><span class="ch-st">✓ 08/23</span>
+      <span class="ch-title">矩陣運算與行列式</span>
+      <span class="ch-bar" aria-hidden="true"><i style="width:100%"></i></span>
+    </div>
+    <div class="ch-row" style="--c:var(--sc-la)">
+      <span class="ch-sub">線代 · 17.1h</span><span class="ch-st warn">▲ 落後 · 0/17.1h · 夜間並行補</span>
+      <span class="ch-title">向量空間與四大子空間</span>
+      <span class="ch-bar" aria-hidden="true"><i style="width:0%"></i></span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     W2 —— 本週，河流經之處
+     ============================================================ -->
+<section class="wview col station" data-view="w2" hidden data-reveal aria-label="第二週">
+  <p class="eyebrow st-mark fx-cd" style="--i:0"><span><span class="dot burn" aria-hidden="true"></span><span class="no">W2</span> · 08/27 → 09/02 · 7 夜 · 29.9H · 本週</span></p>
+  <h2 class="sec-title fx-cd" style="--i:1">河正流經這裡<span class="en">Week two, current</span></h2>
+  <p class="st-lead law fx-cd" style="--i:2">標「在河上」的章，今晚就在「今日」河道裡全展開。</p>
+  <div class="ch-demo fx-cd" style="--i:3">
+    <div class="ch-row" style="--c:var(--sc-elec)">
+      <span class="ch-sub">電子學 · 4.4h</span><span class="ch-st">看畢 · 剩考古 1 題</span>
+      <span class="ch-title">BJT 直流偏壓</span>
+      <span class="ch-bar" aria-hidden="true"><i style="width:77%"></i></span>
+    </div>
+    <div class="ch-row" style="--c:var(--sc-elec)">
+      <span class="ch-sub">電子學 · 9.9h</span><span class="ch-st hot">▶ 在河上 · 今晚 EP-34</span>
+      <span class="ch-title">BJT 小訊號放大器</span>
+      <span class="ch-bar" aria-hidden="true"><i style="width:35%"></i></span>
+    </div>
+    <div class="ch-row" style="--c:var(--sc-math)">
+      <span class="ch-sub">工數 · 7.9h</span><span class="ch-st">○ 排 09/02</span>
+      <span class="ch-title">ODE：一階</span>
+      <span class="ch-bar" aria-hidden="true"><i style="width:0%"></i></span>
+    </div>
+    <div class="ch-row" style="--c:var(--sc-la)">
+      <span class="ch-sub">線代 · 7.7h</span><span class="ch-st hot">▶ 在河上 · 今晚開章</span>
+      <span class="ch-title">特徵值與對角化</span>
+      <span class="ch-bar" aria-hidden="true"><i style="width:0%"></i></span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     W3 —— 下游
+     ============================================================ -->
+<section class="wview col station" data-view="w3" hidden data-reveal aria-label="第三週">
+  <p class="eyebrow st-mark fx-cd" style="--i:0"><span><span class="no">W3</span> · 09/03 → 09/09 · 7 夜 · 33.0H</span></p>
+  <h2 class="sec-title fx-cd" style="--i:1">下游<span class="en">Week three, downstream</span></h2>
+  <div class="ch-demo fx-cd" style="--i:2">
+    <div class="ch-row" style="--c:var(--sc-elec)">
+      <span class="ch-sub">電子學 · 3.6h</span><span class="ch-st">○ 未開始</span>
+      <span class="ch-title">MOSFET 特性與偏壓</span>
+      <span class="ch-bar" aria-hidden="true"><i style="width:0%"></i></span>
+    </div>
+    <div class="ch-row" style="--c:var(--sc-elec)">
+      <span class="ch-sub">電子學 · 2.8h</span><span class="ch-st">○ 未開始</span>
+      <span class="ch-title">MOSFET 小訊號與 CMOS</span>
+      <span class="ch-bar" aria-hidden="true"><i style="width:0%"></i></span>
+    </div>
+    <div class="ch-row" style="--c:var(--sc-elec)">
+      <span class="ch-sub">電子學 · 3.5h</span><span class="ch-st">○ 未開始</span>
+      <span class="ch-title">差動與電流源</span>
+      <span class="ch-bar" aria-hidden="true"><i style="width:0%"></i></span>
+    </div>
+    <div class="ch-row" style="--c:var(--sc-elec)">
+      <span class="ch-sub">電子學 · 3.7h</span><span class="ch-st">○ 未開始</span>
+      <span class="ch-title">頻率響應</span>
+      <span class="ch-bar" aria-hidden="true"><i style="width:0%"></i></span>
+    </div>
+    <div class="ch-row" style="--c:var(--sc-math)">
+      <span class="ch-sub">工數 · 10.1h</span><span class="ch-st">○ 未開始 · 本週最重</span>
+      <span class="ch-title">ODE：高階線性</span>
+      <span class="ch-bar" aria-hidden="true"><i style="width:0%"></i></span>
+    </div>
+    <div class="ch-row" style="--c:var(--sc-math)">
+      <span class="ch-sub">工數 · 3.6h</span><span class="ch-st">○ 未開始</span>
+      <span class="ch-title">ODE:聯立與應用</span>
+      <span class="ch-bar" aria-hidden="true"><i style="width:0%"></i></span>
+    </div>
+    <div class="ch-row" style="--c:var(--sc-la)">
+      <span class="ch-sub">線代 · 5.7h</span><span class="ch-st">○ 未開始</span>
+      <span class="ch-title">內積空間與正交</span>
+      <span class="ch-bar" aria-hidden="true"><i style="width:0%"></i></span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     W4 —— 收攏週＋更遠的水
+     ============================================================ -->
+<section class="wview col station" data-view="w4" hidden data-reveal aria-label="第四週">
+  <p class="eyebrow st-mark fx-cd" style="--i:0"><span><span class="no">W4</span> · 09/10 → 09/12 · 3 夜 · 16.2H · 收攏週</span></p>
+  <h2 class="sec-title fx-cd" style="--i:1">收攏週<span class="en">Week four, the narrows</span></h2>
+  <p class="st-lead law fx-cd" style="--i:2">只有 3 夜，量刻意壓輕：別把整週塞進最後三天。</p>
+  <div class="ch-demo fx-cd" style="--i:3">
+    <div class="ch-row" style="--c:var(--sc-elec)">
+      <span class="ch-sub">電子學 · 3.4h</span><span class="ch-st">○ 未開始</span>
+      <span class="ch-title">運算放大器</span>
+      <span class="ch-bar" aria-hidden="true"><i style="width:0%"></i></span>
+    </div>
+    <div class="ch-row" style="--c:var(--sc-elec)">
+      <span class="ch-sub">電子學 · 5.4h</span><span class="ch-st">○ 未開始</span>
+      <span class="ch-title">回授與穩定度</span>
+      <span class="ch-bar" aria-hidden="true"><i style="width:0%"></i></span>
+    </div>
+    <div class="ch-row" style="--c:var(--sc-math)">
+      <span class="ch-sub">工數 · 5.0h</span><span class="ch-st">○ 未開始</span>
+      <span class="ch-title">傅立葉級數與轉換</span>
+      <span class="ch-bar" aria-hidden="true"><i style="width:0%"></i></span>
+    </div>
+    <div class="ch-row" style="--c:var(--sc-la)">
+      <span class="ch-sub">線代 · 2.4h</span><span class="ch-st">○ 未開始</span>
+      <span class="ch-title">SVD 與二次型</span>
+      <span class="ch-bar" aria-hidden="true"><i style="width:0%"></i></span>
+    </div>
+  </div>
+  <div class="g-list fx-cd" style="--i:4" aria-label="更遠的下游">
+    <p><span class="nm">09/13 起 · 第二階段</span><span>控制系統 51h：系統建模 → 根軌跡 → Bode/Nyquist → 狀態空間</span></p>
+    <p><span class="nm">09/20 · 多益應考</span><span style="color:var(--accent)">報名 09/04 截止 · 剩 3 天 · 唯一趕得上書審的場次</span></p>
+    <p><span class="nm">10 月補</span><span>偏微分方程、複變、向量分析（十年占比 ≤4%，刻意延後）</span></p>
+  </div>
+</section>
+
+</main>
+
+<footer class="col colophon">
+  <span class="eyebrow">FEB · VARIANT R「今日一頁流」· 站 00 → 99 · 2026-09-01</span>
+  <span class="eyebrow">tokens: ../../../site/css/tokens.css · 四邊框浮層數＝0 · quiet 8%</span>
+</footer>
+
+</div><!-- /page -->
+
+<script>
+(function(){
+  "use strict";
+  var rm=window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  /* ---- 簽名件：D-153 倒數尺（153 格，一格一夜，全寬出血）---- */
+  var rail=document.getElementById("rail");
+  if(rail){
+    var start=new Date(2026,8,1), N=153, frag=document.createDocumentFragment();
+    for(var i=0;i<N;i++){
+      var d=new Date(start); d.setDate(d.getDate()+i);
+      var t=document.createElement("i");
+      t.className="tick"+(i===0?" today":(d.getDate()===1?" m1":""));
+      t.style.setProperty("--i",i);
+      if(i!==0&&d.getDate()!==1){t.style.setProperty("--o",(0.6-0.28*(i/N)).toFixed(2));}
+      frag.appendChild(t);
+    }
+    rail.appendChild(frag);
+    if(!rm.matches){setTimeout(function(){rail.classList.remove("boot");},1600);}
+    else{rail.classList.remove("boot");}
+  }
+
+  /* ---- 凝結進場：進視窗才亮（reduced-motion 直接完成態）---- */
+  var io=("IntersectionObserver"in window)&&!rm.matches?
+    new IntersectionObserver(function(es){
+      es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);}});
+    },{threshold:.1}):null;
+  function arm(scope){
+    scope.querySelectorAll("[data-reveal]").forEach(function(s){
+      if(io&&!s.hidden){io.observe(s);}else{s.classList.add("in");}
+    });
+  }
+  arm(document);
+
+  /* ---- 跳軌：W 檔位替換整條河（無側欄）---- */
+  var rail2=document.getElementById("channel");
+  document.querySelectorAll(".wrail button[data-view]").forEach(function(b){
+    b.addEventListener("click",function(){
+      var id=b.dataset.view;
+      document.querySelectorAll(".wrail button[data-view]").forEach(function(x){
+        x.setAttribute("aria-pressed",String(x===b));
+      });
+      document.querySelectorAll("#flow .tview, #flow .wview").forEach(function(v){
+        v.hidden=(v.dataset.view!==id);
+      });
+      var tgt=document.querySelector('#flow [data-view="'+id+'"]');
+      if(tgt){
+        if(!rm.matches){
+          tgt.querySelectorAll("[data-reveal],[aria-label]").forEach(function(){});
+          var secs=tgt.matches("[data-reveal]")?[tgt]:Array.prototype.slice.call(tgt.querySelectorAll("[data-reveal]"));
+          secs.forEach(function(s){s.classList.remove("in");});
+          requestAnimationFrame(function(){requestAnimationFrame(function(){
+            secs.forEach(function(s){s.classList.add("in");});
+          });});
+        }else{
+          (tgt.matches("[data-reveal]")?[tgt]:Array.prototype.slice.call(tgt.querySelectorAll("[data-reveal]")))
+            .forEach(function(s){s.classList.add("in");});
+        }
+        var y=rail2.getBoundingClientRect().bottom+window.scrollY-52;
+        if(window.scrollY>y){window.scrollTo({top:y,behavior:rm.matches?"auto":"smooth"});}
+      }
+    });
+  });
+
+  /* ---- 站 00：評卡（pass/A/B/C → 就地結案，計數即時更新）---- */
+  var gradeMap={pass:"pass · 間隔拉長",A:"A · 3 天後回來",B:"B · 明晚再見",C:"C · 睡前重打一次"};
+  document.querySelectorAll(".rv-row").forEach(function(row){
+    row.querySelectorAll("button[data-g]").forEach(function(b){
+      b.addEventListener("click",function(){
+        if(row.classList.contains("graded"))return;
+        row.classList.add("graded");
+        var act=row.querySelector(".rv-act");
+        act.innerHTML='<span class="rv-res">→ '+gradeMap[b.dataset.g]+"</span>";
+        var left=document.querySelectorAll(".rv-row:not(.graded)").length;
+        document.getElementById("rvCount").textContent=left?left+" 張到期":"已清空";
+        if(!left){document.getElementById("rvClear").hidden=false;}
+      });
+    });
+  });
+
+  /* ---- 三階天梯：點地帶改標當前位置（一梯僅一燃點）---- */
+  document.querySelectorAll(".ladder3").forEach(function(l){
+    l.querySelectorAll(".zone[data-zone]").forEach(function(z){
+      z.addEventListener("click",function(){
+        if(z.classList.contains("z-lock"))return;
+        l.querySelectorAll(".zone").forEach(function(o){o.setAttribute("aria-pressed","false");});
+        z.setAttribute("aria-pressed","true");
+      });
+    });
+  });
+
+  /* ---- 站 99：收工勾選＋錯題計數 ---- */
+  var cb=document.getElementById("closeBox"),term=document.getElementById("terminus"),
+      done=document.getElementById("tDone");
+  if(cb){
+    cb.addEventListener("click",function(){
+      var on=cb.getAttribute("aria-checked")!=="true";
+      cb.setAttribute("aria-checked",String(on));
+      term.classList.toggle("done",on);
+      done.hidden=!on;
+    });
+  }
+  var err=0,errN=document.getElementById("errN");
+  var ep=document.getElementById("errPlus"),em=document.getElementById("errMinus");
+  if(ep){ep.addEventListener("click",function(){err++;errN.textContent=err;});}
+  if(em){em.addEventListener("click",function(){if(err>0)err--;errN.textContent=err;});}
+})();
+</script>
+</body>
+</html>

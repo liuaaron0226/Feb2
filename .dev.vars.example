@@ -1,0 +1,22 @@
+# 複製成 .dev.vars 再填。三個變數缺任何一個，/api/* 一律 403（fail closed）。
+#
+# ACCESS_AUD          Zero Trust > Access > Applications > 你的 feb 應用 > Overview
+#                     的 Application Audience (AUD) Tag（64 位十六進位）。
+#                     少了它，同一個團隊底下任何一個應用的 token 都能開這裡。
+# ACCESS_TEAM_DOMAIN  https://<your-team-name>.cloudflareaccess.com
+#                     公鑰從這裡取（/cdn-cgi/access/certs），JWT 的 iss 也必須等於它。
+#                     只收 https：公鑰走明文取得＝中間人換掉公鑰就換掉整套身分。
+# FEB_OWNER           擁有者的信箱。只有這個身分能 POST /api/progress；
+#                     其他通過 Access 的人是唯讀訪客，讀的是同一塊看板。
+ACCESS_AUD=
+ACCESS_TEAM_DOMAIN=
+FEB_OWNER=
+
+# GOOGLE_SA_KEY       整份服務帳戶 JSON 金鑰字串（Google Cloud Console 下載的那個檔案
+#                     原封不動貼成一行）。後端拿它簽 JWT 向 Google 換 Drive 唯讀權杖
+#                     （POST /api/drive/token），Drive 的「Feb 影片備份」資料夾要先分享給
+#                     該服務帳戶的信箱。沒設 → 端點回 501，前端收起 Drive 功能。
+#                     **本機才放這裡**；正式環境一律
+#                     npx wrangler pages secret put GOOGLE_SA_KEY --project-name feb < 金鑰檔
+#                     值絕不進 repo（.dev.vars 已在 .gitignore）。
+GOOGLE_SA_KEY=

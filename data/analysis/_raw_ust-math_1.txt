@@ -1,0 +1,5 @@
+{
+  "error": true,
+  "code": "NETWORK_ERROR",
+  "message": "Network error: chat.ask received no streamed chat bytes for 180s. This points to a server slow-to-first-byte or between-chunk chat-stream stall, which is common on shared notebooks, not a batchexecute byte-count mismatch. Active NOTEBOOKLM_BL='boq_labs-tailwind-frontend_20260802.02_p0'. If you overrode the timeout lower, rerun with --request-timeout 180; otherwise try a higher value and compare owner vs viewer access."
+}

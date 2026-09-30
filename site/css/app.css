@@ -1,0 +1,3093 @@
+/* =====================================================================
+   app.css — 外殼與內容區樣式。
+   T03 起：色／字／距的 token 一律來自 css/tokens.css（先載入，唯一來源），
+   此檔不得重複定義同名 token。下方僅剩 legacy 別名，
+   服務尚未換皮的內容區（T04/T05 收斂後逐步移除）。
+   ===================================================================== */
+:root{
+  /* legacy 別名（內容區仍在用）：能指回 tokens 的就指回去 */
+  --night:var(--bg); --ridge:#1E3A5F; --mist:rgba(255,255,255,.72); --dawn:#FFFFFF; --ember:var(--warm);
+  --serif:var(--font-ui); --sans:var(--font-ui); --mono:var(--font-mono);
+
+  /* legacy 排版尺度（內容區）：T04/T05 換皮時改用 --w-* 五階 */
+  --t-hero:clamp(2rem,3.4vw,2.9rem);
+  --t-lg:1.28rem;
+  --t-md:1rem;
+  --t-sm:.88rem;
+  --t-xs:.76rem;
+  --t-mi:.68rem;
+  --ls-hero:-.03em; --ls-lg:-.015em; --ls-sm:.01em; --ls-mi:.14em;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;overflow-x:clip}  /* 硬檢 13：390px 零橫向溢出——影片庫視圖的越界元素（.scene .aurora inset:-25%）逸出 body 的 clip，在 html 層一併吸收 */
+
+/* ── 捲動條：全站共用一套語彙 ────────────────────────────────
+   做法取自現代設計型網站的共同解：軌道完全透明（不畫第二條垂直線去跟版面打架）、
+   滑桿細而圓、平時壓到很淡，滑鼠進到該捲動區才浮出來。
+   用 padding-box 撐出兩側留白，滑桿不會貼著內容邊緣。 */
+:root{
+  --sb-w:10px;
+  --sb-thumb:rgba(255,255,255,.14);
+  --sb-thumb-hover:rgba(255,255,255,.30);
+  --sb-thumb-active:rgba(255,255,255,.42);
+}
+body.lt{
+  --sb-thumb:rgba(23,27,33,.16);
+  --sb-thumb-hover:rgba(23,27,33,.32);
+  --sb-thumb-active:rgba(23,27,33,.46);
+}
+*{scrollbar-width:thin;scrollbar-color:var(--sb-thumb) transparent}
+*::-webkit-scrollbar{width:var(--sb-w);height:var(--sb-w)}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-corner{background:transparent}
+*::-webkit-scrollbar-button{display:none;width:0;height:0}   /* 去掉頭尾那兩顆箭頭鈕 */
+*::-webkit-scrollbar-thumb{
+  background:var(--sb-thumb);
+  border:3px solid transparent;      /* 透明邊框＋padding-box＝滑桿變細且離邊有留白 */
+  background-clip:padding-box;
+  border-radius:999px;
+  transition:background-color .18s ease}
+*:hover::-webkit-scrollbar-thumb{background:var(--sb-thumb-hover)}
+*::-webkit-scrollbar-thumb:hover{background:var(--sb-thumb-active)}
+*::-webkit-scrollbar-thumb:active{background:var(--sb-thumb-active)}
+@media(prefers-reduced-motion:reduce){*::-webkit-scrollbar-thumb{transition:none}}
+
+/* 選取色：沿用當前科目色，選字時整頁的色彩語言是連貫的（預設的瀏覽器藍會很突兀） */
+::selection{background:color-mix(in srgb,var(--sc,var(--dawn)) 30%,transparent);color:var(--ink)}
+/* 鍵盤焦點：全站統一走 tokens.css 的 :focus-visible（ember lit 外框），
+   此處不再自創（tokens 規 08）。 */
+/* 捲動區內容變動時（思考地圖載入圖表）不要把讀者的位置往下推 */
+.map-md,#vidMap,.wm-list{overflow-anchor:auto}
+body{font-family:var(--font-ui);color:var(--ink);background:var(--bg);min-height:100vh;
+  font-weight:400;line-height:1.7;
+  overflow-x:clip}   /* 出血元素（倒數尺）用 100vw，捲軸誤差在此吸收 */
+/* 裝成 App 後沒有網址列，瀏海與底部 home indicator 要自己讓開 */
+@supports(padding:env(safe-area-inset-top)){
+  body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+  .modal{padding-top:max(5vh,env(safe-area-inset-top));
+         padding-bottom:max(20px,env(safe-area-inset-bottom))}
+}
+/* 觸控裝置：把可點目標撐到 44px（Apple 的最小建議值），並關掉 hover 才出現的東西 */
+@media(hover:none) and (pointer:coarse){
+  .ep-mark{width:24px;height:24px}
+  .chap-strip{height:44px}
+  .ep-mark:hover::after{content:none}
+}
+
+/* ============ 地面 GROUND：aurora 氛圍場 × 晝夜 × 天氣（T03 重寫） ============
+   ADR-0002：graph/terrazzo/blueprint/onyx 退役。aurora 是所有模式的基底地面；
+   vellum（亮，驅動 body.lt）與 chalk（暗）是重繫 token 的兩片地面；
+   自訂上傳沿用 .bgvid/.cbg。天氣層照舊由 data-wx 開關、晝夜 .day 行為不變。
+   所有無限動畫一律吃 var(--ambient-play)：study（quiet 檔）自動凍結。
+   修訂三 #1#2（2026-09-01 晚）：五片地面各持一套材質語彙與簽名元素主題
+   （夜湖＝aurora 光場、描圖紙＝暖暈素紙、黑板＝粉筆塵＋板緣公式塗鴉、
+   墨水＝纖維暗紙＋單墨暈＋右緣筆鋒、牛皮紙＝行線＋咖啡環＋左緣縫線），
+   並各自出廠帶 curated 調色（配對表在 02-settings.js，細調步在 tokens.css）。
+   Motif 紀律：≤ 極淡結構性存在，永不與內容爭光；動的只有墨暈與 aurora
+   （吃 --ambient-play），字跡類 motif 一律靜態。 */
+.scene{position:fixed;inset:0;z-index:-1;overflow:hidden;background:var(--bg);
+  transition:background calc(var(--dur)*2) var(--ease)}
+
+/* 地面漸層（vellum/chalk 專屬；aurora 地面就是 --bg 本身） */
+.sky{position:absolute;inset:0;background:var(--ground,none)}
+/* ---- 黑板 chalk（修訂三 #2 升級，暗系）：用過的綠板，不是綠色漆牆。
+   材質三件組（全程序化、零動畫——粉筆字不會漂）：
+   ① 粉筆塵——兩片互質尺寸的微粒 tile（117×89／143×127，對不上網格
+      只讀得出「有塵」）；
+   ② 板底擦痕霧——板擦掃過的粉塵沉在下緣（單一 linear 淡霧）；
+   ③ 板緣公式塗鴉——.sky::after 右上角一排手寫粉筆殘句
+      （∫、Σ、正弦波、√、x²，SVG stroke 極淡），上一堂課沒擦乾淨的黑板。
+   --ink-faint 重繫為粉塵灰綠（原 #75809E 在綠板上 4.1:1 不及格→4.8:1）。
+   curated 調色＝松青粉綠步（tokens body[data-theme="chalk"][data-pal="pine"]）。 */
+body[data-theme="chalk"]{
+  --ground:radial-gradient(1.3px 1.3px at 23% 32%,rgba(214,236,224,.10),transparent 70%) 0 0/117px 89px,
+           radial-gradient(1px 1px at 71% 64%,rgba(214,236,224,.07),transparent 70%) 0 0/143px 127px,
+           linear-gradient(0deg,rgba(203,226,214,.055),transparent 22%),
+           radial-gradient(820px 380px at 14% 110%,rgba(143,189,159,.08),transparent 70%),
+           linear-gradient(180deg,#182620,#16241F 45%,#132019);
+  --bg:#16241F; --bg-raise:#1C2C26;
+  --line:rgba(214,236,224,.14); --line-strong:rgba(214,236,224,.3);
+  --ink-faint:#7E9186;
+}
+body[data-theme="chalk"] .sky::after{content:"";position:absolute;
+  top:clamp(14px,3vh,34px);right:clamp(14px,3.5vw,52px);
+  width:min(48vw,430px);height:110px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 430 110'%3E%3Cg fill='none' stroke='%23D6ECE0' stroke-opacity='.13' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 100 C12 102 14 88 18 70 C22 50 24 22 36 10 C42 4 48 10 44 15'/%3E%3Cpath d='M118 16 L84 16 L104 50 L84 84 L118 84'/%3E%3Cpath d='M158 55 Q173 22 188 55 T218 55 T248 55'/%3E%3Cpath d='M278 58 L290 86 L304 20 L346 20'/%3E%3Cpath d='M368 80 L392 48 M368 48 L392 80 M398 44 C400 36 410 36 410 43 C410 48 402 52 398 56 L412 56'/%3E%3C/g%3E%3C/svg%3E") right top/contain no-repeat}
+/* vellum 的 token 重繫掛在 body.lt（LIGHT_BG 驅動），這裡只放地面漸層 */
+body[data-theme="vellum"]{
+  --ground:radial-gradient(900px 420px at 82% -10%,rgba(160,78,20,.07),transparent 70%),
+           linear-gradient(180deg,#F4EFE5,#F2EDE2 40%,#EDE6D6);
+}
+/* ---- 墨水 ink（修訂三 #2 重造，暗系）：活的硯池，不只是深藍。
+   材質三件組（全程序化、零圖檔、零音訊）：
+   ① 暗纖維紙底——兩向 repeating 細紋（宣紙簾紋：直絲淡藍、橫簾壓黑）
+      疊在藍黑底上，摸得出「紙」而不是「漆」；
+   ② 單一墨暈慢滲——.inkwash 收斂為一團（裁定「one slow ink bloom」）：
+      深芯＋靛暈圈的墨滴 140s 極慢滲開（只動 transform，吃 --ambient-play
+      ＝study quiet 凍結；reduced-motion 由 tokens 全滅→靜止即完成態）；
+      .ik-b 退役隱藏；
+   ③ 右緣筆鋒——.sky::after 一道收鋒直劃（SVG data-URI 濕邊寬筆＋乾芯細筆
+      兩筆疊出）。筆鋒是「墨」的材質本身，色固定靛藍黑，不跟調色換燈。
+   curated 調色＝靛夜（tokens 墨藍步）；ember 角暈走 var(--warm) 跟燈色。 */
+body[data-theme="ink"]{
+  --ground:repeating-linear-gradient(90deg,rgba(158,178,224,.02) 0 1px,transparent 1px 5px),
+           repeating-linear-gradient(0deg,rgba(4,7,16,.22) 0 1px,transparent 1px 8px),
+           radial-gradient(560px 420px at 88% 96%,color-mix(in srgb,var(--warm) 13%,transparent),transparent 72%),
+           radial-gradient(900px 520px at 10% -12%,rgba(64,96,168,.10),transparent 70%),
+           linear-gradient(180deg,#0C1222,#0A0F1E 45%,#080C18);
+  --bg:#0A0F1E; --bg-raise:#131A2E;
+  --line:rgba(150,170,214,.13); --line-strong:rgba(150,170,214,.3);
+}
+body[data-theme="ink"] .sky::after{content:"";position:absolute;top:0;bottom:0;
+  right:clamp(18px,4vw,64px);width:clamp(26px,3vw,44px);
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 900' preserveAspectRatio='none'%3E%3Cpath d='M22 6 C15 130 30 250 20 400 C12 570 30 710 22 894' fill='none' stroke='%239BB0E4' stroke-opacity='.13' stroke-width='9' stroke-linecap='round'/%3E%3Cpath d='M22 6 C18 150 27 300 20 460 C15 620 26 740 21 894' fill='none' stroke='%23070B18' stroke-opacity='.5' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E") center/100% 100% no-repeat}
+.inkwash{position:absolute;inset:-20%;opacity:0;pointer-events:none;overflow:hidden;
+  transition:opacity calc(var(--dur)*3) var(--ease)}
+body[data-theme="ink"] .inkwash{opacity:var(--aurora-opacity)}
+.inkwash i{position:absolute;display:block;border-radius:50%;will-change:transform;
+  animation-play-state:var(--ambient-play)}
+.ik-a{width:104vmax;height:92vmax;left:-28vmax;top:-26vmax;
+  background:radial-gradient(closest-side,rgba(5,8,20,.6) 0 14%,transparent 46%),
+    radial-gradient(closest-side,color-mix(in srgb,var(--sc-la-hi) 12%,transparent) 30%,
+      color-mix(in srgb,var(--sc-la-hi) 5%,transparent) 55%,transparent 74%);
+  animation:ink-bloom 140s var(--ease) infinite alternate}
+.inkwash .ik-b{display:none}   /* 勝過 .inkwash i 的 display:block（0,2,0 > 0,1,1） */
+@keyframes ink-bloom{from{transform:scale(.94)}
+  to{transform:translate3d(4vw,3vh,0) scale(1.14) rotate(5deg)}}
+/* ---- 牛皮紙 kraft（修訂三 #2 重造，亮系，驅動 body.lt）：
+   真牛皮的桌面性格，不是米色換皮。材質四件組（全程序化、零動畫）：
+   ① 纖維紋——兩向 repeating 細紋交織（既有）；
+   ② 鉛筆行線——每 44px 一道石墨橫線（筆記本行距），淡到只在留白處被看見；
+   ③ 咖啡環魅影——右上角單一 radial 環（杯底印一圈，內緣淡、外緣稍實）；
+   ④ 左緣縫線——.sky::before 直行斜針腳（SVG data-URI tile repeat-y），
+      牛皮紙袋的裝訂語彙；針腳色固定深褐（材質本身，不跟調色換燈）。
+   鉛筆頁界線（.sky::after）照舊走 var(--warm)——調色換燈時界線一起換。
+   curated 調色＝餘燼深褐步（下方 body.lt[data-theme="kraft"] 重繫，
+   S-08 模式，接在 vellum 重繫之後）。 */
+body[data-theme="kraft"]{
+  --ground:repeating-linear-gradient(0deg,rgba(36,27,14,.028) 0 1px,transparent 1px 3px),
+           repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 2px,transparent 2px 5px),
+           repeating-linear-gradient(180deg,transparent 0 43px,rgba(58,42,18,.05) 43px 44px),
+           radial-gradient(circle at 82% 9%,transparent 0 74px,rgba(96,52,14,.085) 79px 87px,rgba(96,52,14,.03) 90px,transparent 96px),
+           radial-gradient(1000px 480px at 84% -12%,rgba(107,48,10,.06),transparent 70%),
+           linear-gradient(180deg,#D8BC8F,#D3B584 45%,#C9A876);
+}
+body[data-theme="kraft"] .sky::before{content:"";position:absolute;top:0;bottom:0;
+  left:clamp(10px,1.6vw,26px);width:16px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='34'%3E%3Cpath d='M4 24 L12 10' stroke='%235A3A16' stroke-opacity='.5' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E") repeat-y left top/16px 34px;
+  opacity:.55}
+body[data-theme="kraft"] .sky::after{content:"";position:absolute;top:0;bottom:0;
+  left:clamp(54px,7vw,110px);width:1px;
+  background:color-mix(in srgb,var(--warm) 30%,transparent)}
+
+/* 晝：一層由上而下的天光；強度跟著強度儀走，study 自然靜下來 */
+.dayglow{position:absolute;inset:0;opacity:0;pointer-events:none;
+  background:linear-gradient(180deg,color-mix(in srgb,#9FC2DE 24%,transparent),transparent 58%);
+  transition:opacity calc(var(--dur)*3) var(--ease)}
+body.day .dayglow{opacity:calc(var(--aurora-opacity)*.85 + .1)}
+body.lt .dayglow{background:linear-gradient(180deg,rgba(255,250,236,.55),transparent 58%)}
+
+/* 自訂上傳背景（機制照舊）：媒體鋪滿時氛圍層退場，天氣層照疊 */
+.bgvid,.cbg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;
+  opacity:0;transition:opacity calc(var(--dur)*3) var(--ease)}
+.bgvid{object-fit:cover}
+.cbg{background-size:cover;background-position:center}
+body.vid-on .bgvid{opacity:1}
+body.img-on .cbg{opacity:1}
+body.media .stars,body.media .sun2,body.media .moon,body.media .aurora,body.media .inkwash{opacity:0!important}
+body.media .scene::before{background:rgba(8,10,14,.34)}
+body.media.day .scene::before{background:rgba(8,10,14,.44)}
+body.media[data-mode="exam"] .scene::before,
+body.media[data-mode="study"] .scene::before{background:rgba(8,10,14,.74)}
+/* 護目薄紗：媒體背景與白晝的文字模式才需要 */
+.scene::before{content:"";position:absolute;inset:0;z-index:5;
+  background:rgba(8,16,26,0);transition:background calc(var(--dur)*3) var(--ease)}
+body.day[data-mode="exam"] .scene::before,
+body.day[data-mode="study"] .scene::before{background:rgba(8,16,26,.28)}
+body.lt.day[data-mode="exam"] .scene::before,
+body.lt.day[data-mode="study"] .scene::before{background:transparent}
+
+/* ---- aurora 氛圍場（容器規則在 tokens.css：opacity／play-state 吃強度儀） ---- */
+.scene .aurora{position:absolute}
+.au-a{width:78vmax;height:78vmax;left:-18vmax;top:-24vmax;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--sc-la-hi) 16%,transparent),transparent 68%);
+  animation:drift-a 84s var(--ease) infinite alternate}
+.au-b{width:64vmax;height:64vmax;right:-16vmax;bottom:-20vmax;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--warm) 13%,transparent),transparent 70%);
+  animation:drift-b 112s var(--ease) infinite alternate}
+.au-c{width:52vmax;height:52vmax;right:-8vmax;top:-14vmax;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--sc-ctrl-hi) 9%,transparent),transparent 70%);
+  animation:drift-c 96s var(--ease) infinite alternate}
+@keyframes drift-a{to{transform:translate3d(11vw,9vh,0) scale(1.14)}}
+@keyframes drift-b{to{transform:translate3d(-10vw,-8vh,0) scale(1.09)}}
+@keyframes drift-c{to{transform:translate3d(-6vw,10vh,0) scale(1.12)}}
+/* 亮地（vellum）上光斑減半，avoid 染髒紙色 */
+body.lt .aurora{opacity:calc(var(--aurora-opacity)*.5)}
+
+/* ---- 夜空讀數：星點（晴夜限定）與日月（晝夜開關照舊，語彙收斂） ---- */
+.stars{position:absolute;inset:0 0 40% 0;opacity:.5;transition:opacity calc(var(--dur)*3) var(--ease);
+  background-image:radial-gradient(2.4px 2.4px at 12% 30%,rgba(233,237,244,.7) 0,rgba(233,237,244,.4) 40%,transparent 70%),
+   radial-gradient(2.2px 2.2px at 34% 12%,rgba(233,237,244,.5) 0,rgba(233,237,244,.28) 40%,transparent 70%),
+   radial-gradient(3px 3px at 58% 24%,rgba(233,237,244,.6) 0,rgba(233,237,244,.32) 40%,transparent 70%),
+   radial-gradient(2.2px 2.2px at 72% 8%,rgba(233,237,244,.42) 0,rgba(233,237,244,.24) 40%,transparent 70%),
+   radial-gradient(2.4px 2.4px at 88% 34%,rgba(233,237,244,.5) 0,rgba(233,237,244,.28) 40%,transparent 70%),
+   radial-gradient(2.6px 2.6px at 45% 40%,rgba(233,237,244,.38) 0,rgba(233,237,244,.2) 40%,transparent 70%),
+   radial-gradient(2.2px 2.2px at 20% 55%,rgba(233,237,244,.34) 0,rgba(233,237,244,.18) 40%,transparent 70%);
+  animation:twinkle 6s var(--ease) infinite alternate;
+  animation-play-state:var(--ambient-play)}
+@keyframes twinkle{from{opacity:.55}to{opacity:.28}}
+body.day .stars,body[data-wx="rain"] .stars,body[data-wx="storm"] .stars,body[data-wx="fog"] .stars{opacity:0!important}
+body.lt .stars{opacity:0!important}
+.sun2{position:absolute;right:16%;top:12%;width:14vmin;height:14vmin;border-radius:50%;opacity:0;
+  transition:opacity calc(var(--dur)*3) var(--ease);
+  background:radial-gradient(circle,rgba(255,244,214,.7) 16%,rgba(255,244,214,.24) 42%,transparent 70%)}
+body.day .sun2{opacity:1}
+body.day[data-wx="rain"] .sun2,body.day[data-wx="storm"] .sun2,body.day[data-wx="fog"] .sun2{opacity:.15}
+.moon{position:absolute;right:18%;top:14%;width:7vmin;height:7vmin;border-radius:50%;opacity:.85;
+  transition:opacity calc(var(--dur)*3) var(--ease);
+  background:radial-gradient(circle at 38% 35%,#E9EDF4,#A3ADC2 68%);
+  box-shadow:0 0 40px 10px rgba(233,237,244,.12)}
+body.day .moon,body[data-wx="rain"] .moon,body[data-wx="storm"] .moon,body[data-wx="fog"] .moon{opacity:0}
+body.lt .moon{opacity:0!important}
+
+/* ---- 天氣層（data-wx 開關；home＋exam 顯示，study 隱藏——徽章讀數另計） ---- */
+.wx{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity calc(var(--dur)*4) var(--ease)}
+body[data-mode="study"] .wx{opacity:0!important}
+/* 雲 */
+.wx.clouds i{position:absolute;width:46vw;height:15vh;border-radius:50%;filter:blur(36px);
+  background:rgba(233,237,244,.09);animation:cl 95s linear infinite;
+  animation-play-state:var(--ambient-play)}
+.wx.clouds i:nth-child(1){top:5%}
+.wx.clouds i:nth-child(2){top:17%;animation-duration:135s;animation-delay:-45s;background:rgba(233,237,244,.065)}
+.wx.clouds i:nth-child(3){top:29%;animation-duration:175s;animation-delay:-95s;background:rgba(233,237,244,.045)}
+@keyframes cl{from{transform:translateX(-55vw)}to{transform:translateX(110vw)}}
+body[data-wx="cloud"] .clouds,body[data-wx="rain"] .clouds,body[data-wx="storm"] .clouds,body[data-wx="snow"] .clouds{opacity:1}
+body[data-wx="storm"] .clouds i{background:rgba(180,195,215,.13)}
+/* 雨：canvas 逐滴（rainSync 在 study 模式直接停迴圈） */
+canvas.wx.rain{inset:0;width:100%;height:100%}
+body[data-wx="rain"] .rain,body[data-wx="storm"] .rain{opacity:1}
+/* 雪 */
+.wx.snow{inset:auto;top:-100%;left:0;right:0;height:200%;will-change:transform;
+  background-image:radial-gradient(3.6px 3.6px at 20% 30%,rgba(233,237,244,.8) 0,rgba(233,237,244,.45) 45%,transparent 72%),
+   radial-gradient(2.8px 2.8px at 60% 70%,rgba(233,237,244,.55) 0,rgba(233,237,244,.3) 45%,transparent 72%),
+   radial-gradient(3.2px 3.2px at 85% 15%,rgba(233,237,244,.65) 0,rgba(233,237,244,.36) 45%,transparent 72%),
+   radial-gradient(2.6px 2.6px at 40% 85%,rgba(233,237,244,.45) 0,rgba(233,237,244,.25) 45%,transparent 72%);
+  background-size:260px 260px;animation:snowfall 7s linear infinite;
+  animation-play-state:var(--ambient-play)}
+@keyframes snowfall{from{transform:translate3d(0,-50%,0)}to{transform:translate3d(-30px,0,0)}}
+body[data-wx="snow"] .snow{opacity:1}
+/* 霧 */
+.wx.fogL i{position:absolute;left:-15%;width:130%;height:22vh;filter:blur(34px);
+  background:linear-gradient(90deg,transparent,rgba(205,218,228,.18) 30%,rgba(205,218,228,.09) 65%,transparent);
+  animation:fogflow 38s linear infinite alternate;
+  animation-play-state:var(--ambient-play)}
+.wx.fogL i:nth-child(1){bottom:8vh}
+.wx.fogL i:nth-child(2){bottom:26vh;animation-duration:52s;animation-direction:alternate-reverse}
+@keyframes fogflow{from{transform:translateX(-6%)}to{transform:translateX(10%)}}
+body[data-wx="fog"] .fogL{opacity:1}
+body[data-wx="fog"] .sky{filter:brightness(.9) saturate(.8)}
+/* 閃電 */
+.wx.flash{background:radial-gradient(58% 42% at 52% 18%,rgba(233,237,244,.95),transparent 70%)}
+body[data-wx="storm"] .flash{opacity:1;animation:zap 8.5s infinite;
+  animation-play-state:var(--ambient-play)}
+@keyframes zap{0%,90.6%,93.4%,100%{opacity:0}91%{opacity:.85}91.8%{opacity:.12}92.6%{opacity:.5}}
+
+/* 專注時整片地面亮起（讀書計時的畫面語言，行為照舊） */
+.scene::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;
+  background:radial-gradient(62% 52% at 50% 86%,rgba(233,237,244,.18),transparent 70%);
+  transition:opacity calc(var(--dur)*5) var(--ease)}
+body.running .scene::after{opacity:1}
+body.running.break .scene::after{background:radial-gradient(62% 52% at 50% 86%,rgba(233,237,244,.22),transparent 70%)}
+/* reduced-motion：tokens.css 已全滅動畫；此處補「靜止即完成態」 */
+@media (prefers-reduced-motion:reduce){
+  .reveal,.hero h1 .ch,.boot{opacity:1!important;transform:none!important;filter:none!important}
+}
+
+/* ============ 湖面玻璃 ============
+   .glass 配方自 T03 起由 tokens.css 供應（含無 blur／觸控 fallback）。
+   此處不再重複定義——玻璃只給真正浮起的 overlay（去框化法）。 */
+
+/* ============ LIQUID BUTTON（參考影片：磨砂玻璃膠囊＋凝膠液體灌注） ============ */
+.lq{position:relative;display:inline-block;overflow:hidden;isolation:isolate;cursor:pointer;
+  border-radius:999px;border:1px solid var(--glass-line);
+  background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.03) 46%,rgba(255,255,255,.07));
+  backdrop-filter:blur(12px) saturate(1.25);-webkit-backdrop-filter:blur(12px) saturate(1.25);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.35), inset 0 -8px 16px rgba(255,255,255,.05),
+    inset 0 -1px 1px rgba(4,10,18,.3), 0 6px 18px rgba(4,10,18,.4);
+  transition:box-shadow .5s ease, border-color .5s ease, transform .3s cubic-bezier(.3,1.6,.4,1), color .45s ease;
+  -webkit-tap-highlight-color:transparent}
+.lq[hidden]{display:none}  /* .lq 的 display 會蓋掉 [hidden]，補回來讓按鈕能真的隱藏 */
+.lq::before,.lq::after{content:"";position:absolute;z-index:-1;left:-25%;width:150%;padding-top:150%;
+  top:105%;border-radius:42% 46% 44% 48%;
+  background:radial-gradient(circle at 50% 28%,rgba(255,255,255,.5),transparent 42%),
+    var(--lq-color,rgba(255,255,255,.55));
+  transition:top .7s cubic-bezier(.34,1.45,.5,1);
+  animation:lqspin 7s linear infinite}
+.lq::after{opacity:.6;animation-duration:9s;animation-direction:reverse;transition-duration:.9s;
+  filter:brightness(1.2) saturate(1.15)}
+@keyframes lqspin{to{transform:rotate(360deg)}}
+.lq:hover,.lq:focus-visible,.lq.on{border-color:transparent;
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.5), inset 0 -10px 20px rgba(255,255,255,.14),
+    0 10px 34px var(--lq-glow,rgba(255,255,255,.45)), 0 2px 10px var(--lq-glow,rgba(255,255,255,.35))}
+.lq:hover,.lq:focus-visible{transform:translateY(-2px)}
+.lq:hover::before,.lq:focus-visible::before,.lq.on::before{top:-28%}
+.lq:hover::after,.lq:focus-visible::after,.lq.on::after{top:-38%}
+.lq:active{transform:scale(.95)}
+/* 液體灌滿後底色是亮的，字一定要轉黑。!important 是必要的：站內多處 #id 層級規則
+   （#home .modes button、.chan .links a…）會把字染回白，在白色液體上等於看不見 */
+.lq:hover,.lq:focus-visible,.lq.on{color:#000!important}
+.lq.ember:hover,.lq.ember:focus-visible,.lq.ember.on{color:#fff!important}
+@media (prefers-reduced-motion:reduce){
+  .lq::before,.lq::after{animation:none;transition:none}
+  .lq:hover,.lq:focus-visible{transform:none}
+  .lq:hover::before,.lq.on::before{top:-28%}
+}
+/* 三段液體色階：主要動作最實、次要動作較淡、警示用燒橘 */
+.lq.gold {--lq-color:rgba(255,255,255,.92);--lq-glow:rgba(255,255,255,.4)}
+.lq.mist2{--lq-color:rgba(255,255,255,.78);--lq-glow:rgba(255,255,255,.3)}
+.lq.ember{--lq-color:color-mix(in srgb,var(--warm) 92%,transparent);--lq-glow:color-mix(in srgb,var(--warm) 45%,transparent)}
+
+/* ============ 模式切換：home / exam / study ============ */
+body[data-mode="home"] header.top, body[data-mode="home"] .wrap{display:none}
+body[data-mode="exam"] #home, body[data-mode="study"] #home{display:none}
+body[data-mode="exam"] #study{display:none}
+body[data-mode="study"] .wrap>section:not(#study){display:none}
+body[data-mode="exam"] .only-study{display:none!important}
+body[data-mode="study"] .only-exam{display:none!important}
+
+/* ============ 待機畫面（T03 去框化：讀數直接站在 aurora 場上） ============ */
+#home{min-height:100vh;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;
+  gap:10px;text-align:left;padding:0 clamp(20px,6vw,64px) 48px}
+#home .eyebrow{margin-bottom:4px}
+#home .clock{font-variant-numeric:tabular-nums;font-weight:600;
+  font-size:clamp(4.4rem,15vw,10rem);line-height:.92;letter-spacing:var(--ls-title);color:var(--ink)}
+#home .clock small{font-size:.28em;font-weight:500;color:var(--ink-dim);
+  vertical-align:.16em;margin-left:.14em;letter-spacing:0}
+#home .readline{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:6px;
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:var(--w-meta);color:var(--ink-dim);letter-spacing:.04em;min-height:1.4em}
+#home .readline .sep{width:1px;height:13px;background:var(--line-strong)}
+#home .railband{align-self:stretch;margin-top:clamp(26px,6vh,64px)}
+#home .count{font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:var(--w-meta);color:var(--ink-dim);letter-spacing:.04em;min-height:1.4em}
+#home .count b{font-weight:600;font-size:var(--w-sub);color:var(--accent);
+  text-shadow:0 0 22px color-mix(in srgb,var(--warm) 35%,transparent);margin-right:.55em}
+#home .modes{display:flex;gap:12px;flex-wrap:wrap;margin-top:clamp(24px,5vh,48px)}
+#home .hint{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);
+  color:var(--ink-faint);margin-top:18px}
+
+/* ---- 簽名件：D-n 倒數尺（全寬出血，一格一夜；實作 port 自 design-system.html） ---- */
+.rail-bleed{position:relative;width:100vw;margin-left:calc(50% - 50vw);padding-top:14px}
+.rail{display:flex;justify-content:space-between;align-items:flex-end;height:30px}
+.tick{flex:none;width:2px;height:12px;border-radius:1px;background:var(--ink-dim);opacity:var(--o,.6)}
+.tick.m1{height:22px;background:var(--ink)}
+.tick.today{width:3px;height:30px;border-radius:1.5px;background:var(--warm);
+  box-shadow:0 0 3px color-mix(in srgb,var(--warm) 90%,transparent),0 0 16px color-mix(in srgb,var(--warm) 55%,transparent)}
+@keyframes tickin{from{opacity:0;transform:translateY(6px)}}
+.rail.scan .tick{animation:tickin 200ms var(--ease) backwards;animation-delay:calc(var(--i,0)*7ms)}
+
+/* ---- T15 rail life：倒數尺的夜間互動層（每個互動回答一個真問題）----
+   已燒之夜＝餘燼殘火（--warm 低透明，燒過的東西用火心色——雙階紀律）；
+   今夜燃點慢脈動、燒段每 ~92s 一道餘燼微光掃過（皆只動 transform/opacity，
+   吃 --ambient-play：quiet 凍結；reduced-motion 由 tokens 全滅→靜止即完成態）；
+   里程夜＝6px 菱形標（出發火點 --warm／轉折 --ink-dim／終點 --accent）；
+   點擊讀出走去框化：ember 脊線＋縮排，不是框、更不是 modal。 */
+.rail{position:relative}
+.rail-bleed{cursor:crosshair}
+.tick{position:relative;transition:transform 150ms var(--ease),background 150ms var(--ease)}
+.tick.gone{background:var(--warm);opacity:.34}
+.tick.gone.m1{opacity:.55}
+.tick.hov,.tick.sel{background:var(--ink);opacity:1;transform:scaleY(1.5);transform-origin:bottom}
+.tick.sel{background:var(--accent)}
+.tick.today.hov,.tick.today.sel{background:var(--warm);transform:none}
+@keyframes tickpulse{50%{opacity:.55;transform:scaleY(.82)}}
+.tick.today{transform-origin:bottom;animation:tickpulse 3.4s var(--ease) infinite;
+  animation-play-state:var(--ambient-play)}
+.tick.mile::before{content:"";position:absolute;left:50%;top:-9px;width:6px;height:6px;
+  transform:translateX(-50%) rotate(45deg);background:var(--ink-dim)}
+.tick.mk-start::before{background:var(--warm)}
+.tick.mk-end::before{background:var(--accent)}
+.rail-glint{position:absolute;left:0;top:0;bottom:0;width:var(--burn,0%);
+  overflow:hidden;pointer-events:none}
+.rail-glint i{position:absolute;inset:0;opacity:0;will-change:transform;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--warm) 60%,transparent) 3%,transparent 6%);
+  animation:railglint 92s linear infinite;animation-play-state:var(--ambient-play)}
+@keyframes railglint{
+  0%{transform:translateX(-7%);opacity:0}
+  1.5%{opacity:.5}
+  14%{opacity:.5}
+  16%{transform:translateX(101%);opacity:0}
+  100%{transform:translateX(101%);opacity:0}
+}
+.rail-under{margin-top:2px}   /* railband 住在 #home 的頁緣 padding 內，不必自帶 */
+.rail-tonight{border:0;background:none;padding:6px 0;cursor:pointer;
+  font-size:var(--w-tag);letter-spacing:.12em;color:var(--ink-faint);
+  font-variant-numeric:tabular-nums;transition:color 150ms var(--ease)}
+.rail-tonight:hover{color:var(--accent)}
+.rail-tonight b{font-weight:400;color:var(--warm)}
+.rail-live{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;margin-top:10px;
+  padding-left:14px;border-left:2px solid var(--warm);
+  font-size:var(--w-meta);letter-spacing:.02em;color:var(--ink-dim);
+  font-variant-numeric:tabular-nums;max-width:860px;
+  animation:rl-in var(--dur) var(--ease) backwards}
+@keyframes rl-in{from{opacity:0;transform:translateY(6px)}}
+.rail-live[hidden]{display:none}
+.rail-live .rl-date{color:var(--ink)}
+.rail-live .rl-plan{flex:1 1 100%;min-width:0;line-height:1.7}
+.rl-x{border:0;background:none;cursor:pointer;color:var(--ink-faint);
+  font-size:var(--w-meta);padding:2px 6px;transition:color 150ms var(--ease)}
+.rl-x:hover{color:var(--accent)}
+.rail-months{position:relative;height:18px;margin-top:8px;
+  font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);
+  color:var(--ink-faint);font-variant-numeric:tabular-nums;text-transform:uppercase}
+.mlabel{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+.mlabel.start{left:0;transform:none;color:var(--accent);padding-left:clamp(8px,2vw,20px)}
+.mlabel.end{left:auto;right:0;transform:none;color:var(--accent);padding-right:clamp(8px,2vw,20px)}
+@media(max-width:680px){
+  .tick{width:1px}
+  .tick.today{width:2px}
+  #home .clock{font-size:clamp(3.6rem,19vw,6rem)}
+}
+
+/* ============ 模式切換液態轉場（保留動效、校準 token） ============
+   時長＝進場 var(--dur)×2 ＋出場 var(--dur-exit)×2 ≈ 1056ms（與 JS 480/1150 對齊）。
+   keyframe 內的 cubic-bezier(.22,1,.36,1) 即 var(--ease)（keyframe 區塊內
+   timing-function 的 var() 支援不穩，這裡逐字展開，值以 tokens 為準）。 */
+#wipe{position:fixed;inset:0;z-index:60;pointer-events:none;overflow:hidden;visibility:hidden}
+#wipe::before,#wipe::after{content:"";position:absolute;left:-25%;top:0;width:150%;padding-top:150%;
+  border-radius:42% 46% 44% 48%;will-change:transform;transform:translateY(110%);
+  background:linear-gradient(120deg,rgba(233,237,244,.92),rgba(233,237,244,.96) 60%,color-mix(in srgb,var(--warm) 85%,transparent))}
+#wipe.go{visibility:visible}
+#wipe.go::before{animation:wipeup calc(var(--dur)*2 + var(--dur-exit)*2) linear forwards}
+#wipe.go::after{opacity:.55;animation:wipeup2 calc(var(--dur)*2 + var(--dur-exit)*2) linear forwards}
+@keyframes wipeup{
+  0%{transform:translateY(110%) rotate(0deg);animation-timing-function:cubic-bezier(.6,.1,.36,1)}
+  50%{transform:translateY(-34%) rotate(150deg)}
+  58%{transform:translateY(-36%) rotate(190deg);animation-timing-function:cubic-bezier(.22,1,.36,1)}
+  100%{transform:translateY(-215%) rotate(360deg)}}
+@keyframes wipeup2{
+  0%{transform:translateY(112%) rotate(180deg);animation-timing-function:cubic-bezier(.6,.1,.36,1)}
+  52%{transform:translateY(-30%) rotate(40deg)}
+  60%{transform:translateY(-33%) rotate(0deg);animation-timing-function:cubic-bezier(.22,1,.36,1)}
+  100%{transform:translateY(-218%) rotate(-160deg)}}
+
+/* ============ 點擊回饋：湖面漣漪（保留、校準 token） ============ */
+.burst{position:fixed;z-index:400;width:0;height:0;pointer-events:none;
+  transform:translate(-50%,-50%)}
+.burst::before{content:"";position:absolute;left:50%;top:50%;
+  width:var(--r,44px);height:var(--r,44px);margin:calc(var(--r,44px) / -2);
+  border-radius:50%;
+  background:radial-gradient(circle,
+    color-mix(in srgb,var(--bc,#fff) 72%,transparent) 0%,
+    color-mix(in srgb,var(--bc,#fff) 34%,transparent) 45%,
+    transparent 72%);
+  animation:ripple var(--dur) var(--ease) forwards}
+@keyframes ripple{
+  0%{transform:scale(.55);opacity:.34}
+  45%{opacity:.24;animation-timing-function:linear}
+  100%{transform:scale(1.35);opacity:0}
+}
+
+/* ============ layout ============ */
+.wrap{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 70px}
+/* 讀書模式放寬到接近整個螢幕：1920 上原本左右各空 400px。
+   閱讀型頁面（考古題、總覽）維持 1120px 窄欄不動——長文過寬反而難讀，
+   但工作台是「同時看多個清單」，寬度就是可用面積。 */
+body[data-mode="study"] .wrap{max-width:min(1760px,96vw)}
+/* ============ 頂欄（T03 去框化：無欄框，只有一條髮絲底線） ============ */
+header.top{position:sticky;top:0;z-index:20;margin:0;max-width:none;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:14px clamp(16px,4vw,40px);
+  border-bottom:1px solid var(--line);
+  background:color-mix(in srgb,var(--bg) 78%,transparent);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+@media (hover:none){
+  header.top{-webkit-backdrop-filter:none;backdrop-filter:none;
+    background:color-mix(in srgb,var(--bg) 94%,transparent)}
+}
+.brand{font-family:var(--font-ui);font-weight:700;font-size:1.15rem;letter-spacing:-.01em;
+  white-space:nowrap;cursor:pointer;background:none;border:none;color:var(--ink)}
+.brand em{color:var(--accent);font-style:normal}
+nav.menu{display:flex;align-items:center;gap:clamp(6px,1.6vw,18px);flex-wrap:wrap}
+/* 導航錨點：mono 眉標語彙；active＝ember 熱點＋warm 底線（nav-state-active） */
+nav.menu .nav-a{font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:var(--w-meta);letter-spacing:.08em;color:var(--ink-dim);text-decoration:none;
+  padding:10px 4px;position:relative;transition:color 150ms var(--ease)}
+nav.menu .nav-a:hover{color:var(--ink)}
+nav.menu .nav-a.active{color:var(--accent)}
+nav.menu .nav-a.active::after{content:"";position:absolute;left:4px;right:4px;bottom:4px;height:2px;
+  border-radius:1px;background:var(--warm);box-shadow:0 0 10px color-mix(in srgb,var(--warm) 50%,transparent)}
+/* 天氣徽章讀數：全模式可見（home 用 #wxBadge，exam/study 用這顆） */
+.wxtop{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:var(--w-tag);
+  letter-spacing:.08em;color:var(--ink-faint);white-space:nowrap}
+.wxtop:empty{display:none}
+
+.hero{padding:clamp(56px,11vh,120px) 0 40px}
+.hero>.eyebrow{font-size:.82rem;color:var(--ink);letter-spacing:.01em}
+.hero>.eyebrow::before{content:"| ";opacity:.55}
+.hero h1{font-weight:600;font-size:clamp(2.4rem,7vw,62px);line-height:1.08;letter-spacing:-.03em;margin:.3em 0 .45em}
+.hero h1 span{color:var(--ink)}
+/* 逐字浮現（載入時由 JS 拆字） */
+.hero h1 .ch{display:inline-block;opacity:0;transform:translateY(22px);
+  transition:opacity .7s cubic-bezier(.22,.61,.36,1),transform .7s cubic-bezier(.22,.61,.36,1)}
+.hero h1 .ch.in{opacity:1;transform:none}
+.hero p.sub{max-width:36em;color:var(--ink-dim)}
+/* hero 統計（T04 決策 A）：去框化讀數——IBM Plex Mono 大數字直接站在
+   aurora 場上，mono 眉標在下；一條左髮絲線做分隔（框是例外，不是預設）。 */
+.stats{display:flex;gap:clamp(22px,4.5vw,56px);flex-wrap:wrap;margin-top:36px}
+.stat{display:flex;flex-direction:column;gap:7px;padding-left:16px;position:relative}
+.stat::before{content:"";position:absolute;left:0;top:7px;bottom:7px;width:1px;background:var(--line-strong)}
+.stat .cnt{display:block;font-weight:600;line-height:1;
+  font-size:calc(var(--w-title)*1.3);letter-spacing:var(--ls-title);color:var(--ink)}
+.stat i{font-style:normal}
+.jump{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}
+.jump a{color:var(--ink);text-decoration:none;font-size:.8rem;padding:8px 18px}
+/* section 分隔（port 自 design-system.html sec-mark）：mono 眉標＋向右出血髮絲線 */
+.xsec-mark{display:flex;align-items:center;gap:18px}
+.xsec-mark::after{content:"";height:1px;flex:1;background:var(--line);margin-right:calc(50% - 50vw)}
+.xsec-mark .no{color:var(--accent)}
+.xsec-mark+h2{margin-top:16px}
+.agg-mark{margin-top:64px}
+#overview h2,#finder h2{font-family:var(--font-ui);font-size:var(--w-title);
+  letter-spacing:var(--ls-title);font-weight:700;line-height:1.15}
+
+/* 開機逐項凝結（保留序列，校準 token：--dur／--ease／--stagger；
+   凝結 blur 是全站唯一豁免的 blur 動畫。reduced-motion 的
+   「靜止即完成態」補在 scene 段尾的 reduce 區塊。 */
+.boot{opacity:0;transform:translateY(14px);filter:blur(10px);
+  animation:bootin var(--dur) var(--ease) forwards}
+.boot.d1{animation-delay:calc(var(--stagger)*2)}
+.boot.d2{animation-delay:calc(var(--stagger)*4)}
+.boot.d3{animation-delay:calc(var(--stagger)*6)}
+.boot.d4{animation-delay:calc(var(--stagger)*8)}
+.boot.d5{animation-delay:calc(var(--stagger)*10)}
+@keyframes bootin{to{opacity:1;transform:none;filter:none}}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .8s ease,transform .8s cubic-bezier(.22,.61,.36,1)}
+.reveal.in{opacity:1;transform:none}
+
+section{padding:56px 0 8px}
+/* 主標放大、字距收緊——待機畫面的時鐘就是靠這兩件事撐場。
+   原本 1.4~1.9rem 跟內文只差一點，讀起來沒有主從。 */
+h2{font-family:var(--serif);font-weight:600;font-size:var(--t-hero);
+  letter-spacing:var(--ls-hero);line-height:1.12;margin-bottom:10px}
+.sec-note{color:var(--ink-dim);font-size:var(--t-sm);line-height:1.75;
+  margin-bottom:30px;max-width:44em}
+.sec-note b{color:var(--dawn);font-weight:500}
+/* 眉標：小字、寬字距、大寫。它的作用是「定位」不是「閱讀」，
+   所以要小到不搶戲、但字距寬到一眼認得出是一個層級。 */
+.eyebrow-lbl{font-family:var(--mono);font-size:var(--t-mi);letter-spacing:var(--ls-mi);
+  text-transform:uppercase;color:var(--ink-dim);display:block;margin-bottom:8px}
+
+/* 收合式區塊（一次只展開一個）——T04 去框化：玻璃箱撤除，
+   標題列＝字階＋一條髮絲底線；開合動畫仍走 grid-template-rows。 */
+section.acc{padding:0;margin:32px 0;background:none;border:0;border-radius:0;
+  backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;overflow:visible}
+.sec-head{display:flex;justify-content:space-between;align-items:center;gap:14px;
+  cursor:pointer;padding:18px 0;user-select:none;border-bottom:1px solid var(--line)}
+.sec-head:hover h2{color:var(--accent)}
+.sec-head h2{margin:0;transition:color var(--dur) var(--ease)}
+.sec-head .hintline{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.06em;
+  color:var(--ink-faint);margin-left:auto;text-align:right}
+.sec-head .arrow{font-family:var(--font-mono);color:var(--accent);font-size:1rem;
+  transition:transform var(--dur) var(--ease)}
+section.acc.open .arrow{transform:rotate(90deg)}
+.sec-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .7s cubic-bezier(.22,1,.36,1)}
+section.acc.open .sec-body{grid-template-rows:1fr}
+.sec-inner{overflow:hidden;min-height:0;padding:0}
+section.acc.open .sec-inner{padding:18px 0 26px}
+/* 卡片內細節收合 */
+details.more summary{cursor:pointer;list-style:none;font-size:var(--w-meta);color:var(--ink-dim);
+  padding:6px 0 2px;letter-spacing:.02em;transition:color 150ms var(--ease)}
+details.more summary:hover{color:var(--ink)}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary::before{content:"▸ ";font-family:var(--font-mono);color:var(--accent)}
+details.more[open] summary::before{content:"▾ "}
+
+/* 學校詳情 modal 內容（T04 決策 C）：內部無子箱——系所組列＝行線分隔，
+   badge／chip 是元件（可帶細環），結構靠眉標與髮絲線。 */
+.badge{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.08em;
+  padding:3px 10px;border-radius:999px;white-space:nowrap;
+  box-shadow:inset 0 0 0 1px var(--line-strong);color:var(--ink-dim)}
+.badge.joint{color:var(--accent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 45%,transparent)}
+.prog{border-top:1px solid var(--line);padding:12px 0 10px}
+.prog:first-child{border-top:0;padding-top:2px}
+.prog b{font-weight:600;font-size:var(--w-body);color:var(--ink)}
+.prog .grp{color:var(--accent);font-size:var(--w-meta)}
+.subj{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 4px}
+.subj span{font-family:var(--font-mono);font-size:var(--w-tag);padding:2px 9px;border-radius:var(--r-sm);
+  box-shadow:inset 0 0 0 1px var(--line-strong);color:var(--ink-dim)}
+.subj span.hot{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--warm) 45%,transparent);
+  background:color-mix(in srgb,var(--warm) 12%,transparent);color:var(--accent)}
+.prog .note{font-size:var(--w-meta);color:var(--ink-dim)}
+.prog .note.star{color:var(--accent)}
+.prog .quota{font-size:var(--w-tag);color:var(--ink-dim)}
+.sched{font-size:var(--w-meta);color:var(--ink-dim)}
+
+/* 總覽表（T04 決策 B）：無外框、只有行線；表頭＝mono 眉標；
+   數值欄靠右 tabular-nums；整列可點（hover 用底色浮起，不用邊框）。
+   iPad 直向：校名欄 sticky＋自身底色＋右髮絲線，其餘欄橫捲，
+   ov-shell 出 edge-fade 捲動提示，觸控允許 pan-x。 */
+.ov-shell{position:relative}
+.ov-shell::before,.ov-shell::after{content:"";position:absolute;top:0;bottom:0;width:44px;
+  pointer-events:none;z-index:3;opacity:0;transition:opacity var(--dur) var(--ease)}
+.ov-shell::after{right:0;background:linear-gradient(270deg,var(--bg),transparent)}
+.ov-shell::before{left:0;background:linear-gradient(90deg,var(--bg),transparent)}
+.ov-shell.fade-r::after{opacity:.9}
+.ov-shell.fade-l::before{opacity:.9}
+.ov-wrap{overflow-x:auto;padding:0 0 6px;touch-action:pan-x pan-y;
+  overscroll-behavior-x:contain}
+table.ov{border-collapse:collapse;width:100%;min-width:900px;font-size:var(--w-meta)}
+.ov th{font-family:var(--font-mono);font-weight:500;font-size:var(--w-tag);color:var(--ink-faint);
+  letter-spacing:var(--ls-tag);text-transform:uppercase;font-variant-numeric:tabular-nums;
+  text-align:left;padding:9px 12px;border-bottom:1px solid var(--line-strong);white-space:nowrap}
+.ov th.num{text-align:right}
+.ov td{padding:13px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.ov tbody tr{cursor:pointer;transition:background 150ms var(--ease)}
+.ov tbody tr:hover td{background:color-mix(in srgb,var(--ink) 5%,transparent)}
+/* 校名欄 sticky：自帶底色（不透出捲過去的內容）＋右髮絲線 */
+.ov .ov-sch,.ov th:first-child{position:sticky;left:0;z-index:2;background:var(--bg);
+  border-right:1px solid var(--line)}
+.ov tbody tr:hover .ov-sch{background:color-mix(in srgb,var(--ink) 5%,var(--bg))}
+.ov .sch{display:inline-block;background:none;border:0;padding:0;cursor:pointer;text-align:left;
+  font-family:var(--font-ui);font-weight:600;font-size:var(--w-sub);color:var(--ink);white-space:nowrap;
+  border-bottom:1px solid transparent;transition:border-color 150ms var(--ease)}
+.ov .sch small{display:block;font-family:var(--font-mono);font-weight:400;font-size:var(--w-tag);
+  letter-spacing:.06em;color:var(--ink-faint);border:0}
+.ov tbody tr:hover .sch,.ov .sch:focus-visible{border-bottom-color:var(--accent)}
+.ov .subj-chip{display:inline-block;font-size:var(--w-tag);padding:2px 9px;
+  margin:2px 5px 2px 0;box-shadow:inset 0 0 0 1px var(--line-strong);border-radius:var(--r-sm);
+  color:var(--ink-dim);white-space:nowrap}
+.ov .dt{font-size:var(--w-tag);color:var(--ink-dim);white-space:nowrap;font-variant-numeric:tabular-nums}
+.ov .free{font-size:var(--w-tag);color:var(--ink-dim);line-height:1.6}
+.ov .st{font-size:var(--w-tag);color:var(--ink-faint);white-space:nowrap;font-variant-numeric:tabular-nums}
+.ov .st b{color:var(--accent);font-weight:600;font-size:var(--w-body)}
+.ov td.num{text-align:right}
+.ov-note{font-size:var(--w-tag);color:var(--ink-faint);margin-top:10px}
+/* 懸浮視窗 */
+.modal{position:fixed;inset:0;z-index:300;display:flex;align-items:flex-start;justify-content:center;padding:5vh 20px}
+.modal[hidden]{display:none}
+body.modal-open{overflow:hidden}
+/* ── 省電：彈窗打開時凍結背後看不見的動畫 ────────────────────────
+   實測 iPad 上「一小時掉 90% 電」的主因：看影片時背景那 20 個無限動畫
+   （極光×3、雲×3、霧×2、雪、格線浮動、掃光、閃爍，加 8 顆按鈕的凝膠旋轉）
+   全都還在跑。它們被播放器整個蓋住、一格都看不到，卻仍在燒 GPU 合成層。
+   彈窗打開＝背景一定看不見，直接停掉；關閉就自己恢復。 */
+body.modal-open .scene,
+body.modal-open .scene *,
+body.modal-open .lq::before,
+body.modal-open .lq::after{animation-play-state:paused!important}
+/* 分頁不可見（document.hidden）時同樣凍結——看不見的湖不用流（T03） */
+body.page-hidden .scene,
+body.page-hidden .scene *{animation-play-state:paused!important}
+/* 修訂三 #3：gentle-ambient 白名單（不在 .scene 裡）同樣遵守省電法——
+   彈窗蓋台或分頁不可見時，body 層把白名單檔位改 paused（變數繼承蓋過 html 層） */
+body.modal-open{--gentle-play:paused}
+body.page-hidden{--gentle-play:paused}
+/* 連 backdrop-filter 一起省：背景已被 .modal-back 蓋住並模糊過，
+   底下那些玻璃層再各自算一次模糊是純粹的浪費（iPad 上每層都是一次全螢幕取樣）。 */
+body.modal-open .scene,body.modal-open .glass:not(.modal-panel){
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+/* 背景加重模糊：視窗浮起來的感覺來自「背後被推遠」，不只是壓一層黑。 */
+.modal-back{position:absolute;inset:0;background:rgba(6,12,22,.5);
+  backdrop-filter:blur(20px) saturate(1.2);-webkit-backdrop-filter:blur(20px) saturate(1.2);
+  animation:mfade .3s ease}
+.modal-panel{position:relative;width:min(920px,100%);max-height:90vh;overflow:auto;
+  padding:32px 34px 30px;border-radius:var(--r-lg);animation:mrise var(--dur) var(--ease);
+}
+/* 多層陰影：貼近的接觸陰影＋擴散的環境陰影＋內緣高光。
+   單一 box-shadow 會顯得扁平，疊起來才有「一片有厚度的玻璃」的感覺。
+   權重要壓過 .glass（同為 class 選擇器、且定義在前），所以寫成 .modal-panel.glass。 */
+.modal-panel.glass{
+  box-shadow:0 1px 2px rgba(0,0,0,.18),0 12px 28px rgba(0,0,0,.22),
+             0 32px 70px rgba(0,0,0,.30),inset 0 1px 0 rgba(255,255,255,.10)}
+body.lt .modal-panel.glass{
+  box-shadow:0 1px 2px rgba(23,27,33,.06),0 12px 28px rgba(23,27,33,.09),
+             0 32px 70px rgba(23,27,33,.12),inset 0 1px 0 rgba(255,255,255,.85)}
+.modal-x{position:absolute;top:12px;right:12px;width:44px;height:44px;padding:0;font-size:.9rem;
+  color:var(--ink);line-height:42px;text-align:center}
+.modal-body .dhead{display:flex;gap:14px;align-items:baseline;margin:0 44px 4px 0}
+.modal-body .dhead h2{margin:0;font-family:var(--font-ui);font-weight:700;
+  font-size:var(--w-title);letter-spacing:var(--ls-title);line-height:1.1}
+.modal-body .chow{font-size:var(--w-body);color:var(--ink);margin-bottom:2px}
+@keyframes mfade{from{opacity:0}}
+@keyframes mrise{from{opacity:0;transform:translateY(22px)}}
+@media(prefers-reduced-motion:reduce){.modal-back,.modal-panel{animation:none}}
+/* 共同必考章節：跨校長條（T04 決策 E，dataviz 法）——
+   去框化群組（眉標＋髮絲線，無玻璃箱）；單一色相結構 ember 條，
+   細條 8px、資料端 4px 圓角、基線端方角、列距留 2px 以上空隙；
+   數值標籤用文字 token 直標條尾；軌道退到近地表。 */
+.agg{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px 44px;margin-top:22px}
+.agg-grp{padding-top:4px}
+.agg-gh{display:flex;align-items:baseline;gap:12px;padding:10px 0 8px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.agg-gh h3{font-family:var(--font-ui);font-weight:600;font-size:var(--w-sub);color:var(--ink)}
+.agg-gh .gh-n{font-size:var(--w-tag);color:var(--ink-faint);letter-spacing:.06em;font-variant-numeric:tabular-nums}
+.bars{display:flex;flex-direction:column;gap:10px}
+.bar-row{display:grid;grid-template-columns:7.5em 1fr auto;gap:10px;align-items:center;
+  font-size:var(--w-meta);border-radius:var(--r-sm)}
+.bar-row .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+.bar-row .tk{height:8px;background:color-mix(in srgb,var(--ink) 7%,transparent);
+  border-radius:0 4px 4px 0;overflow:hidden}
+.bar-row .tk i{display:block;height:100%;border-radius:0 4px 4px 0;
+  background:color-mix(in srgb,var(--warm) 72%,var(--bg));
+  animation:barin var(--dur) var(--ease) backwards;animation-delay:calc(var(--i,0)*var(--stagger))}
+.bar-row:hover .tk i{background:var(--warm)}
+@keyframes barin{from{width:0}}
+.bar-row .val{font-size:var(--w-tag);color:var(--ink-dim);white-space:nowrap;font-variant-numeric:tabular-nums}
+.bar-row .val b{color:var(--ink);font-weight:600}
+
+.agg-h{font-family:var(--font-ui);font-weight:600;font-size:var(--w-sub);color:var(--ink);margin:14px 0 2px}
+.agg-note{font-size:var(--w-tag);color:var(--ink-faint);margin-bottom:4px}
+/* modal 內 section 分隔：mono 眉標＋一條髮絲線（去框化的骨架） */
+.msec{display:flex;align-items:center;gap:14px;margin:26px 0 12px}
+.msec::after{content:"";height:1px;flex:1;background:var(--line)}
+.school .chow{font-size:var(--w-body);color:var(--ink)}
+.school .links{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0 4px}
+.school .links a{text-decoration:none}
+.progs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:0 32px}
+/* 科目戰情列：行線分隔，無子箱 */
+.sb{border-top:1px solid var(--line);padding:18px 0 14px}
+.sb:first-of-type{border-top:0}
+.sb .sbh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.sb h4{font-family:var(--font-ui);font-weight:600;font-size:var(--w-sub);color:var(--ink)}
+.sb h4 small{font-family:var(--font-mono);font-weight:400;font-size:var(--w-tag);color:var(--ink-faint);margin-left:8px}
+.badge.dead{color:var(--accent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--warm) 45%,transparent)}
+.quick{font-size:var(--w-meta);color:var(--ink-dim);margin-top:4px}
+.quick b{color:var(--ink);font-weight:600}
+/* 十年 PDF 格（決策 C）：已下載＝可點年份（細環元件）；
+   缺年＝dash 劃線＋降暗＋cursor:help（不靠顏色單獨表意），title 給原因 */
+.yrow{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 2px}
+.yrow .yc{display:inline-flex;align-items:center;justify-content:center;
+  width:46px;height:30px;font-size:var(--w-tag);font-variant-numeric:tabular-nums;
+  text-decoration:none;border-radius:var(--r-sm)}
+.yrow a.yc{color:var(--ink);box-shadow:inset 0 0 0 1px var(--line-strong);
+  background:color-mix(in srgb,var(--ink) 6%,transparent);
+  transition:box-shadow 150ms var(--ease),background 150ms var(--ease),transform 150ms var(--ease)}
+.yrow a.yc:hover,.yrow a.yc:focus-visible{transform:translateY(-1px);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 60%,transparent);
+  background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.yrow span.yc.miss{color:var(--ink-faint);cursor:help;
+  box-shadow:inset 0 0 0 1px var(--line)}
+.yrow span.yc.miss s{text-decoration:line-through;text-decoration-color:var(--ink-faint);
+  text-decoration-thickness:1px}
+
+/* 反向選校（T04 決策 F）——去框化：直接站在 aurora 場上 */
+.finder{padding:4px 0 0}
+.finder h4.f-lab{display:block;margin:22px 0 12px}
+.finder h4.f-lab:first-child{margin-top:0}
+.pills{display:flex;gap:10px;flex-wrap:wrap}
+/* 學科 pills 雙階（port 自 design-system.html S-05）：
+   rest＝結構階 --sc-*（細環＋色點）；.on＝-hi 全彩＋柔光（B 的 glow 配方）。
+   無學科色的科目走中性 pill——identity 由文字承載，不硬湊第六色相。 */
+.finder .pill{display:inline-flex;align-items:center;gap:8px;height:var(--btn-h-sm);
+  padding:0 13px;border-radius:999px;user-select:none;cursor:pointer;background:none;border:0;
+  font-family:var(--font-ui);font-size:var(--w-meta);font-weight:500;
+  color:var(--c,var(--ink-dim));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c,var(--ink-dim)) 40%,transparent);
+  transition:box-shadow 150ms var(--ease),background 150ms var(--ease),color 150ms var(--ease)}
+.finder .pill::before{content:"";width:6px;height:6px;border-radius:50%;flex:none;
+  background:var(--c,var(--ink-dim))}
+.finder .pill:hover{background:color-mix(in srgb,var(--c,var(--ink-dim)) 8%,transparent)}
+.finder .pill.on{color:var(--ch,var(--ink));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ch,var(--ink)) 55%,transparent),
+    0 0 30px -6px color-mix(in srgb,var(--ch,var(--ink)) 42%,transparent);
+  background:color-mix(in srgb,var(--ch,var(--ink)) 9%,transparent)}
+.finder .pill.on::before{background:var(--ch,var(--ink))}
+.finder .pill.chap{height:var(--btn-h-xs);padding:0 11px;font-size:var(--w-tag)}
+/* verdict 結果：去框化「列」——左 2px 狀態脊線＋狀態 glyph＋文字，
+   行線分隔；狀態色 reserved-for-state（tokens.css --status-*），
+   glyph＋標籤全程都在，不靠顏色單獨表意。 */
+.verdicts{margin-top:26px;display:flex;flex-direction:column}
+.verdict{position:relative;display:flex;gap:14px;align-items:flex-start;
+  padding:14px 4px 14px 18px;border-bottom:1px solid var(--line);
+  transition:background 150ms var(--ease),opacity var(--dur) var(--ease)}
+.verdict:first-child{border-top:1px solid var(--line)}
+.verdict::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:2px;
+  border-radius:1px;background:var(--vs,var(--ink-faint))}
+.verdict:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
+.verdict.s-ok{--vs:var(--status-good)}
+.verdict.s-doc{--vs:var(--status-warn)}
+.verdict.s-no{--vs:var(--status-bad)}
+.verdict .vglyph{flex:none;width:20px;text-align:center;padding-top:2px;
+  font-size:var(--w-meta);font-weight:600;color:var(--vs,var(--ink-faint))}
+.verdict .vbody{flex:1;min-width:0}
+.verdict .vh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.verdict b{font-weight:600;font-size:var(--w-body);color:var(--ink)}
+.verdict .vtag{font-size:var(--w-tag);letter-spacing:.06em;white-space:nowrap;
+  color:var(--vs,var(--ink-dim));font-variant-numeric:tabular-nums}
+.verdict .req{font-size:var(--w-meta);color:var(--ink-dim);margin-top:6px;line-height:1.65}
+.verdict .req em{font-style:normal;color:var(--ink)}
+.verdict .req s{color:var(--accent);text-decoration:none;
+  border-bottom:1px dotted color-mix(in srgb,var(--warm) 60%,transparent)}
+.verdict.dim{opacity:.55}
+.finder .disclaimer{margin-top:24px;font-size:var(--w-tag);color:var(--ink-faint);
+  border-top:1px solid var(--line);padding-top:14px}
+/* 窄幅（手機／iPad 直向半分割）：讀數縮一級、verdict 標籤換行不擠 */
+@media(max-width:680px){
+  .stat .cnt{font-size:var(--w-title)}
+  .verdict{padding-left:14px}
+  .verdict .vh{flex-direction:column;gap:2px}
+}
+
+/* ============ 讀書模式：進度追蹤器 ============ */
+#study{padding-top:40px}
+.tk-top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;padding:18px 24px;margin-bottom:18px}
+.tk-stat{display:flex;flex-direction:column;gap:2px;font-size:.72rem;color:var(--ink-dim)}
+.tk-stat i{font-style:normal;letter-spacing:.1em}
+.tk-stat b{font-family:var(--mono);font-size:1.25rem;font-weight:500;color:var(--ink)}
+.tk-stat.hi b{color:var(--dawn);font-size:1.55rem}
+.tk-top.behind .tk-stat.hi b{color:var(--ember)}
+.tk-date{gap:4px}
+.tk-date input{background:rgba(255,255,255,.07);border:1px solid var(--glass-line);color:var(--ink);
+  border-radius:9px;padding:5px 9px;font-family:var(--mono);font-size:.82rem;color-scheme:dark}
+.tk-done-all{margin-left:auto;color:var(--dawn);font-family:var(--serif);letter-spacing:.12em}
+.panel{padding:22px 24px;margin-bottom:18px}
+.panel h3{font-family:var(--serif);font-weight:600;font-size:1rem;color:var(--dawn);margin-bottom:14px;letter-spacing:.08em}
+.tk-sub{font-family:var(--sans);font-weight:400;font-size:.72rem;color:var(--ink-dim);letter-spacing:.06em;margin-left:10px}
+.tk-wrow{display:grid;grid-template-columns:6.5em 1fr minmax(120px,1.1fr) 3.6em;gap:14px;align-items:center;
+  font-size:.82rem;padding:8px 0;border-top:1px solid var(--glass-line)}
+.tk-wrow:first-child{border-top:0}
+.tk-wrow .nm{color:var(--ink)}
+.tk-wrow .q{font-size:.76rem;color:var(--ink-dim)}
+.tk-wrow .q b{color:var(--dawn);font-family:var(--mono)}
+.tk-wrow.behind .q b{color:var(--ember)}
+.tk-wrow .wd{font-family:var(--mono);font-size:.74rem;color:var(--ink-dim);text-align:right}
+.tk-bar{height:9px;border-radius:6px;background:rgba(255,255,255,.06);overflow:hidden;display:block}
+.tk-bar i{display:block;height:100%;width:100%;border-radius:6px;transform-origin:left;
+  background:linear-gradient(90deg,rgba(255,255,255,.7),rgba(255,255,255,.9));
+  transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.tk-wrow.behind .tk-bar i{background:linear-gradient(90deg,color-mix(in srgb,var(--warm) 55%,transparent),color-mix(in srgb,var(--warm) 90%,transparent))}
+.tk-grp{margin-bottom:26px}
+.tk-gh{font-family:var(--serif);font-weight:600;font-size:1.05rem;color:var(--dawn);
+  letter-spacing:.1em;margin:0 0 12px;padding-bottom:6px;border-bottom:1px solid var(--glass-line)}
+.tk-courses{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px;align-items:start}
+.tk-card{padding:0;overflow:hidden}
+.tk-chead{display:flex;flex-direction:column;gap:11px;padding:16px 18px;cursor:pointer;user-select:none}
+.tk-cn{display:flex;align-items:baseline;gap:10px}
+.tk-cn b{font-weight:500;font-size:.9rem;color:var(--ink)}
+.tk-cn .ok{font-size:.72rem;color:var(--dawn);white-space:nowrap}
+.tk-cmeta{display:flex;align-items:center;gap:11px}
+.tk-cmeta .tk-bar{flex:1}
+.tk-cmeta .val{font-family:var(--mono);font-size:.72rem;color:var(--ink-dim);white-space:nowrap}
+.tk-x{font-size:.7rem;color:var(--ink-dim);padding:2px 7px;border-radius:7px;border:1px solid transparent;background:none;cursor:pointer;font-family:var(--sans)}
+.tk-x:hover{color:var(--ember);border-color:color-mix(in srgb,var(--warm) 40%,transparent)}
+.tk-caret{color:var(--ink-dim);transition:transform .3s ease;font-size:.8rem}
+.tk-card.open .tk-caret{transform:rotate(90deg)}
+.tk-sessions{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s cubic-bezier(.2,.7,.2,1)}
+.tk-card.open .tk-sessions{grid-template-rows:1fr}
+.tk-sinner{overflow:hidden;min-height:0}
+.tk-spad{padding:0 18px 14px}
+.tk-sess{display:flex;align-items:flex-start;gap:9px;padding:6px 0;font-size:.8rem;
+  border-top:1px solid rgba(255,255,255,.05);cursor:pointer}
+.tk-sess input{margin-top:2px;accent-color:var(--ember);width:15px;height:15px;flex:none;cursor:pointer}
+.tk-sess .sn{font-family:var(--mono);font-size:.72rem;color:var(--ink-dim);flex:none;min-width:1.7em}
+.tk-sess .st{color:var(--ink);line-height:1.45}
+.tk-sess.done .st,.tk-sess.done .sn{color:var(--ink-dim);text-decoration:line-through}
+.tk-add .tk-form{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}
+.tk-add select,.tk-add input,.tk-add textarea{background:rgba(255,255,255,.07);border:1px solid var(--glass-line);
+  color:var(--ink);border-radius:10px;padding:8px 11px;font-family:var(--sans);font-size:.82rem}
+.tk-add select option{background:var(--night)}
+.tk-add input#tkName{flex:1;min-width:180px}
+.tk-file{display:flex;flex-direction:column;gap:4px;font-size:.72rem;color:var(--ink-dim);flex:2;min-width:230px}
+.tk-add textarea{width:100%;resize:vertical;font-family:var(--mono);font-size:.76rem}
+.tk-add input#tkCount{width:10em}
+.tk-hint{font-size:.74rem;color:var(--ink-dim);margin-top:10px}
+.empty{font-size:.82rem;color:var(--ink-dim)}
+
+/* ============ 材質背景（退役）============
+   graph／terrazzo／blueprint／onyx 四款程序化主題已依 ADR-0002 於 T03 刪除；
+   存活地面（aurora／vellum／chalk）的定義在檔頭 GROUND 段。 */
+
+
+/* ---- 亮地 vellum（body.lt）：同一套 token 名，重繫值（design-system g-vellum 配方）
+        元件一行不改；下方殘留的 body.lt 內容區覆寫留給 T04/T05 收斂 ---- */
+body.lt{
+  --bg:#F2EDE2; --bg-raise:#EAE2D0;
+  --ink:#26221B; --ink-dim:#575142; --ink-faint:#6E6754;
+  --accent:#A04E14; --warm:#8F4212;
+  --line:rgba(38,34,27,.15); --line-strong:rgba(38,34,27,.34);
+  --glass:rgba(255,255,255,.5); --glass-line:rgba(38,34,27,.12);
+  --glass-fallback:rgba(244,239,229,.96);
+  --sc-elec:#8A5F2C; --sc-math:#2F6B66; --sc-math-hi:#0F7B72;
+  --sc-la:#3D5E80; --sc-ctrl:#5A4F8A; --sc-toeic:#3F7050;
+  /* 狀態色亮地重繫（T04）：vs #F2EDE2 實測 good 4.6:1 · warn 5.4:1 · bad 4.8:1 */
+  --status-good:#117A43; --status-warn:#7A5C00; --status-bad:#C23028;
+  /* legacy（內容區） */
+  --dawn:#8A5A18; --night:var(--bg);
+}
+/* 亮地熱度表：ember 往紙面壓的 ramp 上限收到 60%（--h 由 JS 給 0..1），
+   全格維持 --ink 文字 ≥4.5:1（60% 實測 4.98:1）；暗地走 JS 內建 16–82% ramp */
+body.lt .heatt td.hc:not(.h0){
+  /* !important 必要：格子的暗地 ramp 寫在 inline style（JS 逐格算 %），
+     亮地要蓋過 inline 只能靠 stylesheet !important */
+  background:color-mix(in srgb,var(--warm) calc(10% + var(--h,0)*50%),var(--bg))!important}
+/* 亮地的活性階 -hi：暗地那組全彩在紙面上會亮到讀不動，逐色壓深
+   （T05；math-hi 沿用上方 vellum 配方 #0F7B72，其餘四科在此補齊） */
+body.lt{--sc-elec-hi:#8F5410; --sc-la-hi:#2E5E96; --sc-ctrl-hi:#5D46B4; --sc-toeic-hi:#1F7A4A}
+body.lt .glass{box-shadow:0 10px 30px rgba(30,35,45,.1)}
+body.lt .lq{color:var(--ink)}
+body.lt .tk-bar{background:rgba(23,27,33,.12)}
+body.lt .modal-back{background:rgba(240,238,232,.72)}
+/* 亮底需要更強的對比，否則整片糊成一團白 */
+body.lt .glass{background:rgba(255,255,255,.74);border-color:rgba(23,27,33,.12)}
+/* （T05）工作台的亮地覆寫已全數移除：新版列／脊條／pill／seg 全走
+   --ink／--line／--sc-* token，body.lt 重繫值後自動成立，不再各自為政。 */
+
+/* ---- 亮地 kraft（T15，body.lt[data-theme="kraft"]＞body.lt，必須排在
+        vellum 重繫之後）：牛皮紙比描圖紙深一級（#D3B584 vs #F2EDE2），
+        vellum 那組值在這裡不夠黑，全套再壓一步。
+        對比實測 vs #D3B584（contrast.py）：ink 8.7 · dim 5.4 · faint 4.9 ·
+        accent 4.5 · sc 全五科 4.6–5.0 · -hi 4.5–4.8 · status 4.7–4.9
+        ——可讀階全過 4.5:1；--warm 5.2（亮地上 warm 更深＝更高對比，同 vellum）。 */
+body.lt[data-theme="kraft"]{
+  --bg:#D3B584; --bg-raise:#C7A671;
+  --ink:#241B0E; --ink-dim:#4C3D24; --ink-faint:#554320;
+  --accent:#7A3708; --warm:#6B300A;
+  --line:rgba(36,27,14,.18); --line-strong:rgba(36,27,14,.4);
+  --glass:rgba(255,255,255,.42); --glass-line:rgba(36,27,14,.13);
+  --glass-fallback:rgba(226,199,153,.96);
+  --sc-elec:#5F4010; --sc-math:#14524C; --sc-la:#2E4A66; --sc-ctrl:#463C74; --sc-toeic:#275030;
+  --sc-elec-hi:#6E3E06; --sc-math-hi:#094A44; --sc-la-hi:#24486F; --sc-ctrl-hi:#4A38A0; --sc-toeic-hi:#114D2C;
+  --status-good:#0A5029; --status-warn:#5A4400; --status-bad:#8E1710;
+  --dawn:#5F4010; --night:var(--bg);
+}
+body.lt[data-theme="kraft"] .modal-back{background:rgba(211,181,132,.72)}
+
+/* ============ 學科色系：讓顏色承載資訊，不是裝飾 ============
+   五科色的唯一來源是 tokens.css 的 --sc-* 雙階（結構／-hi 活性）；
+   舊 --s-* 全彩別名已於 T05 移除（值即當年的 -hi 階，改由 token 供應）。 */
+/* T05：學科色經 token 系統重新映射（ADR-0002 雙階）。
+   --c ＝結構階（rest：脊線、眉標、脊條）；--ch ＝活性階 -hi（全頁最多一個）；
+   --sc 沿用為內容區泛用學科色（右欄染色溫、chip 代號），指向結構階；
+   --sc-soft 由結構階 color-mix 得出。亮地 vellum 在 body.lt 重繫 --sc-*，自動跟走。 */
+[data-subj=elec] {--c:var(--sc-elec); --ch:var(--sc-elec-hi); --sc:var(--sc-elec); --sc-soft:color-mix(in srgb,var(--sc-elec) 14%,transparent)}
+[data-subj=math] {--c:var(--sc-math); --ch:var(--sc-math-hi); --sc:var(--sc-math); --sc-soft:color-mix(in srgb,var(--sc-math) 14%,transparent)}
+[data-subj=la]   {--c:var(--sc-la);   --ch:var(--sc-la-hi);   --sc:var(--sc-la);   --sc-soft:color-mix(in srgb,var(--sc-la) 14%,transparent)}
+[data-subj=ctrl] {--c:var(--sc-ctrl); --ch:var(--sc-ctrl-hi); --sc:var(--sc-ctrl); --sc-soft:color-mix(in srgb,var(--sc-ctrl) 14%,transparent)}
+[data-subj=toeic]{--c:var(--sc-toeic);--ch:var(--sc-toeic-hi);--sc:var(--sc-toeic);--sc-soft:color-mix(in srgb,var(--sc-toeic) 14%,transparent)}
+:root{--sc:var(--accent); --sc-soft:color-mix(in srgb,var(--accent) 13%,transparent)}
+
+/* ============ 分段控制（T05：port 自 design-system.html S-05） ============
+   舊液態玻璃按鈕系統（裸 .ui-ghost/.ui-solid 凝膠膠囊）已退役——
+   工具列上的按鈕全數改掛 .btn ui-*（外殼語彙，下方 T03 區塊）。
+   這裡只剩 ui-seg：矩形 r-sm、inset 髮絲環、mono 讀數字、選中＝墨 10% 填色。
+   token 色全走 --ink／--line 系，亮地 vellum 自動跟走，不需 body.lt 覆寫。 */
+.ui-seg{display:inline-flex;align-items:stretch;height:var(--btn-h-sm);border-radius:var(--r-sm);
+  box-shadow:inset 0 0 0 1px var(--line-strong);overflow:hidden}
+.ui-seg>button{position:relative;border:0;background:none;cursor:pointer;padding:0 12px;
+  font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.06em;
+  color:var(--ink-faint);display:inline-flex;align-items:center;white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+  transition:background-color 150ms var(--ease),color 150ms var(--ease)}
+.ui-seg>button + button{border-left:1px solid var(--line)}
+/* 命中區：只往垂直外擴到 44px——左右不擴，避免吃到隔壁分段 */
+.ui-seg>button::after{content:"";position:absolute;left:0;top:50%;
+  transform:translateY(-50%);width:100%;height:max(100%,44px)}
+.ui-seg>button:hover{color:var(--ink-dim);background:color-mix(in srgb,var(--ink) 5%,transparent)}
+.ui-seg>button.on{background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink);font-weight:600}
+.ui-seg>button:focus-visible{outline-offset:-2px}
+
+/* ============ 外殼按鈕（T03，port 自 design-system.html S-05） ============
+   .btn ＝新語彙開關：A 的墨實心＋B 的湖面回應，圓角 --r-sm、三高 token。
+   只掛在外殼（home 入口、頂欄、設定面板）；內容區裸 .ui-* 的舊皮
+   維持原樣，T04/T05 換皮時再收斂。.btn.ui-* 特異度壓過裸 .ui-*。 */
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  height:var(--bh,var(--btn-h));padding:0 18px;border:0;border-radius:var(--r-sm);
+  font-family:var(--font-ui);font-size:var(--w-meta);font-weight:600;line-height:1;letter-spacing:.02em;
+  cursor:pointer;white-space:nowrap;background:none;color:var(--ink);
+  transition:transform 150ms var(--ease),box-shadow 150ms var(--ease),
+             background-color 150ms var(--ease),color 150ms var(--ease)}
+.btn:active{transform:translateY(1px)}
+.btn.ui-solid::before,.btn.ui-ghost::before{display:none}   /* 舊凝膠層不進新語彙 */
+.btn.ui-solid{background:var(--ink);color:var(--bg);border:0;box-shadow:none}
+.btn.ui-solid:hover,.btn.ui-solid:focus-visible{background:var(--ink);color:var(--bg);
+  transform:translateY(-1px);
+  box-shadow:0 6px 24px -10px color-mix(in srgb,var(--ink) 45%,transparent)}
+.btn.ui-solid:active{transform:translateY(1px);box-shadow:none}
+.btn.ui-ghost{background:none;color:var(--ink);border:0;
+  box-shadow:inset 0 0 0 1px var(--line-strong)}
+.btn.ui-ghost:hover,.btn.ui-ghost:focus-visible{color:var(--ink);transform:translateY(-1px);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 40%,transparent);
+  background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.btn.ui-ghost:active{transform:translateY(1px)}
+@media(prefers-reduced-motion:reduce){
+  .btn:hover,.btn:active{transform:none}
+}
+
+/* ============ 讀書模式：工作台（T05 去框重設計） ============
+   每天盯最久的畫面，安靜化規範最嚴：內容直接站在 aurora 場上（quiet 檔），
+   無玻璃、無面板；結構＝眉標＋髮絲線＋縮排＋mono 讀數＋z 深度。
+   玻璃只留給真浮層：搜尋結果、wm-more 選單、modal、今日複習條（T07）。
+   動效只留功能回饋：進場 stagger（tokens 38ms）、num-bump、hover——零常駐動畫。 */
+.wm{margin-top:24px}
+
+/* ---- T07 今日複習條（取代 T05 佔位；design-system S-05 review-float 移植） ----
+   工作台唯一合法浮動玻璃 overlay（ADR-0002 去框化法明文豁免）。
+   兩態：有到期卡＝.glass.rv-float 真浮層（sticky 貼視窗頂，捲清單時不離場）；
+   空態＝安靜一行（眉標＋「今日無到期卡」＋分布讀數），不上玻璃——
+   玻璃只給真的浮出來的東西。 */
+.wm-slot{display:block;min-height:34px;margin-bottom:2px;padding:7px 0 9px;
+  border-bottom:1px solid var(--line)}
+.wm-slot.rv-float{position:sticky;top:12px;z-index:6;border-bottom:0;
+  margin-bottom:14px;padding:12px 18px;
+  box-shadow:var(--glass-inner),0 18px 48px rgba(0,0,0,.5)}
+.rv-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.rv-empty{font-size:var(--w-meta);color:var(--ink-faint)}
+.rv-dist{margin-left:auto;font-size:var(--w-meta);color:var(--ink-dim);
+  font-variant-numeric:tabular-nums}
+.rv-head .rv-addbtn{--bh:var(--btn-h-xs);padding:0 10px;color:var(--ink-dim)}
+.rv-rows{display:flex;flex-direction:column}
+.rv-float .rv-rows{margin-top:6px}
+.rv-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:7px 0}
+.rv-row+.rv-row{border-top:1px solid var(--line)}
+.rv-code{font-size:var(--w-meta);font-weight:600;color:var(--ink)}
+.rv-src{font-size:var(--w-meta);color:var(--ink-dim)}
+.rv-late{font-size:var(--w-tag);letter-spacing:var(--ls-tag);color:var(--status-warn)}
+.rv-btns{display:flex;gap:8px;margin-left:auto}
+.rv-btns .btn{--bh:var(--btn-h-sm);padding:0 12px}
+/* 失敗碼上狀態 token（嚴重度 A>B>C；字母本身就是 glyph＋文字，非 color-alone） */
+.rv-btns .rv-A{color:var(--status-bad)}
+.rv-btns .rv-B{color:var(--status-warn)}
+.rv-btns .rv-C{color:var(--status-good)}
+/* 新卡表單：極簡一列，鍵盤可完成（Tab 走欄、Enter 送出、Esc 關） */
+.rv-form{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin-top:9px;padding-top:10px;border-top:1px solid var(--line)}
+.rv-form[hidden]{display:none}
+.rv-in{height:var(--btn-h-sm);padding:0 10px;border-radius:var(--r-sm);
+  border:1px solid var(--line-strong);background:none;color:var(--ink);
+  font-size:var(--w-meta)}
+select.rv-in{background:var(--bg-raise)}
+select.rv-in option{background:var(--bg-raise);color:var(--ink)}
+.rv-in::placeholder{color:var(--ink-faint)}
+.rv-form .btn{--bh:var(--btn-h-sm);padding:0 14px}
+
+/* ---- T07b 匯入 overlay（紙本 → 數位）：modal 玻璃豁免，同 rpModal 語彙；
+   內部去框化＝眉標＋行線列，textarea 是唯一有框的輸入（多行貼上區需要邊界） ---- */
+.rvi-panel{max-width:min(680px,94vw)}
+.rvi-ta{width:100%;min-height:9.5em;resize:vertical;padding:10px 12px;
+  border-radius:var(--r-sm);border:1px solid var(--line-strong);
+  background:none;color:var(--ink);font-size:var(--w-meta);line-height:1.8}
+.rvi-ta::placeholder{color:var(--ink-faint)}
+.rvi-over{display:inline-flex;align-items:center;gap:8px;margin:10px 0 2px;
+  font-size:var(--w-meta);color:var(--ink-dim);cursor:pointer}
+.rvi-over input{accent-color:var(--accent);width:16px;height:16px}
+.rvi-sum{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+  margin:14px 0 6px;padding-top:12px;border-top:1px solid var(--line)}
+.rvi-sum i{font-style:normal;letter-spacing:0;text-transform:none;color:var(--ink-faint)}
+.rvi-sum .rvi-errn{color:var(--status-warn)}
+.rvi-prev{max-height:34vh;overflow:auto}
+.rvi-row{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+  padding:6px 0;font-size:var(--w-meta)}
+.rvi-row+.rvi-row{border-top:1px solid var(--line)}
+.rvi-id{font-weight:600;color:var(--ink)}
+.rvi-meta{color:var(--ink-dim)}
+.rvi-tag{font-size:var(--w-tag);letter-spacing:var(--ls-tag);color:var(--ink-faint)}
+.rvi-due{margin-left:auto;color:var(--ink-dim);font-variant-numeric:tabular-nums}
+.rvi-err{color:var(--status-warn)}
+.rvi-act{display:flex;gap:10px;margin-top:16px;padding-top:14px;
+  border-top:1px solid var(--line)}
+.rvi-act .btn{--bh:var(--btn-h-sm);padding:0 18px}
+
+/* ---- 工具列：單一髮絲底線；倒數／進度／週次全是 mono 讀數 ---- */
+.wm-bar{display:flex;align-items:center;gap:12px 22px;flex-wrap:wrap;
+  padding:14px 0;margin-bottom:18px;
+  border-bottom:1px solid var(--line)}
+/* T14（ADR-0008）：倒數讀數（原 .wm-cd）與總進度（原 .wm-prog）搬進脊柱的
+   今夜段（.dwrap／.burnout）；W1–W4 週次 seg（含 .now「·今」標記）退役——
+   脊柱本身就是時間導航。工具列瘦成一條髮絲列。 */
+/* 數字變動時輕輕跳一下：勾完一章、時數往上走，要看得出來有變。
+   只在真的變動時由 JS 掛上 class，不是每次重繪都跑（有觸發，非常駐）。 */
+@keyframes numBump{
+  0%{transform:translateY(0);opacity:1}
+  40%{transform:translateY(-4px);opacity:.55}
+  100%{transform:translateY(0);opacity:1}
+}
+.num-bump{display:inline-block;animation:numBump var(--dur) var(--ease)}
+.wm-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-left:auto}
+/* 收納鈕警示：status token＋「!」glyph（文字在按鈕本文，不 color-alone） */
+.btn.wm-more-btn[data-st=warn]{color:var(--status-warn);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--status-warn) 50%,transparent)}
+.wm-more-btn .wm-warn{color:var(--status-warn);font-weight:600}
+/* ============ T16 課程書牆（影片庫 bold redesign，2026-09-01 值夜） ============
+   使用者裁決：「為什麼我的影片庫沒有大膽的設計」——T05 決策 E 的
+   母版-明細豁免撤銷。重鑄為書牆：一系列＝一支直立書脊（零四邊框：
+   科目色場自書底出血向上、書脊間一條髮絲豎線、腳下共站一條書架板）；
+   脊上左緣兩條讀數線＝離線量（結構色）＋已看燒線（ember，與衝刺脊柱
+   燃線同宗）；點書脊＝集數在下方全寬書架以 T15 chip 捲道攤開，
+   書脊序號以站號水印尺度沉在書架後。工具列／搜尋照舊。
+   容器出血到視窗兩緣並就地 clip（#wmSpine 同款幾何，390 硬檢不溢出）。 */
+.wm-body{position:relative;
+  width:100vw;margin-left:calc((100% - 100vw)/2);
+  padding-inline:calc((100vw - 100%)/2);
+  overflow-x:clip}
+.wm-list,.wm-detail{min-width:0}
+/* 書架列：書脊立在一條貫穿全寬的書架板上（簽名出血線，.wm-body clip 收邊）；
+   hover／選中的那本會被「抽出來」（transform 抬升＝z 深度，不是框） */
+.wm-list{position:relative;display:flex;align-items:stretch;flex-wrap:wrap;gap:26px 0;
+  padding:14px 0 0}
+.wm-list::after{content:"";position:absolute;left:calc(50% - 50vw);right:calc(50% - 50vw);
+  bottom:0;height:1px;background:var(--line-strong)}
+/* 書架下方（去框）：科目色溫＝頂端一片出血結構色場（色是地形，不是箱子）。
+   內容直接站在地上，section 分隔＝眉標＋髮絲線。 */
+.wm-detail{padding:26px 0 12px;position:relative;min-height:240px}
+.wm-detail::before{content:'';position:absolute;top:0;left:calc(50% - 50vw);right:calc(50% - 50vw);
+  height:220px;pointer-events:none;
+  background:radial-gradient(120% 100% at 10% 0%,color-mix(in srgb,var(--sc) 7%,transparent),transparent 70%)}
+.wm-detail>*{position:relative}
+.wm-dsub b{color:var(--ink);font-weight:600}
+.wm-blk h4 em{color:var(--sc)}
+.sp-ep b{color:var(--sc)}
+button.sp-ep .pl{color:var(--sc)}
+/* T16：科目區段標題 .wm-sec 退役——書牆上科目由每支書脊的眉標＋色場自述 */
+/* T14：欄位標頭（.wm-cols）與弱點捷徑（.wm-weak）退役——
+   欄標由脊柱列的 tooltip＋mono 讀數自述；弱點升格為今夜站 03（.mrow）。 */
+/* 右側詳情整塊換掉時（切課程、切週次）淡入；步距＝tokens --stagger。
+   沒有這層過渡就是「畫面突然變成另一份內容」。 */
+@keyframes paneIn{from{opacity:0;transform:translateY(8px)}}
+.wm-detail>.wm-dh,.wm-detail>.wm-dsub,.wm-detail>.wm-blk{
+  animation:paneIn var(--dur) var(--ease) backwards}
+.wm-detail>.wm-dsub{animation-delay:var(--stagger)}
+.wm-detail>.wm-blk{animation-delay:calc(var(--stagger)*2)}
+.wm-detail>.wm-blk~.wm-blk{animation-delay:calc(var(--stagger)*3)}
+/* ── 進場 stagger：tokens 38ms 步距，--i 由樣板供應、cap 8（動效法：
+   一批超過 8 項就整批進）。reduced-motion 由 tokens 全滅，backwards
+   填充在無動畫時即為完成態。 ── */
+@keyframes rowIn{from{opacity:0;transform:translateY(6px)}}
+.wm-list .lib-spine,.wm-detail .sp-ep{
+  animation:rowIn var(--dur) var(--ease) backwards;
+  animation-delay:calc(var(--i,0)*var(--stagger))}
+
+/* ── 章節列（design-system ch-row port）：髮絲行線＋左脊線＋列底考點脊條。
+   選中＝-hi 色場向左出血到視窗邊，光只落在脊線——沒有框，是光。 ── */
+.wm-row{position:relative;display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto auto;
+  gap:2px 14px;align-items:center;width:100%;
+  padding:12px 8px 13px 20px;cursor:pointer;
+  background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;
+  text-align:left;font-family:var(--font-ui);font-size:var(--w-body);color:var(--ink);
+  transition:background-color 150ms var(--ease)}
+.wm-row::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:2px;
+  border-radius:1px;background:color-mix(in srgb,var(--c,var(--ink-dim)) 68%,transparent)}
+.wm-row:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
+.wm-row:focus-visible{outline-offset:-2px}
+/* 完成勾（安靜版）：hairline 方框，勾＝墨階 ✓，不搶學科色 */
+.wm-row input[data-sp]{grid-column:1;grid-row:1/span 2;appearance:none;-webkit-appearance:none;
+  position:relative;width:18px;height:18px;margin:0;cursor:pointer;border-radius:5px;
+  box-shadow:inset 0 0 0 1px var(--line-strong);background:none;
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:box-shadow 150ms var(--ease)}
+.wm-row input[data-sp]::before{content:"";position:absolute;left:50%;top:50%;
+  width:36px;height:44px;transform:translate(-50%,-50%)}   /* 命中區 ≥44 */
+.wm-row input[data-sp]:hover{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 45%,transparent)}
+.wm-row input[data-sp]:checked::after{content:"✓";font:600 12px/1 var(--font-mono);
+  color:var(--ink-dim)}
+/* 科目眉標：mono 結構色；完成列在此掛安靜 ✓ 字樣 */
+.wm-row .ch-sub{grid-column:2;grid-row:1;font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:var(--ls-tag);color:var(--c,var(--ink-faint));font-variant-numeric:tabular-nums;
+  display:flex;gap:12px;align-items:baseline;min-width:0}
+.wm-row .ch-sub .ok{text-decoration:none;color:var(--ink-faint);letter-spacing:.08em;white-space:nowrap}
+/* 本週摺頁的今夜主章＝路標列：不開 accordion，「↓ 今夜劇場」指往站 02 的天梯 */
+.wm-row .thr-lab{text-decoration:none;color:var(--warm);letter-spacing:.08em;white-space:nowrap}
+.wm-row.thr:hover .thr-lab{text-shadow:0 0 12px color-mix(in srgb,var(--warm) 45%,transparent)}
+.wm-row .nm{grid-column:2;grid-row:2;min-width:0;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;position:relative;padding-bottom:4px;
+  font-size:var(--w-sub);font-weight:600;line-height:1.35}
+/* 影片觀看進度：藏在章節名底下的一條細線，不佔欄位 */
+.wm-row .nm .seen{position:absolute;left:0;bottom:0;height:2px;border-radius:2px;
+  width:calc(var(--w)*100%);max-width:100%;display:block;
+  background:color-mix(in srgb,var(--c,var(--ink-dim)) 55%,transparent)}
+/* 完成列：調暗＋刪除線（勾勾與 ✓ 字樣雙訊號） */
+.wm-row.done{opacity:.68}
+.wm-row.done:hover{opacity:1}
+.wm-row.done .nm{color:var(--ink-dim);text-decoration:line-through;
+  text-decoration-color:color-mix(in srgb,var(--ink-dim) 55%,transparent)}
+/* 時數：右靠 mono 讀數 */
+.wm-row .hrs{grid-column:4;grid-row:1/span 2;font-family:var(--font-mono);
+  font-size:var(--w-meta);color:var(--ink-dim);min-width:2.6em;text-align:right;
+  letter-spacing:.04em;font-variant-numeric:tabular-nums}
+/* 錯題計數：平常淡叉；記過＝正在燒的東西（warm 底＋accent 數字） */
+.miss{position:relative;grid-column:3;grid-row:1/span 2;font-family:var(--font-mono);
+  font-size:var(--w-meta);min-width:2.8em;text-align:center;
+  color:var(--ink-faint);opacity:.8;padding:5px 4px;border-radius:var(--r-sm);cursor:pointer;
+  font-variant-numeric:tabular-nums;
+  transition:background-color 150ms var(--ease),color 150ms var(--ease),opacity 150ms var(--ease)}
+.miss::before{content:"";position:absolute;left:50%;top:50%;
+  width:max(100%,40px);height:44px;transform:translate(-50%,-50%)}
+.miss:hover{opacity:1;background:color-mix(in srgb,var(--warm) 16%,transparent);color:var(--accent)}
+.miss.has{opacity:1;color:var(--accent);background:color-mix(in srgb,var(--warm) 10%,transparent)}
+/* ── 考點覆蓋脊條：列底一條十格細脊（106–115），單一色相＝該科結構色
+   三級濃度（量值，不是裝飾）；尾端「覆蓋 %」讀數走墨階 mono。
+   hover／選中整條提亮（行為同原十年條）。 ── */
+.wm-row .yr{grid-column:1/-1;grid-row:3;display:flex;align-items:center;gap:3px;
+  margin-top:7px;min-height:10px}
+.wm-row .yr i{flex:1;height:3px;border-radius:2px;display:block;
+  background:color-mix(in srgb,var(--ink) 8%,transparent);
+  transition:background-color 150ms var(--ease)}
+.wm-row .yr i.h1{background:color-mix(in srgb,var(--c) 26%,transparent)}
+.wm-row .yr i.h2{background:color-mix(in srgb,var(--c) 48%,transparent)}
+.wm-row .yr i.h3{background:color-mix(in srgb,var(--c) 78%,transparent)}
+.wm-row .yr em{font-style:normal;font-family:var(--font-mono);font-size:var(--w-tag);
+  color:var(--ink-faint);font-variant-numeric:tabular-nums;flex:none;min-width:3em;
+  text-align:right;margin-left:8px}
+.wm-row:hover .yr i.h1,.wm-row.on .yr i.h1{background:color-mix(in srgb,var(--c) 40%,transparent)}
+.wm-row:hover .yr i.h2,.wm-row.on .yr i.h2{background:color-mix(in srgb,var(--c) 66%,transparent)}
+.wm-row:hover .yr i.h3,.wm-row.on .yr i.h3{background:var(--c)}
+.wm-row:hover .yr em,.wm-row.on .yr em{color:var(--ink-dim)}
+/* ── 選中＝-hi（全頁同時最多一個）：色場向左出血到視窗邊緣，
+   柔光只在脊線上（tokens glow 配方 42% 上限）。 ── */
+.wm-row.on{--c:var(--ch,var(--accent))}
+.wm-row.on::after{content:"";position:absolute;z-index:-1;top:0;bottom:0;
+  left:calc(50% - 50vw);right:-8px;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--c) 8%,transparent) 58%,transparent)}
+.wm-row.on::before{background:var(--c);
+  box-shadow:0 0 30px -6px color-mix(in srgb,var(--c) 42%,transparent)}
+.wm-row.on .ch-sub{color:var(--c)}
+.wm-row.on .nm{font-weight:700}
+/* ── T16 書脊：直書系列名＋科目眉標＋左緣雙讀數線。四邊框＝零：
+   科目色場從書底出血向上、書脊之間一條髮絲豎線（非框）、
+   腳下共站 .wm-list::after 那條書架板。 ── */
+.lib-spine{position:relative;display:flex;flex-direction:column;align-items:stretch;
+  width:clamp(78px,8.4vw,106px);height:clamp(232px,34vh,304px);
+  padding:16px 10px 12px 22px;
+  background:linear-gradient(180deg,transparent 18%,color-mix(in srgb,var(--sc) 9%,transparent));
+  border:0;border-radius:0;cursor:pointer;text-align:left;
+  font-family:var(--font-ui);color:var(--ink);
+  transition:transform var(--dur) var(--ease),background-color 150ms var(--ease)}
+.lib-spine+.lib-spine::before{content:"";position:absolute;left:0;top:12%;bottom:0;width:1px;
+  background:var(--line);pointer-events:none}
+.lib-spine:hover{transform:translateY(-4px);
+  background:linear-gradient(180deg,transparent 12%,color-mix(in srgb,var(--sc) 12%,transparent))}
+.lib-spine:active{transform:translateY(-2px)}
+.lib-spine:focus-visible{outline-offset:-2px}
+/* 選中＝抽出的那本書：再抬一階（z 深度）、色場升一級、名字上 -hi 色、量尺掛柔光 */
+.lib-spine.on{transform:translateY(-9px);
+  background:linear-gradient(180deg,transparent 4%,color-mix(in srgb,var(--sc) 15%,transparent))}
+.lib-spine.on .nm2{color:var(--ch,var(--accent))}
+.lib-spine.on .g-off{background:var(--ch,var(--sc));
+  box-shadow:0 0 20px -4px color-mix(in srgb,var(--ch,var(--sc)) 42%,transparent)}
+/* 科目眉標（脊頂橫排；短籤與衝刺列同一套 SUBJ_TAG） */
+.lib-spine .sub{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);
+  color:var(--sc);text-transform:uppercase;font-variant-numeric:tabular-nums;white-space:nowrap}
+/* 系列名：直書——書脊的字本來就直著讀（數字順書向躺排，text-orientation:mixed） */
+.lib-spine .nm2{flex:1;min-height:0;margin-top:10px;
+  writing-mode:vertical-rl;text-orientation:mixed;
+  font-size:var(--w-sub);font-weight:600;line-height:1.2;letter-spacing:.14em;
+  overflow:hidden;transition:color 150ms var(--ease)}
+/* 左緣雙讀數線：全高髮絲軌＋離線量（結構色）＋已看燒線（--warm＝正在燒的東西，
+   與衝刺脊柱燃線同宗——量值，不是裝飾） */
+.lib-spine .gauge{position:absolute;left:9px;top:16px;bottom:12px;width:8px;pointer-events:none}
+.lib-spine .gauge::before{content:"";position:absolute;left:0;top:0;bottom:0;width:1px;
+  background:var(--line)}
+.lib-spine .g-off{position:absolute;left:0;bottom:0;width:2px;border-radius:1px;
+  height:calc(var(--off,0)*100%);
+  background:color-mix(in srgb,var(--sc) 72%,transparent)}
+.lib-spine .g-burn{position:absolute;left:5px;bottom:0;width:2px;border-radius:1px;
+  height:calc(var(--burn,0)*100%);
+  background:var(--warm);
+  box-shadow:0 0 12px -2px color-mix(in srgb,var(--warm) 55%,transparent)}
+/* 腳註讀數：離線 n/N（status token 沿用；✓/數字＋「離線」文字，不 color-alone） */
+.lib-spine .lib-st{margin-top:10px;font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:.05em;font-variant-numeric:tabular-nums;color:var(--ink-dim);
+  display:flex;flex-direction:column;gap:2px;white-space:nowrap}
+.lib-spine .lib-st u{text-decoration:none;color:var(--ink-faint);letter-spacing:var(--ls-tag)}
+.lib-st.good{color:var(--status-good)}
+.lib-st.part{color:var(--status-warn)}
+.lib-st.none{color:var(--status-bad)}
+/* 書脊序號水印：站號 .seat 的尺度語彙移植到書架（結構色 8%；亮地壓 5%，
+   同 .seat 的存在感對位邏輯） */
+.shelf-seat{position:absolute;right:-6vw;top:-.12em;z-index:0;pointer-events:none;user-select:none;
+  font-family:var(--font-mono);font-weight:600;line-height:1;
+  font-size:clamp(8rem,17vw,21rem);letter-spacing:var(--ls-title);
+  color:color-mix(in srgb,var(--sc) 8%,transparent);font-variant-numeric:tabular-nums}
+body.lt .shelf-seat{color:color-mix(in srgb,var(--sc) 5%,transparent)}
+/* 390：書脊改單列橫捲＋snap（T15 chip 捲道同款手感；捲軸藏起、末脊切邊
+   本身就是「還有更多」的訊號） */
+@media(max-width:680px){
+  .wm-list{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;
+    scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
+    touch-action:pan-x;scrollbar-width:none}   /* 單軸，理由同 .ep-flow.flow-x */
+  .wm-list::-webkit-scrollbar{display:none}
+  .lib-spine{flex:none;scroll-snap-align:start;
+    width:clamp(70px,19vw,88px);height:clamp(196px,30vh,240px);padding:14px 8px 10px 19px}
+  .lib-spine .gauge{left:8px}
+  .shelf-seat{font-size:clamp(6rem,30vw,9rem);right:-3vw}
+}
+/* ── 右欄：編輯式層級（字階五級，主標 --w-title）。
+   標籤＝一行 mono 註記用「·」分隔，不用膠囊。 */
+.wm-dh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:2px}
+.wm-dh .d-sup{flex-basis:100%;font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--sc);
+  margin-bottom:8px;display:block;font-variant-numeric:tabular-nums}
+.wm-dh h3{font-family:var(--font-ui);font-size:var(--w-title);font-weight:700;color:var(--ink);
+  letter-spacing:var(--ls-title);line-height:1.12;margin:0;flex-basis:100%}
+.wm-dh .tag{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);
+  text-transform:uppercase;background:none;padding:0;border-radius:0;
+  color:var(--ink-dim);font-weight:400;font-variant-numeric:tabular-nums}
+.wm-dh .tag+.tag::before{content:"·";margin-right:10px;color:var(--ink-faint)}
+.wm-dsub{font-size:var(--w-body);color:var(--ink-dim);margin:14px 0 24px;line-height:1.75;
+  max-width:62ch}
+/* 區塊分隔＝眉標＋一條髮絲線（去框化法本體），不是面板 */
+.wm-blk{margin-top:26px;padding-top:14px;border-top:1px solid var(--line)}
+.wm-blk h4{font-family:var(--font-mono);font-size:var(--w-tag);color:var(--ink-faint);
+  letter-spacing:var(--ls-tag);text-transform:uppercase;font-weight:500;
+  margin:0 0 12px;display:flex;gap:10px;align-items:baseline;font-variant-numeric:tabular-nums}
+.wm-blk h4 em{font-style:normal;color:var(--sc);letter-spacing:.06em}
+/* 眉標右端的補充（「12 份已標題號」）——同一階、推到最右 */
+.wm-blk h4 .h4-end{margin-left:auto;font-size:var(--w-tag);letter-spacing:.06em;
+  color:var(--ink-faint);text-transform:none}
+.wm-empty{font-size:var(--w-meta);color:var(--ink-dim);padding:36px 0;text-align:center}
+/* 集數 pill 的容器：直接站在地上排流 */
+.ep-flow{display:flex;flex-wrap:wrap;gap:8px}
+.ep-flow[hidden]{display:none}   /* display:flex 會蓋掉 UA 的 [hidden]，必須明寫（chap-list 同例）——「接著看」收起的課序後段靠它 */
+/* ── 集數 chip 捲道（bindFlowX 對 >8 顆的 .ep-flow 掛 .flow-x）──
+   單列橫捲＋snap 靠站；捲軸藏起、兩端 edge-fade 走 mask（ov-shell
+   考卷表同一款捲動訊號，mask 做在本體上、疊在任何色場都不穿幫）；
+   fade-l / fade-r 由 JS 依捲動位置點亮；scroll-padding 讓 snap 與
+   focus 靠站時躲開 fade 遮帶。chip 尺寸不縮（flex:none）＝44px 命中不變。 */
+/* touch-action 只給 pan-x：寫成 `pan-x pan-y` 等於把方向判定交還給瀏覽器的
+   啟發式，手指稍微斜一點就被鎖成垂直＝整頁捲動，橫條完全不動（使用者判例
+   2026-09-03：「明明要左右滑動去閱覽，判定卻是上下滑動」）。宣告單軸之後，
+   起點落在捲道上的手勢一律歸捲道。代價是這條約 40px 高的帶子上垂直滑不動
+   頁面——橫向捲道的標準取捨，帶子很矮，旁邊到處都能垂直滑。 */
+.ep-flow.flow-x{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;
+  scroll-snap-type:x proximity;scroll-padding-inline:40px;
+  -webkit-overflow-scrolling:touch;touch-action:pan-x;
+  scrollbar-width:none;padding-bottom:4px;
+  --fx-l:0px;--fx-r:0px;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 var(--fx-l),#000 calc(100% - var(--fx-r)),transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 var(--fx-l),#000 calc(100% - var(--fx-r)),transparent)}
+.ep-flow.flow-x::-webkit-scrollbar{display:none}
+.ep-flow.flow-x>.sp-ep{flex:none;scroll-snap-align:start}
+.ep-flow.flow-x.fade-l{--fx-l:44px}
+.ep-flow.flow-x.fade-r{--fx-r:44px}
+/* 首用提示：mono 微字，第一次真的滑動就整批退場（EP_HINT_SEEN 在 JS 記帳） */
+.fx-hint{display:block;margin-top:6px;font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:.14em;color:var(--ink-faint);opacity:.7;user-select:none}
+/* 目標校系 modal（T04 決策 G → T05 收尾）：玻璃浮層保留（合法浮層）。
+   內部去框化：checkbox 列按校分組、髮絲線分隔、命中區 ≥44px；
+   底部鈕已在 markup 直接掛 .btn ui-ghost/ui-solid（T04 的 .lq 換皮 shim 移除）。 */
+.tgt-panel{max-width:min(760px,94vw)}
+.tgt-panel h3{font-family:var(--font-ui);font-weight:700;font-size:var(--w-title);
+  letter-spacing:var(--ls-title);line-height:1.15;color:var(--ink);margin:0 0 10px;padding-right:44px}
+.tgt-note{font-size:var(--w-meta);color:var(--ink-dim);line-height:1.7;margin-bottom:18px}
+.tgt-note b{color:var(--ink);font-weight:600}
+.tgt-grp{margin-bottom:20px}
+.tgt-grp h4{font-family:var(--font-mono);font-weight:500;font-size:var(--w-tag);color:var(--ink-faint);
+  letter-spacing:var(--ls-tag);text-transform:uppercase;font-variant-numeric:tabular-nums;
+  margin:0;padding-bottom:6px;border-bottom:1px solid var(--line-strong)}
+.tgt-row{display:flex;align-items:center;gap:12px;min-height:44px;padding:4px 6px;cursor:pointer;
+  font-size:var(--w-body);color:var(--ink);border-bottom:1px solid var(--line);
+  transition:background 150ms var(--ease)}
+.tgt-row:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
+.tgt-row.on{background:color-mix(in srgb,var(--accent) 9%,transparent)}
+.tgt-row input{accent-color:var(--accent);width:17px;height:17px;flex:none;cursor:pointer}
+.tgt-row .t1{flex:1;min-width:0}
+.tgt-row .t2{font-family:var(--font-mono);font-size:var(--w-tag);color:var(--ink-dim);text-align:right;
+  max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tgt-foot{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+/* 考卷年份：預設只顯示最近 5 年，其餘收起來；展開後較早年份退一階 */
+.sp-sch a.old{display:none}
+.sp-sch.all a.old{display:inline-flex;opacity:.5}
+.sp-sch.all a.old:hover{opacity:1}
+.ex-more{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.06em;
+  font-variant-numeric:tabular-nums;
+  color:var(--ink-dim);background:none;border:0;cursor:pointer;
+  min-height:32px;padding:6px 0;margin-top:4px;
+  text-decoration:underline;text-underline-offset:4px;text-decoration-color:var(--line-strong)}
+.ex-more:hover{color:var(--accent)}
+
+/* ============ T14 時間脊柱 × 席次（ADR-0008 S×F 融合） ============
+   脊柱＝地圖（.scratch/redesign/direction2/spine.html port）：左緣全高 2px
+   燃線，已燒段餘燼漸層、今夜段燃點交棒、未燃段素引線；週摺頁＝原生
+   details；遠端夜段＝.sp-gap 摺疊柵（>366 夜截斷法）。
+   今夜＝劇場（focus.html port）：四站是普通 in-flow 區塊——捲動是老大；
+   出血色場＝這一站的燈（不是箱子）、24rem mono 站號水印切出右緣。
+   玻璃照舊只給真浮層；量化紀律全走 tokens。 */
+/* 脊柱容器自己出血到視窗兩緣並在自己身上 clip：
+   ① 站的色場、席次水印、向右出血的髮絲線全部「剛好」停在視窗邊——
+     documentElement.scrollWidth 不再被向右的出血撐大（390 驗收硬檢）；
+   ② padding-inline 把內容欄放回原來的位置（(100vw − 100%)/2 ＝ wrap 的
+     內距＋置中留白），脊柱幾何完全不受影響。
+   overflow:clip 不產生捲動容器，站01 內 #rvSlot 的 sticky 照常對視窗。 */
+#wmSpine{position:relative;--spx:clamp(28px,3.4vw,58px);--gut:clamp(18px,2.4vw,38px);
+  width:100vw;margin-left:calc((100% - 100vw)/2);
+  padding-inline:calc((100vw - 100%)/2);
+  overflow-x:clip}
+#wmSpine[hidden],.wm-body[hidden]{display:none}
+.sp-feed{margin-left:calc(var(--spx) + var(--gut));min-width:0}
+.zone{position:relative}
+.zone::before{content:"";position:absolute;top:0;bottom:0;width:2px;left:calc(var(--spx) - 1px)}
+.z-past::before{background:linear-gradient(180deg,
+  color-mix(in srgb,var(--warm) 22%,transparent),
+  color-mix(in srgb,var(--warm) 46%,transparent) 55%,
+  color-mix(in srgb,var(--warm) 82%,transparent));
+  box-shadow:0 0 10px color-mix(in srgb,var(--warm) 14%,transparent)}
+.z-today::before{background:linear-gradient(180deg,var(--warm),
+  color-mix(in srgb,var(--warm) 38%,transparent) 34%,var(--line) 62%,var(--line))}
+.z-future::before{background:var(--line)}
+/* 摺疊夜段：素線被 --bg 短柵切成密格，一格≈一夜的壓縮暗示 */
+.sp-gap{position:relative;padding:30px 0}
+.sp-gap::after{content:"";position:absolute;top:0;bottom:0;width:2px;left:calc(var(--spx) - 1px);
+  background:repeating-linear-gradient(180deg,var(--bg) 0 5px,transparent 5px 9px)}
+/* 刻度：橫杠跨在脊柱上（列內絕對定位）。.st＝站牌、.now＝今夜燃點、.f＝未燃 */
+.sp-tk{position:absolute;left:calc(-1 * var(--gut) - 9px);top:50%;
+  width:18px;height:2px;margin-top:-1px;border-radius:1px;pointer-events:none;
+  background:color-mix(in srgb,var(--warm) 58%,transparent);opacity:.7}
+.z-future .sp-tk,.sp-tk.f{background:var(--line-strong);opacity:.8}
+.sp-tk.st{width:30px;left:calc(-1 * var(--gut) - 15px);background:var(--line-strong);opacity:1}
+.z-past .sp-tk.st{background:color-mix(in srgb,var(--warm) 70%,transparent)}
+.sp-tk.now{width:34px;left:calc(-1 * var(--gut) - 17px);height:4px;margin-top:-2px;
+  border-radius:2px;background:var(--warm);
+  box-shadow:0 0 4px color-mix(in srgb,var(--warm) 90%,transparent),
+    0 0 20px color-mix(in srgb,var(--warm) 60%,transparent)}
+/* 燃點呼吸：修訂三 #3 白名單②——改吃 --gentle-play，study（quiet）也活著；
+   page-hidden／modal-open 由 body 層 paused、reduced-motion 由 tokens 全滅 */
+.sp-tk.now::after{content:"";position:absolute;inset:-7px;border-radius:6px;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--warm) 40%,transparent),transparent 70%);
+  animation:emberpulse 2.4s var(--ease) infinite;
+  animation-play-state:var(--gentle-play)}
+@keyframes emberpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.35)}}
+/* 端子：起點蓋／終點環 */
+.origin{position:relative;padding:12px 0;display:flex;gap:14px;align-items:baseline}
+.origin .cap{position:absolute;left:calc(-1 * var(--gut) - 5px);width:10px;height:10px;
+  border-radius:50%;background:var(--warm);top:50%;margin-top:-5px;
+  box-shadow:0 0 12px color-mix(in srgb,var(--warm) 50%,transparent)}
+.origin .ot{font-size:var(--w-tag);letter-spacing:var(--ls-tag);text-transform:uppercase;
+  color:var(--ink-faint)}
+.origin .ot b{color:var(--accent);font-weight:600}
+.terminus{position:relative;padding:36px 0 40px;display:flex;gap:18px;align-items:baseline;flex-wrap:wrap}
+.terminus .term-node{position:absolute;left:calc(-1 * var(--gut) - 7px);top:50%;margin-top:-7px;
+  width:14px;height:14px;border-radius:50%;border:2px solid var(--accent);
+  background:var(--bg);box-shadow:0 0 22px color-mix(in srgb,var(--accent) 55%,transparent)}
+.terminus .tt{font-variant-numeric:tabular-nums;font-size:var(--w-title);font-weight:600;
+  letter-spacing:var(--ls-title);color:var(--accent);
+  text-shadow:0 0 22px color-mix(in srgb,var(--warm) 35%,transparent)}
+.terminus .tm{font-size:var(--w-meta);color:var(--ink-dim);font-variant-numeric:tabular-nums}
+/* 站牌 STATION：眉標＋向右出血髮絲線（week 標籤是脊柱上的車站） */
+.station{position:relative;display:flex;align-items:center;gap:12px;padding:26px 0 10px;min-height:44px}
+.station .st-t{flex:0 1 auto;font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint);
+  font-variant-numeric:tabular-nums;min-width:0;white-space:normal}
+.station .st-t b{color:var(--ink-dim);font-weight:600}
+.station .ln{flex:1;height:1px;background:var(--line);margin-right:-8vw;min-width:20px}
+/* 週摺頁：站牌即 summary（原生 details 開合，不手刻） */
+details.wfold summary{list-style:none;cursor:pointer;position:relative}
+/* 儀表句的不可分割單元（N/M 章 ✓、a/bh）：折行只准發生在間隔點（值夜修 #8，tabular 紀律） */
+.nwu{white-space:nowrap}
+details.wfold summary::-webkit-details-marker{display:none}
+details.wfold summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.wfold .car{display:inline-block;flex:none;font-family:var(--font-mono);font-size:var(--w-tag);
+  color:var(--ink-faint);transition:transform var(--dur) var(--ease)}
+details[open] .car{transform:rotate(90deg)}
+.wfold .wbody{padding:2px 0 12px}
+/* 摺起時的壓縮夜叢：一格一夜的微縮刻度 */
+.mini-tks{display:inline-flex;gap:5px;align-items:center;margin-left:8px;flex:none}
+.mini-tks i{width:2px;height:10px;border-radius:1px;display:block;
+  background:color-mix(in srgb,var(--warm) 55%,transparent)}
+.z-future .mini-tks i{background:var(--line-strong)}
+details[open] .mini-tks{display:none}
+/* 結算列（脊柱上的傷口：照表 vs 實燒）——status token＋文字，不 color-alone */
+.debt{position:relative;display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;
+  margin:20px 0 6px;padding:12px 0;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);
+  font-variant-numeric:tabular-nums}
+.debt .neg{color:var(--status-warn);font-weight:600}
+.debt .pos{color:var(--status-good);font-weight:600}
+.debt .btn{--bh:var(--btn-h-sm);padding:0 13px}
+/* ---- 今夜 TONIGHT：脊柱的燃點，唯一撐開的一夜 ---- */
+#tonight{scroll-margin-top:76px}
+.stage{scroll-margin-top:66px}
+.now-head{position:relative;display:flex;align-items:center;gap:14px;padding:40px 0 6px;min-height:44px}
+.now-head .st-t{flex:none;font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--accent);
+  font-variant-numeric:tabular-nums}
+.now-head .ln{flex:1;height:1px;margin-right:-8vw;min-width:20px;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--warm) 45%,transparent),var(--line) 70%)}
+.dwrap{display:flex;align-items:flex-end;gap:22px;flex-wrap:wrap;margin-top:8px}
+.dnum{font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:clamp(3.4rem,7.5vw,6rem);font-weight:600;line-height:.88;
+  letter-spacing:var(--ls-title);color:var(--accent);
+  text-shadow:0 0 60px color-mix(in srgb,var(--warm) 40%,transparent),
+    0 0 18px color-mix(in srgb,var(--warm) 25%,transparent)}
+.dlab{padding-bottom:8px;font-size:var(--w-meta);color:var(--ink-dim);
+  font-variant-numeric:tabular-nums;line-height:1.9}
+.dlab .faint{color:var(--ink-faint)}
+.burnout{margin-top:16px;padding:11px 0;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);
+  font-variant-numeric:tabular-nums}
+.burnout .hot{color:var(--accent);font-weight:600}
+.burnout .sep{width:1px;height:14px;background:var(--line-strong)}
+.burnout .tk-bar{flex:none;width:min(180px,24vw);height:2px;border-radius:2px;
+  overflow:hidden;display:block;background:color-mix(in srgb,var(--ink) 10%,transparent)}
+.burnout .tk-bar i{display:block;height:100%;background:var(--ink-dim);transform-origin:left;
+  transition:transform var(--dur) var(--ease)}
+/* 四站錨點列：in-flow（捲動是老大；唯一浮動導航是「今夜」錨） */
+.st-nav{display:flex;align-items:center;gap:4px 16px;flex-wrap:wrap;
+  margin-top:18px;padding:6px 0;border-bottom:1px solid var(--line)}
+.st-nav [data-st-go]{font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint);
+  font-variant-numeric:tabular-nums;padding:8px 2px;
+  background:none;border:0;cursor:pointer;
+  transition:color 150ms var(--ease)}
+.st-nav [data-st-go]:hover{color:var(--ink-dim)}
+.st-nav [data-st-go].on{color:var(--accent)}
+.st-nav .st-hint{margin-left:auto}
+/* ---- 站＝出血色場（這一站的燈）＋席次水印 ---- */
+.stage{position:relative;margin:30px 0 0;padding:clamp(24px,4vh,44px) 0 clamp(26px,4vh,46px);
+  /* 水印收邊（值夜修）：24rem 席次數字裁在自己站的上下緣——短站（如站01 複習空態）
+     不再淹進下一站。只裁 y：x 軸保持 visible，::before 的 200vw 出血色場與
+     向右髮絲線照舊由 #wmSpine 的 overflow-x:clip 收在視窗兩緣（visible+clip
+     合法組合，同 #wmSpine 既例；clip 不產生捲動容器，站01 sticky 不受影響） */
+  overflow-y:clip}
+.stage::before{content:"";position:absolute;z-index:0;top:0;bottom:0;
+  left:-50vw;width:200vw;   /* 大量外溢，#wmSpine 的 clip 讓它剛好停在視窗兩緣 */
+  pointer-events:none;background:var(--st-bg,none)}
+.st-review{--st-c:var(--accent);
+  --st-bg:radial-gradient(1100px 640px at 10% 30%,
+    color-mix(in srgb,var(--warm) 13%,transparent),transparent 70%)}
+.st-chapter{--st-c:var(--ch,var(--accent));
+  --st-bg:linear-gradient(180deg,color-mix(in srgb,var(--ch,var(--accent)) 6%,transparent),transparent 62%)}
+.st-wrong{--st-c:var(--status-warn);
+  --st-bg:radial-gradient(1100px 620px at 6% 80%,color-mix(in srgb,var(--status-warn) 7%,transparent),transparent 72%)}
+.st-done{--st-c:var(--status-good);--st-bg:none}
+.seat{position:absolute;right:-.12em;top:-.1em; /* 出血量以字身為基準（原 -8vw 在 iPad 寬度砍近半字形，讀起來像壞掉）——固定切 ~12%，任何裝置都像故意的 */
+  z-index:0;pointer-events:none;user-select:none;
+  font-family:var(--font-mono);font-weight:600;line-height:1;
+  font-size:clamp(9rem,19vw,24rem);letter-spacing:var(--ls-title);
+  color:color-mix(in srgb,var(--st-c,var(--ink)) 8%,transparent);
+  font-variant-numeric:tabular-nums}
+/* vellum 的水印音量（值夜修）：紙面是亮地，同樣 8% 的深墨遠比暗地 8% 的亮墨大聲——
+   壓到 5% 讓它跟暗地一樣只是耳語（存在感對位，不是數字對齊）；hover/press 同步降階 */
+body.lt .seat{color:color-mix(in srgb,var(--st-c,var(--ink)) 5%,transparent)}
+body.lt .seat[data-seat]:hover{color:color-mix(in srgb,var(--st-c,var(--ink)) 9%,transparent)}
+body.lt .seat[data-seat]:active{color:color-mix(in srgb,var(--st-c,var(--ink)) 12%,transparent)}
+.st-in{position:relative;z-index:1;min-width:0}
+.st-eyebrow{display:flex;align-items:center;gap:18px;margin:0 0 clamp(14px,2.4vh,24px)}
+.st-eyebrow::after{content:"";height:1px;flex:1;background:var(--line);margin-right:-8vw;min-width:20px}
+.st-eyebrow .st-no{color:var(--st-c,var(--accent));font-weight:600}
+.st-sub{margin:28px 0 4px}
+/* 章節原地展開（母版-明細退役：材料直接吊在時間軸上；一次一份）。
+   修訂三 #3：展開＝clip＋fade＋slide 三重編排（height-free——clip-path 走
+   compositor，零版面重排），內部材料再吃 --stagger 級聯（規則在動效鬆綁段） */
+.wm-exp{position:relative;margin:2px 0 18px;padding:2px 0 8px 20px;
+  border-left:2px solid color-mix(in srgb,var(--c,var(--ink-dim)) 45%,transparent);
+  animation:expIn var(--dur) var(--ease) backwards}
+/* 左右 -50vw：天梯站台的 200vw 出血色場不能被進場 clip 裁在欄寬裡
+   （負 inset 放行水平出血，只演「由上而下掀開」的縱向 clip） */
+@keyframes expIn{
+  0%{opacity:0;transform:translateY(-8px);clip-path:inset(0 -50vw 58% -50vw)}
+  100%{opacity:1;transform:none;clip-path:inset(0 -50vw 0 -50vw)}
+}
+.wm-exp.lead{margin-top:8px}
+.wm-exp .wm-dh h3{font-size:calc(var(--w-title)*.8)}
+/* 進場 stagger 語彙延伸到脊柱列與展開材料（同 .wm-list 那組規則） */
+#wmSpine .wm-row,#wmSpine .sp-ep{
+  animation:rowIn var(--dur) var(--ease) backwards;
+  animation-delay:calc(var(--i,0)*var(--stagger))}
+/* 站 03 錯題列：既有資料（SP.miss＋考卷連結），無新模型 */
+.mrow{display:flex;align-items:baseline;gap:10px 14px;flex-wrap:wrap;
+  padding:10px 0;border-bottom:1px solid var(--line);
+  animation:rowIn var(--dur) var(--ease) backwards;
+  animation-delay:calc(var(--i,0)*var(--stagger))}
+.mrow .m-name{display:inline-flex;align-items:baseline;gap:10px;min-width:0;text-align:left;
+  color:var(--ink);font-size:var(--w-body);
+  background:none;border:0;cursor:pointer;font-family:var(--font-ui)}
+.mrow .m-name .nm{font-weight:600;transition:color 150ms var(--ease)}
+.mrow .m-name:hover .nm{color:var(--accent)}
+.mrow .m-n{color:var(--status-warn);font-weight:600;font-variant-numeric:tabular-nums}
+.mrow .m-links{border-top:0;padding:0;margin-left:auto}
+.mrow .m-none{font-style:normal;font-family:var(--font-mono);font-size:var(--w-tag);
+  color:var(--ink-faint)}
+/* 站 04 戰報：行線報表（report 語彙 port 自 focus.html） */
+.report .rrow{display:flex;align-items:baseline;gap:14px;padding:9px 0;
+  border-bottom:1px solid var(--line);font-size:var(--w-meta);color:var(--ink-dim)}
+.report .rrow:first-child{border-top:1px solid var(--line)}
+.report .rrow .r-key{flex:none;width:96px;font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint)}
+.report .rrow .mono{font-variant-numeric:tabular-nums;min-width:0}
+.tomorrow{margin-top:clamp(22px,4vh,36px);padding-left:22px;
+  border-left:2px solid color-mix(in srgb,var(--tmr-c,var(--ink-dim)) 60%,transparent)}
+.tomorrow .t-lead{font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint);
+  font-variant-numeric:tabular-nums}
+.tomorrow .t-main{margin-top:6px;font-size:var(--w-sub);font-weight:600}
+/* ----「今夜」錨點：全站唯一浮動導航（真浮層＝玻璃合法；左下角，讓開設定鈕）---- */
+.sp-anchor{position:fixed;left:clamp(14px,3vw,30px);
+  bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:70;
+  display:flex;align-items:center;gap:10px;padding:11px 18px;
+  font-family:var(--font-mono);font-size:var(--w-meta);font-weight:600;
+  font-variant-numeric:tabular-nums;color:var(--ink);cursor:pointer;
+  box-shadow:var(--glass-inner),0 18px 48px rgba(0,0,0,.5);
+  transition:transform 150ms var(--ease)}
+.sp-anchor:hover{transform:translateY(-1px)}
+.sp-anchor .ar{color:var(--accent);width:1em;text-align:center}
+.sp-anchor.at .ar{text-shadow:0 0 12px color-mix(in srgb,var(--accent) 80%,transparent)}
+.sp-anchor[hidden]{display:none}
+body:not([data-mode="study"]) .sp-anchor{display:none}
+/* ---- RWD：390 也要活——脊柱塌成貼視窗左緣的 4px 細邊條，只留今夜記號 ---- */
+@media(max-width:680px){
+  #wmSpine{--spx:0px;--gut:12px}
+  .sp-feed{margin-left:0}
+  /* 貼視窗左緣的 4px 邊條：向左外溢、右緣算準在視窗 x=4——
+     (100vw − 100%)/2 補掉 #wmSpine 的置中內距，#wmSpine 的 clip 裁掉左溢 */
+  .zone::before,.sp-gap::after{left:-64px;width:calc(68px - (100vw - 100%)/2)}
+  .sp-tk,.origin .cap,.terminus .term-node{display:none}
+  .sp-tk.now{display:block;left:-64px;width:calc(80px - (100vw - 100%)/2)}
+  .mini-tks{display:none}
+  .dnum{font-size:clamp(3rem,16vw,4.4rem)}
+  .seat{font-size:clamp(6.5rem,32vw,10rem);right:-.08em}
+  .st-nav .st-hint{display:none}
+  .station{padding-top:20px}
+  .mrow .m-links{margin-left:0;flex-basis:100%}
+  .report .rrow .r-key{width:72px}
+}
+/* reduced-motion：tokens 已全滅動效；此處補「靜止即完成態」 */
+@media (prefers-reduced-motion:reduce){
+  .sp-tk.now::after{animation:none;opacity:.6}
+}
+
+/* ============ T14b 細節調模四則（ADR-0008 追加，2026-09-01） ============
+   ①有意義互動：刻度＝夜資訊、落差＝欠帳分解、讀數＝來源算式、水印＝跳站
+   ②捲動敘事：站燈漸變、脊柱亮段隨視口、密度節奏 緊→開→緊
+   ③同色盤多文體：站01 卡佇列／站02 行線清單／站03 標記筆記／站04 數字報表
+   tooltip 一律走 #vizTip 共用件（data-tip；狀態在 JS，不落 DOM）。 */
+
+/* ── ① 脊柱刻度可懸停（回答：這格是哪一夜／哪一段） ── */
+.sp-tk[data-tip]{pointer-events:auto}
+.sp-tk[data-tip]:hover{opacity:1}
+.mini-tks{gap:0}
+.mini-tks i[data-tip]{pointer-events:auto;box-sizing:content-box;
+  padding:4px 3px;background-clip:content-box}
+.mini-tks i[data-tip]:hover{background-color:color-mix(in srgb,var(--warm) 90%,transparent)}
+.z-future .mini-tks i[data-tip]:hover{background-color:var(--ink-faint)}
+/* 讀數算式 tooltip 的可發現性：help 游標＋hover 提一階墨 */
+.burnout span[data-tip],.debt span[data-tip],.debt-x span[data-tip],.station span[data-tip],
+.wfold span[data-tip],.wm-row .hrs[data-tip],.report .r-val[data-tip]{cursor:help}
+.burnout span[data-tip]:hover,.debt span[data-tip]:hover,.debt-x span[data-tip]:hover,
+.station span[data-tip]:hover,.wfold span[data-tip]:hover,.wm-row .hrs[data-tip]:hover{color:var(--ink)}
+/* 合計讀數是基色（--ink），hover 提示走 debt-diff 既例的 dotted underline 語彙 */
+.report .r-val[data-tip]:hover{text-decoration:underline dotted;text-underline-offset:4px;
+  text-decoration-color:color-mix(in srgb,currentColor 55%,transparent)}
+
+/* ── ① 結算差額＝可點的欠帳分解（三態齊備；分解列＝行線，不上框） ── */
+.debt-diff{font-family:var(--font-mono);font-size:var(--w-meta);font-weight:600;
+  font-variant-numeric:tabular-nums;background:none;border:0;cursor:pointer;
+  padding:5px 8px;border-radius:var(--r-sm);
+  text-decoration:underline dotted;text-underline-offset:4px;
+  text-decoration-color:color-mix(in srgb,currentColor 55%,transparent);
+  transition:background-color 150ms var(--ease)}
+.debt-diff.neg{color:var(--status-warn)}
+.debt-diff.pos{color:var(--status-good)}
+.debt-diff:hover{background:color-mix(in srgb,var(--ink) 7%,transparent)}
+.debt-diff:active{background:color-mix(in srgb,var(--ink) 12%,transparent)}
+.debt-diff[aria-expanded="true"]{text-decoration-style:solid;text-decoration-color:currentColor}
+.debt-x{font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);
+  font-variant-numeric:tabular-nums;padding:4px 0 2px;
+  animation:paneIn var(--dur) var(--ease) backwards}
+.debt-x .dx-row{display:flex;gap:8px 18px;flex-wrap:wrap;align-items:baseline;
+  padding:8px 0;border-bottom:1px solid var(--line)}
+.debt-x .dx-w{min-width:8.5em;color:var(--ink-faint)}
+.debt-x b{font-weight:600;margin-left:auto}
+.debt-x b.neg{color:var(--status-warn)}
+.debt-x b.pos{color:var(--status-good)}
+.debt-x .dx-note{padding:9px 0 2px;font-size:var(--w-tag);letter-spacing:.06em;
+  color:var(--ink-faint)}
+
+/* ── ① 站號水印可點＝跳站（hover 亮半階、press 再半階；聚焦入口在 st-nav） ── */
+.seat[data-seat]{pointer-events:auto;cursor:pointer;
+  transition:color var(--dur) var(--ease)}
+.seat[data-seat]:hover{color:color-mix(in srgb,var(--st-c,var(--ink)) 14%,transparent)}
+.seat[data-seat]:active{color:color-mix(in srgb,var(--st-c,var(--ink)) 19%,transparent)}
+
+/* ── ① 章節列 hover＝學科色浮起（色場，無框）＋按下再深半階 ── */
+#wmSpine .wm-row:hover{background:color-mix(in srgb,var(--c,var(--ink)) 6%,transparent)}
+#wmSpine .wm-row:active{background:color-mix(in srgb,var(--c,var(--ink)) 10%,transparent)}
+/* 原地展開：髮絲左脊（學科色）；今夜主章維持 2px（劇場燈更亮一級） */
+.wm-exp{border-left-width:1px;
+  border-left-color:color-mix(in srgb,var(--c,var(--ink-dim)) 60%,transparent)}
+.wm-exp.lead{border-left-width:2px}
+
+/* ── ② 捲動敘事：今夜區站燈漸變＋脊柱亮段（reduced-motion 整段不啟用） ── */
+@property --zt{syntax:'<color>';inherits:true;initial-value:#C25E2E /* ＝--warm；spec 禁 var()，改 token 需同步此值 */}
+@property --zy{syntax:'<percentage>';inherits:true;initial-value:16%}
+@media (prefers-reduced-motion: no-preference){
+  .z-today{transition:--zt var(--dur) var(--ease),--zy var(--dur) var(--ease)}
+  .z-today::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+    opacity:0;transition:opacity var(--dur) var(--ease);
+    background:radial-gradient(1100px 640px at 8% var(--zy,16%),
+      color-mix(in srgb,var(--zt,var(--warm)) 9%,transparent),transparent 72%)}
+  .z-today[data-station]::after{opacity:1}
+  .z-today[data-station="1"]{--zt:var(--warm);--zy:8%}
+  .z-today[data-station="2"]{--zt:var(--ch,var(--warm));--zy:38%}
+  .z-today[data-station="3"]{--zt:var(--status-warn);--zy:66%}
+  .z-today[data-station="4"]{--zt:var(--status-good);--zy:90%}
+  /* 脊柱燃線：正在讀的那一段亮一級，其餘退半步 */
+  #wmSpine .zone::before{opacity:.55;transition:opacity var(--dur) var(--ease)}
+  #wmSpine .zone.lit::before{opacity:1}
+}
+
+/* ── ② 密度節奏：過去緊（餘燼壓縮）→ 今夜開（劇場呼吸）→ 未來緊（引線收攏） ── */
+.z-past .wm-row,.z-future .wm-row{padding-top:9px;padding-bottom:10px}
+.z-past .wm-row .nm,.z-future .wm-row .nm{font-size:var(--w-body);line-height:1.3}
+.z-past .wm-row .yr,.z-future .wm-row .yr{margin-top:5px}
+.z-today .wm-row{padding-top:14px;padding-bottom:15px}
+
+/* ── ③ 站01 複習＝卡佇列體：到期卡是「排隊的牌」——色場淺卡＋
+   逐張右錯位的佇列感（z 深度與留白，無邊框；同色盤） ── */
+.st-review .rv-rows{display:flex;flex-direction:column;gap:9px;margin-top:10px}
+.st-review .rv-row{background:color-mix(in srgb,var(--ink) 5%,transparent);
+  border-top:0;border-radius:var(--r-md);padding:11px 16px;
+  box-shadow:0 1px 0 rgba(0,0,0,.28);
+  margin-left:calc(var(--q,0)*12px)}
+.st-review .rv-row:nth-child(2){--q:1}
+.st-review .rv-row:nth-child(3){--q:2}
+.st-review .rv-row:nth-child(n+4){--q:3}
+.st-review .rv-row+.rv-row{border-top:0}
+
+/* ── ③ 站03 錯題＝標記筆記體：✕n 是掛在左緣的旁註（mono margin-note），
+   章名壓一道馬克筆底線（學科結構色），考卷連結懸掛縮排——手記感，
+   與站02 的行線清單劃清界線（行線退場，結構＝縮排＋留白） ── */
+.st-wrong .mrow{display:block;border-bottom:0;position:relative;
+  padding:13px 0 11px 3.4em}
+.st-wrong .mrow .m-n{position:absolute;left:0;top:13px;margin:0;
+  font-size:var(--w-meta);letter-spacing:.04em}
+.st-wrong .mrow .m-name{display:inline-flex;flex-wrap:wrap}
+.st-wrong .mrow .m-name .nm{padding:0 3px;
+  background:linear-gradient(transparent 62%,
+    color-mix(in srgb,var(--c,var(--ink-dim)) 32%,transparent) 62% 94%,transparent 94%)}
+.st-wrong .mrow .m-links{margin-left:0;padding-left:18px;margin-top:4px}
+
+/* ── T17 筆記迴流（站03 尾）：NotebookLM 筆記快照＝去框化 details——
+   單一髮絲線分隔（不加框）、mono 眉標＝筆記標題；.nb-body 補繪前是
+   pre-wrap 原文保底，nblmFill 換上 marked 輸出後掛 .md .map-md 回歸排版 ── */
+.nb-flow{margin-top:clamp(26px,4vh,40px)}
+.nb-flow .st-sub{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.nb-flow .nb-link{margin:0 0 0 auto}
+.nb-note{border-top:1px solid var(--line)}
+.nb-note:last-child{border-bottom:1px solid var(--line)}
+.nb-note summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;
+  min-height:44px;padding:9px 0}
+.nb-note summary::-webkit-details-marker{display:none}
+.nb-note summary::before{content:"▸";font-family:var(--font-mono);
+  color:var(--st-c,var(--accent))}
+.nb-note[open]>summary::before{content:"▾"}
+.nb-note .nb-t{font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-dim);
+  transition:color 150ms var(--ease)}
+.nb-note summary:hover .nb-t,.nb-note[open] .nb-t{color:var(--ink)}
+.nb-note summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;
+  border-radius:4px}
+.nb-body{padding:2px 0 18px;white-space:pre-wrap;
+  font-size:var(--w-meta);line-height:1.9;color:var(--ink-dim)}
+.nb-body.md{white-space:normal}
+
+/* ── ③ 站04 收工＝數字報表體：右端入帳欄（tabular 對齊）＋
+   會計式合計列（雙細線上緣＝結帳線） ── */
+.report .rrow{display:grid;grid-template-columns:var(--rk,96px) minmax(0,1fr) auto;
+  gap:14px;align-items:baseline}
+.report .rrow .r-key{width:auto}
+.report .r-val{text-align:right;font-variant-numeric:tabular-nums;
+  color:var(--ink);font-weight:500;white-space:nowrap}
+.report .rrow.sum{border-top:3px double var(--line-strong);border-bottom:0;
+  padding-top:12px;margin-top:2px}
+.report .rrow.sum .r-val{color:var(--ink);font-weight:600}
+@media(max-width:680px){
+  .report .rrow{--rk:64px}
+  .st-wrong .mrow{padding-left:2.6em}
+  .debt-x .dx-w{min-width:100%}
+}
+
+/* ============ T14c R 灌注（ADR-0008 T14c；river.html port） ============
+   兩魂入骨：①站02 主章材料＝三階天梯——「範例→半完成→自解」三座
+   全寬出血巨編號站台（tint ≤8% 學科結構色、01/02/03 巨 mono 編號；
+   前一階有動靜才點亮下一階——純視覺，永不阻擋操作）；②河道感——
+   今夜劇場四站由一條 1px 流線自站01 貫到站04（河的左岸），站內容
+   一律縱向堆疊。四文體不動：卡佇列／天梯站台／標記筆記／數字報表。 */
+
+/* ── ② 河道流線：1px 貫穿今夜四站；站與站之間 30px 的縫由 ~.stage 的
+   上溢補齊——河不斷流。站內容自左岸退 --rvx（縱向執行流的縮排）。 ── */
+.z-today .stage{--rvx:clamp(16px,2.2vw,26px)}
+/* 修訂三 #3 白名單④——河道微流：流線本體＝底層常亮細線（warm 22%）＋
+   上層 dash 段（warm 46%）以 background-position 逐格下漂（16px/8s ≈ 2px/s，
+   dash-offset 語意）。1px 窄柱重繪面積趨近零；play-state 吃 --gentle-play，
+   reduced-motion 全滅後靜止即完成態（線仍在，河不動）。 */
+.z-today .stage::after{content:"";position:absolute;left:0;top:0;bottom:0;width:1px;
+  pointer-events:none;
+  background:
+    repeating-linear-gradient(180deg,
+      color-mix(in srgb,var(--warm) 46%,transparent) 0 7px,transparent 7px 16px),
+    linear-gradient(180deg,
+      color-mix(in srgb,var(--warm) 22%,transparent),
+      color-mix(in srgb,var(--warm) 22%,transparent));
+  background-size:1px 16px,1px 100%;
+  animation:riverflow 8s linear infinite;
+  animation-play-state:var(--gentle-play)}
+@keyframes riverflow{from{background-position:0 0,0 0}to{background-position:0 16px,0 0}}
+.z-today .stage~.stage::after{top:-30px}
+.z-today .stage .st-in{padding-left:var(--rvx)}
+/* 河的終點：站04 尾端一顆安靜端點（流線收束，不是新浮層） */
+.z-today .st-done .st-in::after{content:"";position:absolute;
+  left:calc(-1*var(--rvx) - 3px);bottom:0;width:7px;height:7px;border-radius:50%;
+  background:color-mix(in srgb,var(--status-good) 55%,transparent)}
+
+/* ============ T19 多科天梯（ADR-0008 §T19）============
+   站02 一科一座天梯（電子 2h＋工數 2h＋0.5h 錯題的雙軌讀書法）。
+   科與科之間**不加框、不加第二條線**（判例 1）——分段靠三件事：
+   ①留白節奏（比站內任何間距都大一級）②河道流線上的一顆結構色節點
+   （河是 .stage::after，貫穿整站不斷流；節點只說「這裡下水」）
+   ③mono 科目眉標。水印仍是一站一顆（.seat 掛 .stage，不隨科目增生）。 */
+.subj-blk{position:relative}
+.subj-blk+.subj-blk{margin-top:clamp(34px,6vh,64px)}
+.subj-blk::before{content:"";position:absolute;
+  left:calc(-1*var(--rvx) - 3px);top:.5em;width:7px;height:7px;border-radius:50%;
+  background:color-mix(in srgb,var(--c,var(--ink-dim)) 78%,transparent)}
+.sb-eyebrow{display:flex;align-items:baseline;gap:4px 14px;flex-wrap:wrap;margin:0 0 4px}
+.sb-eyebrow b{color:var(--ink);font-weight:600}
+.sb-eyebrow .sb-n{margin-left:auto;color:var(--ink-faint);font-size:var(--w-tag)}
+/* 科目跳道：st-nav 的同族語彙（mono 髮絲列、所在項亮 accent），
+   但落在站 02 內部——站導航（鍵盤 1–4）與換科導航語彙同源、層級分明 */
+.subj-jump{display:flex;align-items:center;gap:0 8px;flex-wrap:wrap;
+  margin:0 0 clamp(16px,2.6vh,26px);padding:2px 0 6px;
+  border-bottom:1px solid var(--line)}
+.subj-jump [data-subj-go]{font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint);
+  padding:8px 2px;background:none;border:0;cursor:pointer;
+  transition:color 150ms var(--ease)}
+.subj-jump [data-subj-go]:hover{color:var(--ink-dim)}
+.subj-jump [data-subj-go]:active{color:var(--ink)}
+.subj-jump [data-subj-go].on{color:var(--accent)}
+.subj-jump [data-subj-go]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;
+  border-radius:4px}
+.subj-jump .sj-sep{color:var(--ink-faint);opacity:.5}
+.subj-jump .sj-hint{margin-left:auto}
+@media(max-width:680px){ .subj-jump .sj-hint{display:none} }
+
+/* ── ① 三階天梯：容器不承接 wm-exp 的左脊（站台自己就是結構） ── */
+.wm-exp.ldr-wrap{border-left:0;padding-left:0}
+.ladder{margin-top:clamp(16px,2.6vh,26px)}
+.rung{position:relative;display:grid;
+  grid-template-columns:clamp(56px,7vw,102px) minmax(0,1fr);
+  gap:0 clamp(14px,2.4vw,28px);
+  padding:clamp(18px,3vh,30px) 0 clamp(20px,3.2vh,32px);
+  border-top:1px solid var(--line)}
+.rung:last-of-type{border-bottom:1px solid var(--line)}
+/* 站台色場：全寬出血（#wmSpine overflow-x:clip 裁齊視窗緣），結構色 ≤8% */
+.rung::before{content:"";position:absolute;z-index:-1;top:0;bottom:0;left:-50vw;width:200vw;
+  pointer-events:none;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--c,var(--ink)) 7%,transparent),transparent 80%);
+  transition:opacity var(--dur) var(--ease)}
+.r-num{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-weight:600;
+  font-size:clamp(2.6rem,5.6vw,4.2rem);line-height:.92;letter-spacing:var(--ls-title);
+  color:color-mix(in srgb,var(--c,var(--ink)) 42%,transparent);
+  transition:color var(--dur) var(--ease)}
+.r-body{min-width:0}
+/* 三階摺頁：階名即 summary。原生標記拿掉（Safari 要 ::-webkit-details-marker，
+   其餘瀏覽器 list-style:none），改用階名前的細箭頭——沿用 details.more 的語彙，
+   站上其他摺頁都長這樣。命中區是整條階名，不是只有箭頭。 */
+.r-fold>summary{list-style:none;cursor:pointer}
+.r-fold>summary::-webkit-details-marker{display:none}
+.r-fold>summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+.r-fold>summary::before{content:"▸";font-family:var(--font-mono);font-weight:400;
+  font-size:var(--w-tag);color:color-mix(in srgb,var(--c,var(--ink)) 55%,transparent);
+  margin-right:2px;transition:transform var(--dur) var(--ease);display:inline-block}
+.r-fold[open]>summary::before{transform:rotate(90deg)}
+.r-fold>summary:hover::before{color:var(--c,var(--ink))}
+.r-name{display:flex;align-items:baseline;gap:6px 12px;flex-wrap:wrap;
+  font-size:var(--w-sub);font-weight:700}
+.r-name .en{font-family:var(--font-mono);font-size:var(--w-tag);font-weight:500;
+  letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint)}
+.r-name .r-read{margin-left:auto;font-size:var(--w-meta);font-weight:500;color:var(--ink-dim);
+  font-variant-numeric:tabular-nums}
+.r-law{margin-top:8px;font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink-dim);
+  line-height:1.8;max-width:52em}
+.r-law b{color:var(--ink);font-weight:600}
+.rung .wm-blk{margin-top:14px}
+/* 階02 動作列：錯題計數（.miss 同一顆——bindSpine 同綁；grid 位置宣告在 flex 裡自動失效） */
+.r-act{margin-top:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.r-act .miss{min-width:3.2em;font-size:var(--w-meta)}
+.r-hint{font-size:var(--w-tag);letter-spacing:.04em;color:var(--ink-faint)}
+/* 階03 終點：完成勾（沿 .wm-row 的安靜方框語彙；命中 ≥44） */
+.ldr-done{display:inline-flex;align-items:center;gap:12px;margin-top:16px;
+  min-height:44px;cursor:pointer;font-size:var(--w-meta);font-weight:600;color:var(--ink)}
+.ldr-done input[data-sp]{appearance:none;-webkit-appearance:none;position:relative;
+  width:20px;height:20px;margin:0;cursor:pointer;border-radius:6px;flex:none;
+  box-shadow:inset 0 0 0 1px var(--line-strong);background:none;
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:box-shadow 150ms var(--ease)}
+.ldr-done input[data-sp]::before{content:"";position:absolute;left:50%;top:50%;
+  width:44px;height:44px;transform:translate(-50%,-50%)}
+.ldr-done:hover input[data-sp]{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 45%,transparent)}
+.ldr-done input[data-sp]:checked::after{content:"✓";font:600 13px/1 var(--font-mono);color:var(--ink-dim)}
+.ldr-done input[data-sp]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ldr-done.on span{color:var(--ink-dim)}
+/* 解鎖視覺（永不阻擋）：編號與站名退墨、色場減光——內容照常可點可讀；
+   讀數行的 ○/▶/✓/✕ glyph＋文字是等價訊號，不 color-alone */
+.rung.dim::before{opacity:.45}
+.rung.dim .r-num{color:color-mix(in srgb,var(--c,var(--ink)) 20%,transparent)}
+.rung.dim .r-name{color:var(--ink-dim)}
+.ldr-law{margin-top:12px;font-size:var(--w-tag);letter-spacing:.05em;color:var(--ink-faint)}
+/* 主章列（T14c）：勾與 ✕ 搬家後收攏欄位，不留空軌的 gap */
+#wmSpine .wm-row[data-lead]{grid-template-columns:minmax(0,1fr) auto}
+#wmSpine .wm-row[data-lead] .ch-sub,#wmSpine .wm-row[data-lead] .nm{grid-column:1}
+#wmSpine .wm-row[data-lead] .hrs{grid-column:2}
+@media(max-width:680px){
+  .z-today .stage{--rvx:12px}
+  .rung{grid-template-columns:44px minmax(0,1fr);gap:0 12px;padding:16px 0 18px}
+  .r-num{font-size:clamp(1.9rem,8.6vw,2.6rem)}
+  .r-name .r-read{margin-left:0;flex-basis:100%}
+}
+
+/* ============ 動效鬆綁（ADR-0002 修訂三 #3，2026-09-01 值夜） ============
+   使用者：「讀書模式的動畫似乎有點少，可以再加一些」＋「循環播放」＝loop 預設。
+   S5 修訂：「study 零無限動畫」→「study 僅白名單 gentle-ambient loop
+   （全吃 --gentle-play 且 reduced-motion 全滅），互動動效 60fps transform/opacity only」。
+   白名單四員（全部 infinite、全部 var(--gentle-play)、全部靜止即完成態）：
+     ① 脊柱已燒段餘燼漂移 spinedrift（60s）——就在此段
+     ② 今夜燃點呼吸 emberpulse（既有，改檔位）——T14 脊柱段
+     ③ 站號水印超慢呼吸 seatbreathe（8s，opacity .85–1）——就在此段
+     ④ 河道流線微流 riverflow（8s dash 漂移）——T14c 河道段
+   一次性互動回饋（.tick-in／.settle-in／.miss-pop／.lit-in／.st-on／.rv-out／
+   .sync-go）由 JS 只在「真變動」那次重繪掛上——重繪不重播（num-bump 同紀律）。
+   時間法：進場 --dur/--ease、出場 --dur-exit（65%）；只動 transform/opacity
+   （唯一例外＝riverflow 的 1px 窄柱 background-position，重繪面積趨近零）。 */
+
+/* ── 白名單①：脊柱已燒段餘燼漂移——一粒餘燼火光沿燃線緩緩下行（60s 一趟），
+   回答「這段路是燒過的」。載體＝200% 高的 2px 窄柱（snowfall 同款幾何），
+   transform 位移、火粒永遠落在已燒段內；overflow-y:clip 收掉端點外溢
+   （visible+clip 合法組合，.stage 既例）。 ── */
+.z-past{overflow-y:clip}
+.z-past::after{content:"";position:absolute;left:calc(var(--spx) - 1px);width:2px;
+  top:-100%;height:200%;pointer-events:none;will-change:transform;
+  background:linear-gradient(180deg,transparent 0 49%,
+    color-mix(in srgb,var(--warm) 78%,transparent) 50%,transparent 51% 100%);
+  animation:spinedrift 60s linear infinite;
+  animation-play-state:var(--gentle-play)}
+@keyframes spinedrift{
+  0%{transform:translateY(0);opacity:0}
+  6%{opacity:1}
+  94%{opacity:1}
+  100%{transform:translateY(50%);opacity:0}
+}
+
+/* ── 白名單③：站號水印超慢呼吸（8s 單程 alternate；opacity .85–1）——
+   水印是站的地燈，呼吸讓劇場「活著」而不搶讀數（書架序號同語彙一起吸）。 ── */
+.seat,.shelf-seat{animation:seatbreathe 8s var(--ease) infinite alternate;
+  animation-play-state:var(--gentle-play)}
+@keyframes seatbreathe{from{opacity:.85}to{opacity:1}}
+
+/* ── 展開編排的內部級聯：材料逐塊凝結（--stagger 步距；tokens 契約） ── */
+.wm-exp>.wm-dh,.wm-exp>.wm-dsub,.wm-exp>.wm-blk,.wm-exp>.ladder{
+  animation:rowIn var(--dur) var(--ease) backwards}
+.wm-exp>.wm-dsub{animation-delay:var(--stagger)}
+.wm-exp>.wm-blk,.wm-exp>.ladder{animation-delay:calc(var(--stagger)*2)}
+.wm-exp>.wm-blk~.wm-blk{animation-delay:calc(var(--stagger)*3)}
+/* 天梯三階逐座進場（同一把 rowIn；一批三座不設 cap） */
+.ladder .rung{animation:rowIn var(--dur) var(--ease) backwards}
+.ladder .rung:nth-of-type(2){animation-delay:var(--stagger)}
+.ladder .rung:nth-of-type(3){animation-delay:calc(var(--stagger)*2)}
+
+/* ── 完成勾：打勾入場（scale+rotate 收正）＋整列落定（一次性；JS 真變動才掛） ── */
+@keyframes tickdraw{
+  0%{opacity:0;transform:scale(.35) rotate(-16deg)}
+  55%{opacity:1;transform:scale(1.22)}
+  100%{opacity:1;transform:scale(1)}
+}
+input[data-sp].tick-in:checked::after{animation:tickdraw var(--dur) var(--ease)}
+@keyframes rowsettle{
+  0%{transform:translateY(-2px)}
+  55%{transform:translateY(1px)}
+  100%{transform:none}
+}
+/* 高權重寫法：#wmSpine .wm-row 的 rowIn（含 --i 延遲）會蓋過裸 class——
+   settle 要立刻演、不吃 stagger 延遲，明寫 0s 一併蓋回 */
+.settle-in,#wmSpine .wm-row.settle-in{
+  animation:rowsettle var(--dur) var(--ease);animation-delay:0s}
+
+/* ── 錯題 ✕：記一筆＝pop 一下（scale 過衝回正；一次性） ── */
+@keyframes misspop{0%{transform:scale(1)}45%{transform:scale(1.28)}100%{transform:none}}
+.miss.miss-pop{animation:misspop var(--dur) var(--ease)}
+
+/* ── 天梯階解鎖：dim→lit 交叉淡化＋編號 flare（一次性；JS 比對前態才掛，
+   換章或重整不重播）。色場自 .45 淡入、編號自退墨態放大收正。 ── */
+@keyframes rungfield{from{opacity:.45}to{opacity:1}}
+.rung.lit-in::before{animation:rungfield calc(var(--dur)*1.5) var(--ease)}
+@keyframes numflare{
+  0%{opacity:.4;transform:scale(.9)}
+  45%{opacity:1;transform:scale(1.08)}
+  100%{opacity:1;transform:none}
+}
+.rung.lit-in .r-num{animation:numflare calc(var(--dur)*1.5) var(--ease)}
+
+/* ── 站進場：內容整組 rise+settle（IO 一站一次／session；站號水印不動＝
+   內容浮在地燈之上的 z 深度）。內裡的 rowIn 級聯照跑＝自帶 stagger。 ── */
+@keyframes stageIn{
+  0%{opacity:0;transform:translateY(18px)}
+  70%{opacity:1;transform:translateY(-2px)}
+  100%{opacity:1;transform:none}
+}
+.stage.st-on .st-in{animation:stageIn calc(var(--dur)*1.5) var(--ease) backwards}
+
+/* ── 摺頁開合：頁身凝結＋壓縮夜叢逐格點亮（details 重現盒即重播＝
+   開時列級聯（既有 rowIn）、收時 mini-tks 逐夜回位） ── */
+.wfold .wbody{animation:paneIn var(--dur) var(--ease) backwards}
+@keyframes tksin{from{opacity:0;transform:translateY(4px)}}
+.mini-tks i{animation:tksin var(--dur) var(--ease) backwards}
+.mini-tks i:nth-child(2){animation-delay:calc(var(--stagger)*.5)}
+.mini-tks i:nth-child(3){animation-delay:var(--stagger)}
+.mini-tks i:nth-child(4){animation-delay:calc(var(--stagger)*1.5)}
+.mini-tks i:nth-child(5){animation-delay:calc(var(--stagger)*2)}
+.mini-tks i:nth-child(6){animation-delay:calc(var(--stagger)*2.5)}
+.mini-tks i:nth-child(7){animation-delay:calc(var(--stagger)*3)}
+
+/* ── 複習評分：卡片滑出（出場 65% 法＝--dur-exit；滑出中鎖點防重複落帳） ── */
+@keyframes rvout{to{opacity:0;transform:translateX(30px)}}
+.rv-row.rv-out{animation:rvout var(--dur-exit) var(--ease) forwards;pointer-events:none}
+
+/* ── 立即同步：↻ 轉一圈的回饋（一次性；點下即演，結果照舊 toast） ── */
+#wmSyncNow::before{content:"↻";display:inline-block;font-family:var(--font-mono);
+  font-size:var(--w-meta);line-height:1}
+#wmSyncNow.sync-go::before{animation:spinonce calc(var(--dur)*1.5) var(--ease)}
+@keyframes spinonce{to{transform:rotate(360deg)}}
+
+/* 390：餘燼漂移跟著脊柱塌成的 4px 邊條走（.zone::before 同款幾何；
+   左溢由 #wmSpine 的 clip 收掉） */
+@media(max-width:680px){
+  .z-past::after{left:-64px;width:calc(68px - (100vw - 100%)/2)}
+}
+
+/* ============ 右欄材料：集數 pill／考古題安靜列（T05） ============ */
+/* 考古題＝按學校分組的安靜列：校名眉標＋年份 mono 連結（↗ 外開記號）。
+   髮絲線分列；有題號者（hasq）掛結構色細環＋題號字。 */
+.sp-sch{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:center;padding:8px 0;
+  border-top:1px solid var(--line);font-size:var(--w-tag)}
+.sp-sch:first-of-type{border-top:0}
+.sp-sch b{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);
+  color:var(--ink-dim);font-weight:500;white-space:nowrap;min-width:5.2em}
+/* 值夜 #2（chip 去噪，站02＋原地展開的考古題 chip；集數 pill .sp-ep 的
+   髮絲環不動）：rest 不上四邊框——淺色場（結構 token 混色 ≤10%）承載
+   「這是一顆東西」，chip 與 chip 之間用 1px 髮絲短豎線分隔（校列之間
+   原有的行線照舊）；環只在 hover/focus 現身（320ms var(--ease)）。 */
+.sp-sch a{position:relative;font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.04em;
+  color:var(--ink-dim);text-decoration:none;font-variant-numeric:tabular-nums;
+  min-height:28px;padding:0 7px;display:inline-flex;align-items:center;gap:6px;
+  border-radius:var(--r-sm);
+  background:color-mix(in srgb,var(--ink) 5%,transparent);
+  box-shadow:none;
+  transition:color 150ms var(--ease),background-color 150ms var(--ease),
+    box-shadow var(--dur) var(--ease)}
+/* chip 間髮絲分隔：只長在相鄰 chip 之間（列間分隔仍是 .sp-sch 的行線） */
+.sp-sch a+a::before{content:"";position:absolute;left:-5.5px;top:50%;
+  transform:translateY(-50%);width:1px;height:12px;background:var(--line);
+  pointer-events:none}
+.sp-sch a::after{content:"↗";font-size:.9em;opacity:.45}
+.sp-sch a:hover,.sp-sch a:focus-visible{color:var(--ink);
+  background:color-mix(in srgb,var(--ink) 7%,transparent);
+  box-shadow:inset 0 0 0 1px var(--line-strong)}
+/* 有標到題號的年份：學科結構色淺場＋題號字——題號才是要被看見的資訊；
+   細環退到 hover/focus 才亮（同 320ms 語彙） */
+.sp-sch a.hasq{color:var(--ink);
+  background:color-mix(in srgb,var(--sc) 8%,transparent);
+  box-shadow:none}
+.sp-sch a.hasq:hover,.sp-sch a.hasq:focus-visible{
+  background:color-mix(in srgb,var(--sc) 10%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--sc) 50%,transparent)}
+.sp-sch a.hasq em{font-style:normal;font-size:var(--w-tag);color:var(--sc);
+  font-family:var(--font-ui);letter-spacing:0}
+/* iStudy 外連：安靜 mono 連結（nb-link 同語彙） */
+.sp-open{display:inline-block;margin-top:12px;font-family:var(--font-mono);
+  font-size:var(--w-tag);letter-spacing:.06em;color:var(--ink-dim);
+  text-decoration:underline;text-underline-offset:4px;text-decoration-color:var(--line-strong);
+  transition:color 150ms var(--ease)}
+.sp-open:hover,.sp-open:focus-visible{color:var(--accent);text-decoration-color:currentColor}
+.q-note{font-size:var(--w-meta);color:var(--ink-faint);margin-top:10px;line-height:1.65}
+.q-note b{font-family:var(--font-mono);color:var(--sc);font-weight:500}
+/* 集數 chip＝pill 鈕：看過圓圈（ep-mark）＋mono 代號＋標題＋尾註。
+   髮絲環、無底色；hover 掛結構色環＋色場；看過整顆淡化。 */
+.sp-ep{position:relative;display:inline-flex;gap:9px;align-items:center;max-width:100%;
+  font-family:var(--font-ui);font-size:var(--w-meta);color:var(--ink);
+  min-height:var(--btn-h);padding:0 13px 0 8px;border:0;background:none;text-align:left;
+  border-radius:999px;box-shadow:inset 0 0 0 1px var(--line);
+  transition:background-color 150ms var(--ease),box-shadow 150ms var(--ease),opacity 150ms var(--ease)}
+.sp-ep b{font-family:var(--font-mono);font-weight:500;font-size:var(--w-tag);
+  letter-spacing:.08em;white-space:nowrap;flex:none;font-variant-numeric:tabular-nums}
+.sp-ep .tt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:26ch}
+.sp-ep i{font-style:normal;font-family:var(--font-mono);font-size:var(--w-tag);color:var(--ink-dim);
+  white-space:nowrap;font-variant-numeric:tabular-nums;opacity:.7}
+button.sp-ep{cursor:pointer}
+button.sp-ep:hover{background:color-mix(in srgb,var(--sc) 7%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--sc) 40%,transparent)}
+button.sp-ep:active{transform:translateY(1px)}
+button.sp-ep:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.sp-ep .pl{color:var(--sc);flex:none;display:inline-flex;align-items:center}
+/* 平板與手機：pill 拉到 44px 命中高（開播、標記都在這顆上）。
+   條件用寬度而非 pointer:coarse——桌機縮視窗時也驗得到。 */
+@media (max-width:1439px),(pointer:coarse){
+  .sp-ep{min-height:44px}
+}
+.sp-ep:not(.have) i{opacity:.85}
+/* 短暫提示（離線備妥等） */
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));
+  translate:-50% 0;z-index:600;padding:11px 20px;border-radius:999px;
+  background:rgba(18,21,26,.94);color:#fff;font-size:.88rem;border:1px solid var(--glass-line);
+  box-shadow:0 8px 30px rgba(0,0,0,.4);opacity:0;pointer-events:none;
+  transition:opacity .22s ease,translate .22s ease}
+#toast.on{opacity:1;translate:-50% -6px}
+body.lt #toast{background:rgba(255,255,255,.96);color:#171B21}
+/* 看過標記：未看＝空圈、看到一半＝圓環按比例填、看完＝實心打勾。
+   用 conic-gradient 畫進度環，不必為此多一個 svg。 */
+.ep-mark{position:relative;flex:none;width:19px;height:19px;border-radius:50%;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:.68rem;font-weight:700;color:transparent;
+  border:1.5px solid var(--line-strong);
+  background:conic-gradient(color-mix(in srgb,var(--sc) 55%,transparent) calc(var(--p,0)*1%),transparent 0);
+  transition:background-color .16s ease,border-color .16s ease,color .16s ease}
+.ep-mark:hover{border-color:color-mix(in srgb,var(--sc) 70%,transparent)}
+.ep-mark:focus-visible{outline:2px solid var(--sc);outline-offset:2px}
+/* 這顆圈疊在整列按鈕上，兩者都要點得到。視覺維持 19px（放大會壓縮標題空間），
+   靠偽元素把可點範圍撐到 40×44：往左吃滿列的內距、往右留 4px 給標題，
+   手指落在圈附近＝標記，落在標題＝開播，不會再互相誤觸。 */
+@media (max-width:1439px),(pointer:coarse){
+  .ep-mark::before{content:"";position:absolute;left:50%;top:50%;width:40px;height:44px;
+    transform:translate(-50%,-50%)}
+}
+.ep-mark:hover::after{content:'✓';position:absolute;color:var(--ink-dim);font-size:.68rem}
+/* 看完＝結構色實心圈＋反白 ✓（用 --bg 反色，兩地面都對比足夠） */
+.ep-mark.on{background:var(--sc);border-color:var(--sc);color:var(--bg)}
+.ep-mark.on::after{content:none}
+/* 看過的集數：整顆 pill 淡化＋✓ 保持可見 */
+.sp-ep.seen b{opacity:.7}
+.sp-ep.seen{opacity:.62}
+.sp-ep.seen:hover{opacity:1}
+/* 114暑的重複段：115暑已教過同樣內容，留著當備援但不該搶注意力 */
+.sp-ep.alt{opacity:.42}
+.sp-ep.alt:hover{opacity:.85}
+.sp-ep.alt b{color:var(--ink-dim)}
+/* 「接著看」課序 chip 的章節小籤：結構色小色場（非框），回答「這支屬哪章」；
+   長章名靠 ellipsis 收斂，完整座標仍在 chip 的 data-tip（epPos） */
+.sp-ep .ep-ch{flex:none;font-family:var(--font-mono);font-size:var(--w-tag);
+  color:var(--sc);background:var(--sc-soft);border-radius:999px;padding:1px 8px;
+  letter-spacing:.04em;max-width:11ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+@media (max-width:560px){.sp-ep .ep-ch{max-width:7ch}}  /* 窄幅把空間讓給標題；完整章名在 data-tip */
+/* ============ 離線播放器（T06 換皮：tokens 語彙；骨架 ADR-0003 原樣） ============ */
+.vid-panel{max-width:min(1100px,94vw)}
+/* ── 播放器標題三層：集數碼（mono 眉標 ember）／課程名（--w-title 主標）／
+   科目·章節（mono 中繼）。語彙對齊 wm-dh 與學校 modal 的編輯式層級。 */
+.vid-head{padding-right:52px;margin-bottom:16px;
+  border-bottom:1px solid var(--line);padding-bottom:14px}
+.vid-head .vh-code{display:block;font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--accent);
+  font-variant-numeric:tabular-nums;margin-bottom:8px}
+.vid-panel h3{font-family:var(--font-ui);font-size:var(--w-title);font-weight:700;
+  color:var(--ink);margin:0;letter-spacing:var(--ls-title);line-height:1.12}
+.vid-head .vh-meta{display:block;margin-top:8px;font-family:var(--font-mono);
+  font-size:var(--w-tag);letter-spacing:.06em;color:var(--ink-dim)}
+.vid-head .vh-meta[hidden]{display:none}
+.vid-panel video{width:100%;max-height:70vh;border-radius:var(--r-md);background:#000;display:block}
+#vidFrame{width:100%;aspect-ratio:16/9;max-height:70vh;border:0;border-radius:var(--r-md);
+  background:#000;display:block}
+/* display:block 蓋掉 UA 的 [hidden]{display:none}；隱藏規則的權重必須大於等於上面那條，
+   所以 iframe 這條要用 id 選擇器寫（先前用 .vid-panel iframe[hidden] 權重不夠而失效）。 */
+.vid-panel video[hidden]{display:none}
+#vidFrame[hidden]{display:none}
+/* YouTube 內嵌時用它自己的控制項，隱藏我們這排（class 掛在 #vidModal 上） */
+#vidModal.yt .vstage,#vidModal.yt .vid-meta{display:none}
+#vidModal.yt .yt-hint{display:block}
+/* Drive 預覽借用 .yt 的版面（都是 iframe），但那句 YouTube 鍵盤說明與它無關——
+   使用者 2026-09-04 的截圖上就掛著這句話，只會加深「這是什麼畫面」的困惑。 */
+#vidModal.drive-preview .yt-hint{display:none}
+/* 降級橫幅：明說「你不在 Feb 的播放器裡」，並給一鍵回去的出口。
+   刻意用警示色而不是裝飾色——它的工作是被看見，不是好看。 */
+.dv-bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+  margin:0 0 14px;padding:10px 14px;border-radius:10px;
+  background:color-mix(in srgb,var(--warn,#B3402F) 12%,transparent);
+  border:1px solid color-mix(in srgb,var(--warn,#B3402F) 34%,transparent);
+  font-size:var(--w-meta);color:var(--ink-dim)}
+.dv-bar b{color:var(--ink)}
+.dv-back{margin-left:auto;flex:none;padding:6px 14px;border-radius:8px;cursor:pointer;
+  border:1px solid color-mix(in srgb,var(--accent) 55%,transparent);
+  background:color-mix(in srgb,var(--accent) 16%,transparent);
+  color:var(--ink);font:500 var(--w-meta)/1 inherit}
+.dv-back:hover{background:color-mix(in srgb,var(--accent) 28%,transparent)}
+/* 次要出口降級成文字連結：它是一條「知道自己在放棄什麼」才該走的路，
+   長得跟主動作一樣大顆就是在誘導誤點（2026-09-04 使用者實際踩到）。 */
+.dv-alt{display:inline;padding:2px 0;border:0;background:none;cursor:pointer;
+  color:var(--ink-dim);font:400 var(--w-meta)/1.5 inherit;
+  text-decoration:underline;text-underline-offset:3px;
+  text-decoration-color:color-mix(in srgb,var(--ink-dim) 45%,transparent)}
+.dv-alt:hover{color:var(--ink)}
+.chap-note{margin:0 0 8px;padding:0 2px;font-size:var(--w-meta);color:var(--ink-dim);line-height:1.5}
+.chap-list button[disabled]{opacity:.72;cursor:default}
+/* 橫幅上的思考地圖狀態：獨佔一行，字級與橫幅本文一致，靠 mono 區別「這是狀態讀數」 */
+.dv-notes{flex-basis:100%;font-family:var(--font-mono);font-size:var(--w-meta);
+  color:var(--ink-dim);letter-spacing:.02em}
+/* 預覽模式：章節與思考地圖照舊顯示（右欄是我們自己的 DOM，
+   .yt 只藏掉 .vstage 那一格），所以這裡不需要額外規則——
+   留這段註解，免得將來有人把 #vidChap/#vidMap 也加進 .yt 的隱藏清單。 */
+.yt-hint{display:none;font-size:var(--w-meta);color:var(--ink-dim);margin-top:14px}
+.yt-hint b{color:var(--accent);font-family:var(--font-mono);font-weight:500}
+/* 全螢幕時 max-height:70vh 會把畫面切掉，必須解除並改用 contain 完整顯示 */
+.vid-panel video:fullscreen,.vid-panel video:-webkit-full-screen{
+  max-height:none;width:100%;height:100%;border-radius:0;object-fit:contain;background:#000}
+/* （.vid-resume 的樣式統一定義在下方 .vid-meta 那一區；
+   這裡原本有一份重複定義，兩份規則互相覆蓋，改樣式時很容易改錯地方。） */
+/* ── 自製播放控制列（骨架不動：換原生 controls 的理由與事件佈線照舊）──
+   T06 換皮：舞台裸影像（決策 A 去框）；控制列＝真浮層玻璃條（de-boxing 法豁免）。
+   ⚠ 釘在影像上的浮層永遠站在暗色影格上，不跟 body.lt 換地——
+   on-video 字色／線色以 --vov-* 常數鎖定（ember 雙階取 tokens 原值），不是漏改。 */
+.vstage{position:relative;line-height:0;border-radius:var(--r-md);overflow:hidden;background:#000;
+  --vov-ink:#F2F5FA;--vov-dim:rgba(242,245,250,.72);--vov-line:rgba(255,255,255,.16);
+  --vov-acc:#E07840;--vov-warm:#C25E2E}
+.vstage video{display:block;width:100%;max-height:70vh}
+/* 白字保底 scrim：控制列現身時，下緣先鋪一層往下加深的漸層——
+   亮板書也壓得住（對比底線 4.5:1 的保險）。opacity only、不佔互動。 */
+.vstage::after{content:"";position:absolute;left:0;right:0;bottom:0;height:110px;z-index:1;
+  pointer-events:none;background:linear-gradient(180deg,transparent,rgba(4,8,14,.62));
+  opacity:0;transition:opacity var(--dur-exit) var(--ease)}
+.vstage:hover::after,.vstage:focus-within::after,.vstage.paused::after,.vstage.show::after{opacity:1}
+/* 控制列＝玻璃四件組（tokens .glass 配方：fill＋hairline＋內光＋blur14）。
+   自動隱藏行為原樣：transform／opacity only。 */
+.vctl{position:absolute;left:12px;right:12px;bottom:12px;z-index:2;padding:8px 12px 6px;
+  border-radius:var(--r-lg);
+  background:rgba(16,20,27,.58);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border:1px solid var(--vov-line);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 10px 36px rgba(0,0,0,.4);
+  opacity:0;transform:translateY(6px);
+  transition:opacity var(--dur-exit) var(--ease),transform var(--dur-exit) var(--ease);
+  line-height:1.5}
+/* 無 blur 環境（觸控裝置 * 全滅規則也會打到）：玻璃改近實心保對比 */
+@media (hover:none){
+  .vctl{background:rgba(12,15,21,.9)}
+}
+.vstage:hover .vctl,.vctl:focus-within,.vstage.paused .vctl,.vstage.show .vctl{
+  opacity:1;transform:translateY(0)}
+/* ── 控制列按鍵（決策 B）：ui-ghost 一階——視覺 32px（--btn-h）圓鈕、
+   命中一律偽元素外擴 44px（不分裝置）。主鍵不再做浮雕：
+   圖示放大一級＋全亮即是主從。 */
+.vrow{display:flex;align-items:center;gap:4px}
+.vspring{flex:1}
+.vic{position:relative;width:var(--btn-h);height:var(--btn-h);flex:none;
+  display:inline-flex;align-items:center;justify-content:center;
+  border:0;border-radius:50%;background:none;color:var(--vov-dim);cursor:pointer;
+  transition:background-color 150ms var(--ease),color 150ms var(--ease),
+             transform 150ms var(--ease)}
+.vic svg{display:block;pointer-events:none;width:20px;height:20px}
+.vic::after{content:"";position:absolute;left:50%;top:50%;width:44px;height:44px;
+  transform:translate(-50%,-50%)}
+.vic:hover,.vic:focus-visible{background:rgba(255,255,255,.14);color:var(--vov-ink)}
+.vic:active{transform:scale(.94)}     /* 按下去有回饋 */
+.vic[data-toggle]{color:var(--vov-ink);margin-right:4px}
+.vic[data-toggle] svg{width:24px;height:24px}
+/* 右側工具組：前面一條 on-video 髮絲線，跟播放控制分開 */
+.vvol{position:relative;margin-left:6px;padding-left:14px}
+.vvol::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:1px;height:20px;background:var(--vov-line)}
+/* 開啟中的工具（思考地圖）：ember 點亮＋淡色場，跟「可按」區分開 */
+.vic.on,.vic.brain.on{color:var(--vov-acc)}
+.vic.brain.on{background:color-mix(in srgb,var(--vov-acc) 18%,transparent)}
+.ico-tiny{display:inline-block;vertical-align:-.02em;margin-right:.4em;opacity:.75}
+/* 工具列按鈕的前導圖示：用遮罩畫，字色改變時圖示自動跟著改，
+   不必為每套主題各準備一份圖檔。 */
+/* 16px＋不透明度提到 .85：跟播放器那組（22px／線寬 2）維持同一種可讀性，
+   原本 14px／.72 在深色背景上偏糊。 */
+.ico-lead{display:inline-block;width:16px;height:16px;flex:none;margin-right:.45em;
+  vertical-align:-.19em;background:currentColor;opacity:.85;
+  -webkit-mask:var(--ico) center/contain no-repeat;mask:var(--ico) center/contain no-repeat}
+.ico-folder{--ico:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'><path d='M3.6 6.6A1.6 1.6 0 0 1 5.2 5h3.4l2 2.4h8.2A1.6 1.6 0 0 1 20.4 9v8.4A1.6 1.6 0 0 1 18.8 19H5.2a1.6 1.6 0 0 1-1.6-1.6z'/></svg>")}
+.ico-folder-open{--ico:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'><path d='M3.6 6.6A1.6 1.6 0 0 1 5.2 5h3.4l2 2.4h8.2A1.6 1.6 0 0 1 20.4 9v1.4'/><path d='M3.6 10.4h17.2l-2.1 7A1.6 1.6 0 0 1 17.2 19H5.2a1.6 1.6 0 0 1-1.6-1.6z'/></svg>")}
+.ico-sun{--ico:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.1' stroke-linecap='round'><circle cx='12' cy='12' r='4.2'/><path d='M12 2.4v2.2M12 19.4v2.2M4.2 12H2M22 12h-2.2M5.9 5.9 4.4 4.4M19.6 19.6l-1.5-1.5M18.1 5.9l1.5-1.5M4.4 19.6l1.5-1.5'/></svg>")}
+.ico-moon{--ico:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'><path d='M20 14.2A8.2 8.2 0 0 1 9.8 4 8.4 8.4 0 1 0 20 14.2Z'/></svg>")}
+/* 齒輪原本用「一圈 12 個齒的貝茲曲線」畫，在 17px 下所有齒糊成一團毛邊。
+   改成三條滑桿——設定的通用符號之一，而且只有六筆線，小尺寸下絕對清楚。 */
+.ico-gear{width:19px;height:19px;margin-right:0;opacity:.9;
+  --ico:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.1' stroke-linecap='round'><path d='M4 7h9M17 7h3M4 12h3M11 12h9M4 17h9M17 17h3'/><circle cx='15' cy='7' r='2.1'/><circle cx='9' cy='12' r='2.1'/><circle cx='15' cy='17' r='2.1'/></svg>")}
+/* 時間：目前時刻是要讀的，總長只是參考——用透明度分主從，
+   而不是兩個一樣亮的數字中間夾一條斜線。 */
+.vtime{font-family:var(--font-mono);font-size:var(--w-meta);color:var(--vov-ink);
+  letter-spacing:.06em;margin-left:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.vtime .tot{color:var(--vov-dim);font-size:var(--w-tag)}
+.vvol{display:inline-flex;align-items:center}   /* 分隔線與左內距定義在上面控制列那區 */
+.vvol input{width:0;opacity:0;transition:width 150ms var(--ease),opacity 150ms var(--ease);
+  accent-color:var(--vov-ink);margin:0 2px}
+.vvol:hover input,.vvol input:focus{width:74px;opacity:1}
+/* ── 進度條（決策 C）：2px 細軌——軌是資訊，點是把手。
+   buffered＝淡墨、played＝ember lit、章節界線＝1px 髮絲刻度、
+   重點時段＝--warm 貼軌段、播放頭＝ember 小圓點（抓住時 transform 放大）。
+   拖曳／點擊的 pointer-capture 邏輯在 JS（bindSeek），原樣不動。 */
+.vseek{position:relative;height:18px;cursor:pointer;margin:0 2px 2px}
+.vseek-track{position:absolute;left:0;right:0;top:8px;height:2px;border-radius:99px;
+  background:rgba(255,255,255,.16);overflow:hidden}
+.vseek-buf{position:absolute;inset:0 auto 0 0;width:0;background:rgba(255,255,255,.30)}
+.vseek-play{position:absolute;inset:0 auto 0 0;width:0;background:var(--vov-acc)}
+.vseek-marks{position:absolute;left:0;right:0;top:8px;height:2px;pointer-events:none}
+/* 重點時段：貼軌 --warm 段（「哪裡有料」的量值），滑近提亮 */
+.vseek-marks i{position:absolute;top:0;height:2px;background:var(--vov-warm);opacity:.6;
+  border-radius:99px;transition:opacity 150ms var(--ease)}
+.vseek:hover .vseek-marks i{opacity:.95}
+/* 章節界線：1px 髮絲刻度，上下各突出軌 2px */
+.vseek-marks u{position:absolute;top:-2px;width:1px;height:6px;background:rgba(255,255,255,.55)}
+.vseek-knob{position:absolute;top:4px;width:10px;height:10px;border-radius:50%;
+  background:var(--vov-acc);translate:-50% 0;box-shadow:0 1px 6px rgba(0,0,0,.55);
+  opacity:0;transform:scale(.5);
+  transition:opacity 150ms var(--ease),transform 150ms var(--ease)}
+.vseek:hover .vseek-knob,.vstage.show .vseek-knob{opacity:1;transform:scale(1)}
+.vseek:active .vseek-knob{transform:scale(1.4)}
+/* 更多選單：字幕、倍速、子母畫面收進這裡——真浮層玻璃，選項 44px 命中 */
+.vmenu-wrap{position:relative}
+.vmenu{position:absolute;right:0;bottom:calc(100% + 8px);min-width:200px;z-index:5;
+  background:rgba(14,17,23,.94);border:1px solid var(--vov-line);border-radius:var(--r-md);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  padding:6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 14px 40px rgba(0,0,0,.5);
+  text-align:left}
+.vmenu[hidden]{display:none}
+.vmenu h5{font-family:var(--font-mono);font-size:var(--w-tag);color:var(--vov-dim);
+  font-weight:500;letter-spacing:var(--ls-tag);padding:7px 11px 4px;margin:0}
+.vmenu button{display:flex;align-items:center;gap:9px;width:100%;min-height:44px;
+  padding:9px 11px;border:0;border-radius:var(--r-sm);background:none;color:var(--vov-ink);
+  font-family:var(--font-ui);font-size:var(--w-meta);text-align:left;cursor:pointer;
+  transition:background-color 150ms var(--ease)}
+.vmenu button:hover{background:rgba(255,255,255,.12)}
+.vmenu button.on{color:var(--vov-acc)}
+.vmenu button.on::after{content:'✓';margin-left:auto;font-size:.8rem}
+.vmenu .rates{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:2px 7px 7px}
+.vmenu .rates button{justify-content:center;min-height:36px;padding:6px 0;
+  font-family:var(--font-mono);font-size:var(--w-meta);font-variant-numeric:tabular-nums;
+  background:rgba(255,255,255,.07)}
+.vmenu .rates button.on{background:var(--vov-acc);color:#0B0D12}
+.vmenu .rates button.on::after{content:none}
+.vmenu hr{border:0;border-top:1px solid var(--vov-line);margin:5px 8px}
+.vid-meta{display:flex;align-items:center;gap:14px;margin-top:12px;flex-wrap:wrap}
+.drive-stream-status{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin:12px 0;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-md);
+  color:var(--ink);font-size:.85rem;line-height:1.5}
+.drive-stream-status span{flex:1;min-width:12ch}
+.drive-stream-status button{min-height:44px;flex-shrink:0;color:inherit;font:inherit;padding:8px 12px}
+/* 串流診斷面板（?febdiag=1 開）：iPad 沒有 devtools，數字直接寫在播放器底下。
+   字不能小——這是要在平板上一眼讀、截圖傳給人看的東西。 */
+.drive-diag{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin:12px 0;padding:12px 14px;
+  border:1px dashed var(--line);border-radius:var(--r-md);color:var(--ink)}
+.drive-diag pre{flex:1;min-width:24ch;margin:0;white-space:pre-wrap;font-family:var(--font-mono);
+  font-size:.95rem;line-height:1.6;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.drive-diag button{min-height:44px;flex-shrink:0;color:inherit;font:inherit;padding:8px 14px}
+}
+/* 「剩 114 分」是估算，不是要一直盯的數字——mono 眉標階讀數 */
+.vid-left{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.06em;
+  color:var(--ink-dim);white-space:nowrap;font-variant-numeric:tabular-nums}
+/* （續播提示條與「標記看過／錯題」鈕已於前版移除；.vgrp/.vbtn/.vsel 舊控制組
+   的樣式因 markup 早已不再輸出，T06 一併清除。） */
+/* （原本這裡有「標記看過／錯題」兩顆鈕與鍵盤快捷鍵提示列，
+   使用者回饋畫面上多餘，已移除。標記與錯題照舊在影片列表那層做；
+   快捷鍵功能仍在，只是不再佔版面說明。） */
+/* 字幕外觀 */
+/* 字級用 vh：視窗放大字幕才會跟著放大，全螢幕不會變成一行小字 */
+.vid-panel video::cue{background:rgba(0,0,0,.7);color:#fff;
+  font-family:var(--font-ui);font-size:2.6vh;line-height:1.45}
+.vid-panel video:fullscreen::cue,.vid-panel video:-webkit-full-screen::cue{font-size:3.1vh}
+/* 重點時段的字幕上色（.vtt 內 <c.key> 標記，make_notes.py 產生） */
+.vid-panel video::cue(.key){color:#FFD98A;background:rgba(46,34,6,.78)}
+/* ── 章節軌（決策 D 去框）：玻璃盒退場——條帶直接站在面板上。
+   全寬細帶＋「章節」眉標列＋展開的髮絲行線列；章節名 mono；
+   點帶跳轉／點列跳轉（data-t）邏輯原樣。 */
+#vidChap{margin-top:14px}
+.chap-rail{border:0;border-radius:0;background:none}
+/* 條帶：38px 命中高（觸控 44px 在檔頭觸控區），視覺是中段 8px 的細帶 */
+.chap-strip{position:relative;height:38px;cursor:pointer}
+.chap-strip .seg{position:absolute;top:15px;bottom:15px;
+  background:color-mix(in srgb,var(--ink) 9%,transparent);
+  box-shadow:inset -1px 0 0 var(--bg);
+  transition:background-color 150ms var(--ease)}
+.chap-strip .seg:last-of-type{box-shadow:none}
+.chap-strip .seg:hover{background:color-mix(in srgb,var(--ink) 20%,transparent)}
+.chap-strip .seg.cur{background:color-mix(in srgb,var(--accent) 34%,transparent)}
+/* 重點時段：貼帶底的 --warm 量值段（與 vseek 同語彙），滑近提亮 */
+.chap-strip .hot{position:absolute;bottom:12px;height:2px;pointer-events:none;
+  background:var(--warm);opacity:.55;border-radius:99px;transition:opacity 150ms var(--ease)}
+.chap-rail:hover .chap-strip .hot{opacity:.95}
+/* 播放頭：墨色細針貫穿條帶（token 墨階，兩地自動成立） */
+.chap-strip .ph{position:absolute;top:8px;bottom:8px;width:2px;background:var(--ink);
+  pointer-events:none}
+.chap-strip .ph::before{content:'';position:absolute;top:-6px;left:50%;translate:-50% 0;
+  border:4px solid transparent;border-top-color:var(--ink)}
+/* 目前章節列：整列可點＝展開列表；「章節」眉標＋mono 章節名＋重點理由 */
+.chap-head{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;
+  padding:8px 2px;background:none;border:0;border-top:1px solid var(--line);
+  font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink);text-align:left;
+  cursor:pointer;transition:background-color 150ms var(--ease)}
+.chap-head::before{content:'章節';font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:var(--ls-tag);color:var(--ink-faint);flex:none}
+.chap-head:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
+.chap-head b{color:var(--ink);font-weight:600;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;min-width:0}
+.chap-head .why{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:var(--w-tag);color:var(--accent)}
+.chap-head .caret{font-size:var(--w-tag);color:var(--ink-faint);margin-left:auto;
+  transition:rotate 150ms var(--ease)}
+.chap-rail.open .caret{rotate:180deg}
+/* 展開列表：單欄髮絲行線列（規則分隔、無盒），目前章節 ember＋左脊 */
+.chap-list{display:flex;flex-direction:column;border-top:1px solid var(--line);
+  max-height:38vh;overflow-y:auto}
+.chap-list[hidden]{display:none}   /* display:flex 會蓋掉 UA 的 [hidden]，必須明寫 */
+.chap-list button{display:flex;gap:14px;align-items:baseline;text-align:left;width:100%;
+  min-height:44px;font-family:var(--font-mono);font-size:var(--w-meta);color:var(--ink);
+  background:none;border:0;border-bottom:1px solid var(--line);
+  padding:8px 6px 8px 12px;cursor:pointer;
+  transition:background-color 150ms var(--ease)}
+.chap-list button:last-child{border-bottom:0}
+.chap-list button:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.chap-list button.cur{color:var(--accent);box-shadow:inset 2px 0 0 var(--accent)}
+.chap-list b{font-family:var(--font-mono);font-size:var(--w-tag);font-weight:400;
+  letter-spacing:.06em;color:var(--ink-faint);white-space:nowrap;
+  font-variant-numeric:tabular-nums;min-width:3.4em}
+.chap-list button.cur b{color:var(--accent)}
+/* 思考地圖面板 */
+#vidMap{margin-top:20px;border-top:1px solid var(--line);padding-top:16px}
+/* 面板全螢幕：撐滿整個螢幕但保留兩欄，左看課右讀筆記。
+   （原生的 video:fullscreen 只放大影片，旁邊留不住東西，所以另做一顆鈕。） */
+/* iPad 退路：瀏覽器不給 Fullscreen API 時，用 CSS 把面板撐到滿版。
+   position:fixed 相對於視窗，等於「假全螢幕」——網址列還在，但影片真的變大。 */
+.vid-panel.fs-fallback{position:fixed;inset:0;width:100vw;max-width:100vw;
+  height:100dvh;max-height:100dvh;margin:0;border-radius:0;z-index:340;
+  padding:calc(10px + env(safe-area-inset-top)) 14px calc(10px + env(safe-area-inset-bottom))}
+.vid-panel.fs-fallback .vid-head{margin-bottom:8px;padding-bottom:7px}
+.vid-panel.fs-fallback .vid-head h3{font-size:var(--w-sub)}
+.vid-panel.fs-fallback .vid-head .vh-meta{display:none}
+/* 全螢幕背景必須「不透明」：.glass 是半透明白，平常疊在頁面上才成立；
+   全螢幕時背後沒有頁面、直接疊在黑底上，7% 白就變成近黑——亮色主題下整片發灰。 */
+.vid-panel:fullscreen{width:100vw;max-width:100vw;height:100vh;max-height:100vh;
+  border-radius:0;margin:0;padding:18px 22px;overflow:hidden;
+  background:#0E1116;backdrop-filter:none}
+body.lt .vid-panel:fullscreen{background:#F4F2ED}
+/* 全螢幕時標題區壓扁讓位給影片（h3 現在包在 .vid-head 裡，
+   原本寫 >h3 的直接子選擇器已經指不到） */
+.vid-panel:fullscreen>.vid-head{margin-bottom:10px;padding-bottom:8px}
+.vid-panel:fullscreen>.vid-head h3{font-size:var(--w-sub)}
+.vid-panel:fullscreen>.vid-head .vh-meta{display:none}
+.vid-panel:fullscreen .vid-main{max-height:calc(100vh - 76px);overflow-y:auto}
+.vid-panel:fullscreen #vidMap{max-height:calc(100vh - 76px);overflow-y:auto}
+.vid-panel:fullscreen video{max-height:calc(100vh - 240px)}
+/* 全螢幕但地圖收起時，影片置中吃滿版面 */
+.vid-panel:fullscreen:not(.two-col) video{max-height:calc(100vh - 190px);margin:0 auto}
+/* 夠寬就左右分欄：左邊上課、右邊讀筆記，兩欄各自捲動互不影響。
+   窄螢幕自動退回上下堆疊（媒體查詢不成立，two-col 這條就不生效）。 */
+@media (min-width:1200px){
+  /* width 要一起寫：.modal-panel 的 width:min(920px,100%) 會壓過單純的 max-width */
+  .vid-panel.two-col{width:min(1680px,96vw);max-width:min(1680px,96vw);display:grid;
+    /* 左欄放寬（1.46→1.62）：影片受 16:9 限制，欄位太窄時高度撐不起來，
+       上下就留白。放寬後影片變大，右欄仍保有 372px 下限可讀。 */
+    grid-template-columns:minmax(0,1.62fr) minmax(372px,.86fr);
+    /* align-items 用 stretch（預設）而不是 start：
+       start 會讓兩欄各自縮到自己的內容高度，左欄（影片）比右欄（地圖）矮時
+       下面就空出一大塊——實測 238px 的死白。stretch 讓兩欄等高，
+       影片區再用 flex 把空間分配掉。 */
+    column-gap:26px;height:92vh;max-height:92vh;overflow:hidden}
+  /* 標題橫跨兩欄。h3 現在包在 .vid-head 裡，選擇器要跟著改——
+     沒改的話標題會被當成第一欄的內容，把影片整個擠到右上角。 */
+  .vid-panel.two-col>.vid-head{grid-column:1/-1}
+  .vid-panel.two-col .vid-main{min-width:0;min-height:0;
+    display:flex;flex-direction:column;gap:12px;
+    overflow-y:auto;overscroll-behavior:contain;padding-right:4px}
+  /* 影片吃掉剩餘空間：章節條與中繼列是固定高度，其餘全給畫面。
+     這樣視窗越大影片越大，而不是留白越大。
+     用 aspect-ratio 讓容器貼著 16:9 收縮，而不是撐滿高度再靠 contain 補黑邊——
+     黑邊會讓畫面看起來像沒對準，而且白白吃掉可用空間。 */
+  .vid-panel.two-col .vstage{flex:0 1 auto;min-height:0;
+    aspect-ratio:16/9;width:100%;margin-inline:auto;
+    max-height:calc(92vh - 186px)}   /* 扣掉章節條 75 ＋中繼列 39 ＋標題與間距 */
+  .vid-panel.two-col .vstage video{width:100%;height:100%;object-fit:contain}
+  /* 影片依比例縮完後若有剩餘空間，讓整組（影片＋章節條＋中繼列）垂直置中。
+     章節條必須緊貼影片下緣——它是影片的時間軸，中間空一塊就斷了關聯。 */
+  .vid-panel.two-col .vid-main{justify-content:center}
+  .vid-panel.two-col #vidChap,
+  .vid-panel.two-col .vid-meta{flex:none}
+  .vid-panel.two-col #vidMap{margin-top:0;border-top:0;padding-top:0;
+    border-left:1px solid var(--line);padding-left:24px;
+    min-height:0;display:flex;flex-direction:column;overflow:hidden}
+  /* 地圖標題固定，內容自己捲：原本標題會跟著捲走，捲到一半就不知道
+     自己在看哪一支影片的筆記。 */
+  .vid-panel.two-col #vidMap>.map-head{flex:none;padding-bottom:10px;
+    border-bottom:1px solid var(--line);margin-bottom:2px}
+  .vid-panel.two-col #vidMap>.map-scroll{flex:1 1 auto;min-height:0;
+    overflow-y:auto;overscroll-behavior:contain;padding-right:4px}
+}
+/* 窄螢幕（iPad 直向、手機）：分欄不成立，思考地圖會接在影片下面變成一條
+   七千多像素的長卷——看完影片想回集數列表得一路捲回去。
+   改成獨立的捲動區塊並限高：影片與地圖各捲各的，位置感不會弄丟。 */
+@media (max-width:1199px){
+  #vidMap{max-height:62vh;overflow-y:auto;overscroll-behavior:contain;
+    padding-right:4px;
+    /* 底部漸淡，暗示「還有內容可以捲」，不必多畫一條捲動條 */
+    -webkit-mask:linear-gradient(#000 calc(100% - 26px),transparent);
+    mask:linear-gradient(#000 calc(100% - 26px),transparent)}
+}
+/* 面板標題退成眉標語彙——它是「這一欄是什麼」的標示，不是內容的一部分。
+   原本 1.05rem serif 跟下面的區塊標題（.92rem）幾乎同大，
+   而區塊標題又比內文（.93rem）還小，整個層級是反的。 */
+.map-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 4px}
+.map-head h4{font-family:var(--font-mono);font-size:var(--w-tag);color:var(--ink-dim);margin:0;
+  letter-spacing:var(--ls-tag);text-transform:uppercase;font-weight:400;
+  display:inline-flex;align-items:center;gap:8px}
+.map-head h4 svg{width:15px;height:15px;opacity:.6;flex:none}
+.map-head span{font-size:var(--w-tag);color:var(--ink-dim);opacity:.7}
+/* ── 思考地圖內容（決策 E 去框）：小節＝mono 眉標＋髮絲線；
+   卡片＝2px 左脊的行線塊；時間戳＝安靜 mono 連結；快照＝髮絲頂線裸圖。
+   KaTeX／marked／mermaid 懶載入與渲染流程原樣。 */
+.map-sec{font-family:var(--font-mono);font-size:var(--w-tag);font-weight:500;
+  letter-spacing:var(--ls-tag);color:var(--ink-faint);text-transform:uppercase;
+  margin:28px 0 12px;display:flex;align-items:center;gap:12px;
+  font-variant-numeric:tabular-nums}
+.map-sec::after{content:'';flex:1;height:1px;background:var(--line)}
+.map-tldr{margin:0;padding-left:1.3em;font-size:var(--w-body);line-height:1.95}
+/* 內容卡：無盒——2px 左脊＋縮排，行線分塊 */
+.map-card{background:none;border:0;border-left:2px solid var(--line-strong);border-radius:0;
+  padding:2px 0 6px 16px;margin-top:16px;box-shadow:none}
+.map-card summary{font-size:var(--w-sub);font-weight:600;color:var(--ink);
+  cursor:pointer;user-select:none;letter-spacing:-.01em}
+.map-md{font-size:var(--w-body);line-height:1.95;color:var(--ink)}
+.map-md p{margin:.5em 0}
+.map-md ul,.map-md ol{padding-left:1.4em;margin:.4em 0}
+.map-md code{font-family:var(--font-mono);font-size:.85em;
+  background:color-mix(in srgb,var(--ink) 10%,transparent);
+  border-radius:5px;padding:1px 6px}
+.map-md .katex{font-size:1.02em}
+.map-md .katex-display{overflow-x:auto;padding:4px 0}
+.mermaid{display:flex;justify-content:center;margin:10px 0;overflow-x:auto}
+.mermaid svg{max-width:100%}
+.map-svg{display:flex;justify-content:center;margin:10px 0;color:var(--ink)}
+.map-svg svg{max-width:100%;height:auto}
+/* 時間戳：安靜 mono 連結（膠囊退場），命中偽元素外擴 44px */
+.t-jump{position:relative;display:inline-flex;align-items:center;
+  font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.06em;
+  color:var(--accent);background:none;border:0;border-radius:0;padding:2px 0;
+  cursor:pointer;white-space:nowrap;font-variant-numeric:tabular-nums;
+  text-decoration:underline;text-underline-offset:4px;
+  text-decoration-color:color-mix(in srgb,var(--accent) 40%,transparent);
+  transition:text-decoration-color 150ms var(--ease)}
+.t-jump:hover,.t-jump:focus-visible{text-decoration-color:currentColor}
+.t-jump::after{content:"";position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);width:max(100%,44px);height:44px}
+.map-ex-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.map-tag{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.06em;
+  color:var(--ink-dim);background:none;border-radius:0;padding:0}
+.map-trap{font-size:var(--w-meta);color:var(--accent);margin-top:8px;line-height:1.7}
+/* 公式卡：必背的東西給自己的層級——ember 左脊，不再是色底盒 */
+.fml{display:flex;flex-direction:column;gap:14px;margin:12px 0}
+.fml-card{border:0;border-left:2px solid color-mix(in srgb,var(--accent) 55%,transparent);
+  border-radius:0;background:none;padding:4px 0 4px 16px}
+.fml-hd{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.fml-hd b{font-size:var(--w-meta);color:var(--accent);font-weight:600}
+.fml-hd span{font-size:var(--w-tag);color:var(--ink-dim)}
+.fml-hd span::before{content:'適用：'}
+.fml-body{overflow-x:auto;padding:2px 0}
+.fml-body .katex{font-size:1.22em}
+/* 觀念比較表：行線不外框（去框化法：表格用行線） */
+.cmp{margin:14px 0}
+.cmp-t{font-size:var(--w-meta);color:var(--ink);font-weight:600;margin-bottom:7px}
+.cmp-wrap{overflow-x:auto;border:0;border-radius:0}
+table.cmp-tb{border-collapse:collapse;width:100%;font-size:var(--w-meta);line-height:1.6}
+table.cmp-tb th,table.cmp-tb td{padding:9px 13px 9px 0;text-align:left;vertical-align:top;
+  border-bottom:1px solid var(--line)}
+table.cmp-tb tr:last-child th,table.cmp-tb tr:last-child td{border-bottom:0}
+table.cmp-tb thead th{background:none;color:var(--ink-dim);font-weight:500;
+  font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.06em;
+  white-space:nowrap;border-bottom:1px solid var(--line-strong)}
+table.cmp-tb tbody th{font-weight:500;color:var(--ink-dim);white-space:nowrap;
+  background:none;font-size:var(--w-meta)}
+table.cmp-tb tbody tr:hover td,table.cmp-tb tbody tr:hover th{
+  background:color-mix(in srgb,var(--ink) 4%,transparent)}
+/* 錯誤對照：✗／✓＝判定 → status token（glyph＋文字都在，永不 color-alone） */
+.pit{display:flex;flex-direction:column;gap:12px}
+.pit-row{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;border:0;border-radius:0;
+  background:none;overflow:visible}
+.pit-x,.pit-o{padding:4px 0 4px 12px;font-size:var(--w-meta);line-height:1.65;
+  border-left:2px solid;background:none}
+.pit-x{border-color:color-mix(in srgb,var(--status-bad) 55%,transparent);
+  color:var(--status-bad)}
+.pit-o{border-color:color-mix(in srgb,var(--status-good) 55%,transparent);
+  color:var(--status-good)}
+.pit-x::before{content:'✗ ';font-weight:700}
+.pit-o::before{content:'✓ ';font-weight:700}
+.pit-why{font-size:var(--w-tag);color:var(--ink-dim);padding:0 4px 0 14px}
+@media(max-width:560px){.pit-row{grid-template-columns:1fr}}
+/* 題型索引：考場上真正在查的那張表——「用哪招」ember 提亮 */
+.pbk td:first-child{color:var(--ink-dim)}
+.pbk td:last-child{color:var(--accent);font-weight:500}
+/* 例題的觸發條件 */
+.ex-trig{font-size:var(--w-tag);color:var(--ink-dim);margin-left:auto;white-space:nowrap}
+.ex-trig::before{content:'看到：';opacity:.75}
+/* 〔補〕教科書補充：虛線左脊標「課外補進來的」 */
+.map-sup{font-size:var(--w-meta);line-height:1.85;color:var(--ink-dim);margin-top:10px;
+  padding:2px 0 2px 14px;border-left:2px dashed var(--line-strong);
+  background:none;border-radius:0}
+.map-sup p{margin:.3em 0}
+.map-sup ul,.map-sup ol{padding-left:1.3em;margin:.3em 0}
+/* 板書快照：裸圖＋髮絲頂線（決策 E），說明列 mono 時間戳 */
+.map-snap{margin:14px 0 0;padding-top:10px;border-top:1px solid var(--line)}
+.map-snap img{max-width:100%;border:0;border-radius:0;display:block}
+.map-snap figcaption{font-size:var(--w-tag);color:var(--ink-dim);margin-top:6px;
+  display:flex;gap:10px;align-items:center}
+.snap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:10px}
+/* ── 工具列收納選單（合法浮層：glass-quiet 掛在 markup 上）。
+   不常按的硬碟／離線設定收在這裡；異常時觸發鈕亮 status-warn＋「!」，
+   收起來也不漏警訊。DISK（硬碟直讀）入口明文保留（ADR-0003）。 ── */
+.wm-more{position:relative}
+.wm-more-btn{display:inline-flex;align-items:center;gap:8px}
+.wm-more-btn svg{width:15px;height:15px;flex:none}
+.wm-more-pop{position:absolute;right:0;top:calc(100% + 8px);z-index:40;min-width:230px;
+  display:flex;flex-direction:column;gap:2px;padding:6px;
+  box-shadow:var(--glass-inner),0 12px 34px rgba(0,0,0,.4);
+  transform-origin:top right;
+  animation:popIn var(--dur-exit) var(--ease)}
+.wm-more-pop[hidden]{display:none}
+@keyframes popIn{from{opacity:0;transform:scale(.96) translateY(-4px)}}
+.wm-more-item{display:flex;align-items:center;gap:9px;width:100%;min-height:44px;
+  font-family:var(--font-ui);font-size:var(--w-meta);text-align:left;
+  padding:9px 12px;border-radius:var(--r-sm);border:0;background:none;color:var(--ink-dim);
+  cursor:pointer;white-space:nowrap;
+  transition:background-color 150ms var(--ease),color 150ms var(--ease)}
+.wm-more-item:hover{background:color-mix(in srgb,var(--ink) 8%,transparent);color:var(--ink)}
+/* hidden 屬性要壓過 display:flex，否則媒體伺服器正常時會留一個空白項 */
+.wm-more-item[hidden]{display:none}
+/* 選單裡的狀態＝status token（項目自帶狀態文字，永遠 glyph＋字、不 color-alone） */
+.wm-more-item[data-st=ready]{color:var(--status-good)}
+.wm-more-item[data-st=work],.wm-more-item[data-st=slow]{color:var(--status-warn)}
+.wm-more-item[data-st=gap],.wm-more-item[data-st=down]{color:var(--status-bad)}
+/* ── 逐字稿搜尋：安靜的髮絲底線輸入框（結果彈窗維持玻璃浮層） ── */
+.wm-srch{position:relative;flex:1;min-width:200px;max-width:360px}
+.wm-srch input{width:100%;font-family:var(--font-ui);font-size:var(--w-meta);
+  padding:9px 2px;border:0;border-bottom:1px solid var(--line-strong);border-radius:0;
+  background:none;color:var(--ink);
+  transition:border-color 150ms var(--ease)}
+.wm-srch input:focus{border-bottom-color:var(--accent)}
+.wm-srch input::placeholder{color:var(--ink-faint)}
+.wm-srch input::-webkit-search-cancel-button{-webkit-appearance:none}
+/* 搜尋結果：合法玻璃浮層，從輸入框下緣長出來 */
+.srch-pop{position:absolute;top:calc(100% + 10px);left:0;width:min(560px,calc(94vw - 40px));
+  z-index:80;max-height:56vh;overflow:auto;padding:10px;
+  transform-origin:top left;
+  animation:srchIn var(--dur-exit) var(--ease)}
+@keyframes srchIn{from{opacity:0;transform:scale(.97) translateY(-6px)}}
+.srch-hd{font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.06em;
+  color:var(--ink-dim);padding:4px 10px 8px}
+.srch-row{display:flex;gap:10px;align-items:center;width:100%;text-align:left;
+  font-size:var(--w-meta);min-height:44px;
+  color:var(--ink);background:none;border:0;border-top:1px solid var(--line);
+  padding:8px 10px;cursor:pointer;border-radius:var(--r-sm)}
+.srch-row:hover{background:color-mix(in srgb,var(--ink) 7%,transparent)}
+.srch-row b{font-family:var(--font-mono);font-weight:500;color:var(--accent);white-space:nowrap;
+  font-size:var(--w-tag);letter-spacing:.06em;font-variant-numeric:tabular-nums}
+.srch-row i{font-style:normal;font-family:var(--font-mono);color:var(--ink-dim);white-space:nowrap;
+  font-size:var(--w-tag);font-variant-numeric:tabular-nums}
+.srch-row span{color:var(--ink-dim);line-height:1.5;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srch-row mark{background:none;color:var(--accent);font-weight:600}
+a.sp-ep{text-decoration:none}
+.sp-p2{margin-top:16px;border-top:1px solid var(--glass-line);padding-top:10px}
+.sp-p2>summary{font-size:var(--w-meta);color:var(--ink-dim);cursor:pointer;list-style:none;user-select:none}
+.sp-p2>summary::-webkit-details-marker{display:none}
+.sp-p2>summary::before{content:'▸ ';font-size:.7rem}
+.sp-p2[open]>summary::before{content:'▾ '}
+.sp-p2>summary b{color:var(--ink);font-weight:500}
+.sp-final{margin-top:12px;font-size:.76rem;color:var(--dawn)}
+.sp-final a{color:var(--dawn);text-decoration:underline;text-underline-offset:3px}
+.sp-def{margin-top:10px;font-size:.68rem;color:var(--ink-dim);line-height:1.6}
+
+/* 科目分析（學校 modal 內展開；T04 決策 D 去框化重寫）
+   內部無子箱：小節＝.msec 眉標＋髮絲線（章節熱度／必考重點／命題趨勢）。 */
+.ana{margin-top:6px;padding:4px 0 8px 18px;border-left:1px solid var(--line)}
+.ana .upd{font-size:var(--w-tag);color:var(--ink-faint);font-variant-numeric:tabular-nums;letter-spacing:.06em}
+.ana .msec{margin:18px 0 8px}
+.ana-scroll{overflow-x:auto;touch-action:pan-x pan-y}
+/* 章節×年度熱度表（dataviz 法）：量值＝SEQUENTIAL 單一色相 ember，
+   近地表 → --warm、亮度單調；格內數字全程在（ink token，絕不 color-alone）；
+   空格真空；髮絲格線；行列表頭走文字 token。格子 padding 撐出 ≥24px 命中區。 */
+.heatt{border-collapse:collapse;width:100%;min-width:560px;font-size:var(--w-tag);margin:4px 0}
+.heatt th{font-family:var(--font-mono);font-weight:500;color:var(--ink-faint);
+  font-variant-numeric:tabular-nums;letter-spacing:.04em;padding:5px 4px;text-align:center;
+  border-bottom:1px solid var(--line-strong)}
+.heatt td{border:1px solid var(--line);text-align:center;padding:0}
+.heatt td.n,.heatt th.n{text-align:left;white-space:nowrap;border-left:0;
+  color:var(--ink-dim);padding:5px 10px 5px 0;border-right:1px solid var(--line-strong)}
+.heatt td.hc{min-width:34px;height:28px;padding:5px 4px;color:var(--ink);
+  font-variant-numeric:tabular-nums;cursor:default}
+.heatt td.hc:hover{outline:1px solid var(--line-strong);outline-offset:-1px}
+.heatt td.h0{background:none}
+.heatt td.tot,.heatt th.tot{font-weight:600;color:var(--ink);border-right:0;
+  font-variant-numeric:tabular-nums;padding:5px 0 5px 10px;border-left:1px solid var(--line-strong)}
+.ana ul.mk{margin:4px 0 0 1.2em;font-size:var(--w-meta);color:var(--ink-dim)}
+.ana ul.mk li{margin-bottom:4px}
+.ana ul.mk li b{color:var(--ink);font-weight:600}
+.ana .trend{font-size:var(--w-meta);color:var(--ink-dim)}
+/* NotebookLM：安靜 mono 連結（決策 C） */
+.nb-link{display:inline-block;margin-top:16px;font-size:var(--w-tag);letter-spacing:.06em;
+  color:var(--ink-dim);text-decoration:underline;text-underline-offset:4px;
+  text-decoration-color:var(--line-strong);transition:color 150ms var(--ease)}
+.nb-link:hover,.nb-link:focus-visible{color:var(--accent);text-decoration-color:currentColor}
+/* T16 佈線：nb-link 行內化的三個吊點（階03 站名列、分析摘要段、書架頭）——
+   段內行內連結不吃獨立段落的 16px 上距 */
+.r-name .nb-link,.wm-dsub .nb-link{margin:0 0 0 6px}
+.pending{font-size:var(--w-meta);color:var(--ink-dim);margin-top:8px}
+/* 共用 dataviz tooltip（單一元素、body 直屬；狀態在 04-render-exam.js） */
+#vizTip{position:fixed;left:0;top:0;z-index:500;pointer-events:none;
+  max-width:min(340px,86vw);
+  padding:7px 12px;border-radius:var(--r-sm);
+  background:color-mix(in srgb,var(--bg) 94%,var(--ink));
+  box-shadow:inset 0 0 0 1px var(--line-strong),0 8px 24px rgba(0,0,0,.4);
+  font-family:var(--font-mono);font-size:var(--w-tag);letter-spacing:.04em;
+  color:var(--ink);font-variant-numeric:tabular-nums;
+  /* 值夜 #4：title 全面併入後出現整句長的說明——短讀數照舊單行（不足
+     max-width 不折），長句在 340px 內換行；pre-line 保留樣板刻意的斷行。 */
+  white-space:pre-line;line-height:1.6}
+#vizTip[hidden]{display:none}
+
+/* ============ 角落設定面板（T03：合法浮層，tokens 玻璃；分組＝眉標＋髮絲線） ============ */
+.setbtn{position:fixed;right:18px;bottom:18px;z-index:80;width:46px;height:46px;padding:0;
+  display:flex;align-items:center;justify-content:center;border-radius:50%;cursor:pointer;
+  color:var(--ink-dim);border:0;
+  background:color-mix(in srgb,var(--bg) 72%,transparent);
+  box-shadow:inset 0 0 0 1px var(--line-strong);
+  transition:color 150ms var(--ease),box-shadow 150ms var(--ease),transform 150ms var(--ease)}
+.setbtn:hover,.setbtn:focus-visible{color:var(--ink);transform:translateY(-1px);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 40%,transparent)}
+.setpanel{position:fixed;right:18px;bottom:74px;z-index:80;width:min(360px,calc(100vw - 36px));
+  max-height:min(78vh,640px);overflow:auto;padding:20px 22px 24px;
+  /* 浮層要壓在任何地面上都讀得到，比 7% 玻璃厚一級 */
+  background:var(--glass-fallback);
+  animation:setin var(--dur) var(--ease) forwards}
+.setpanel[hidden]{display:none}
+@keyframes setin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.setpanel h3{font-weight:700;font-size:var(--w-sub);letter-spacing:-.01em;margin-bottom:2px}
+.setpanel .note{font-size:var(--w-tag);color:var(--ink-dim);margin-bottom:4px}
+/* 分組題＝mono 眉標＋一條髮絲線（section 分隔的去框化語彙） */
+.setpanel h4{font-family:var(--font-mono);font-size:var(--w-tag);font-weight:500;
+  letter-spacing:var(--ls-tag);text-transform:uppercase;color:var(--ink-faint);
+  font-variant-numeric:tabular-nums;
+  margin:18px 0 10px;padding-top:14px;border-top:1px solid var(--line)}
+.setpanel .pills{gap:7px}
+.setpanel .pill{display:inline-flex;align-items:center;height:var(--btn-h-sm);padding:0 13px;
+  border-radius:999px;border:0;background:none;cursor:pointer;
+  font-family:var(--font-mono);font-size:var(--w-meta);font-variant-numeric:tabular-nums;
+  color:var(--ink-dim);box-shadow:inset 0 0 0 1px var(--line-strong);
+  transition:color 150ms var(--ease),box-shadow 150ms var(--ease),background-color 150ms var(--ease)}
+.setpanel .pill:hover,.setpanel .pill:focus-visible{color:var(--ink);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 40%,transparent)}
+.setpanel .pill.on{color:var(--accent);
+  background:color-mix(in srgb,var(--accent) 9%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 55%,transparent)}
+.setpanel .pill i{font-style:normal;margin-left:7px;opacity:.5;font-size:.85em}
+.setpanel .pill i:hover{opacity:1;color:var(--accent)}
+.setrow{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.setpanel input[type=text],.setpanel input[type=date]{flex:1;min-width:0;
+  background:color-mix(in srgb,var(--ink) 7%,transparent);border:1px solid var(--line-strong);
+  color:var(--ink);border-radius:var(--r-sm);padding:7px 11px;
+  font-family:var(--font-mono);font-size:var(--w-meta);
+  font-variant-numeric:tabular-nums;color-scheme:dark}
+body.lt .setpanel input[type=text],body.lt .setpanel input[type=date]{color-scheme:light}
+.setpanel input#bgName{flex:0 0 84px}
+.setpanel .setrow .btn{--bh:var(--btn-h-sm);padding:0 14px}
+.setfile{display:block;font-size:var(--w-tag);color:var(--ink-dim);margin-top:9px}
+/* 值夜 #3：原生 file input 視覺隱藏但保持可聚焦（不准 display:none——
+   那會把它踢出 tab 序）；label 穿 .btn ui-ghost 的衣服當入口，
+   焦點環借全站 :focus-visible 配方畫在 label 上；檔名讀數 mono。 */
+.setfile-row{display:flex;align-items:center;gap:10px;margin-top:7px;flex-wrap:wrap}
+.setfile .vh-input{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;
+  overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.setfile-row label.btn{--bh:var(--btn-h-sm);padding:0 14px}
+.setfile .vh-input:focus-visible+label.btn{outline:2px solid var(--accent);outline-offset:2px;
+  color:var(--ink);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 40%,transparent)}
+.setfile-name{font-size:var(--w-tag);color:var(--ink-faint);letter-spacing:.04em;
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:16ch}
+.setmsg{font-size:var(--w-tag);color:var(--accent);margin-top:8px;min-height:1.2em}
+
+footer{padding:60px 0 40px;color:rgba(255,255,255,.4);font-size:.75rem;text-align:center}
+.err{padding:30px;color:#F2B8A0}
+
+.tk-head{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:4px}
+/* ── 手機版覆寫：必須放在樣式表最後 ──────────────────────
+   同權重時後定義者勝。這一段原本寫在 .wm-body 附近（第 794 行），
+   結果被後面的 .wm-cols（814）與 .wm-row .nm（840）整個蓋掉，
+   媒體查詢明明成立卻只有部分屬性生效。 */
+@media(max-width:560px){
+  .wm-row{gap:2px 10px;padding:12px 4px 12px 16px}
+  .wm-row .nm{white-space:normal;overflow:visible;line-height:1.4}
+  .wm-bar{gap:10px 12px}
+  .wm-srch{max-width:100%;flex:1 1 100%;order:9}
+  .sp-ep i{margin-left:auto}
+
+  /* 播放視窗：桌機的 34px 內距在 390px 螢幕上等於吃掉五分之一寬度，
+     影片只剩 270px。手機改小內距、讓影片吃滿。 */
+  .modal{padding:0}
+  .modal-panel{width:100%;max-height:100dvh;border-radius:0;
+    padding:calc(14px + env(safe-area-inset-top)) 12px
+            calc(16px + env(safe-area-inset-bottom))}
+  /* 小螢幕：標題區壓縮，主標降一階、中繼行收起來讓位給影片 */
+  .vid-head{padding-right:44px;margin-bottom:10px;padding-bottom:9px}
+  .vid-panel h3{font-size:1.08rem}
+  .vid-head .vh-meta{display:none}
+  .modal-x{top:8px;right:10px}
+  /* 控制列原本 87px 高，蓋掉半個影片。壓成一列、按鈕縮小、時間字級調小 */
+  .vctl{padding:18px 6px 5px}
+  /* 按鈕縮小時圖示要跟著縮，否則 22px 圖示塞進 32px 鈕會滿到邊緣。
+     主鍵維持比其他鍵大一級的關係。
+     390px 下總寬只有 293px，按鈕放大後原本會溢出 29px：
+     間距歸零、彈性空間允許壓縮到 0，讓這一列自己收得住。 */
+  .vrow{gap:0}
+  .vspring{flex:1 1 0;min-width:0}
+  .vic{width:32px;height:32px;font-size:.92rem}
+  .vic svg{width:19px;height:19px}
+  .vic[data-toggle]{width:38px;height:38px;margin-right:2px}
+  .vic[data-toggle] svg{width:21px;height:21px}
+  .vvol{margin-left:0;padding-left:7px}
+  .vtime{font-size:.7rem;margin-left:4px}
+  /* 390px 只放得下 5 顆鍵。時間顯示改成只留目前時刻（總長在章節條旁看得到），
+     「更多」選單裡本來就有全螢幕與倍速，所以收掉獨立的全螢幕鍵——
+     不是硬塞到溢出畫面外（實測會把全螢幕鍵推出可視範圍）。 */
+  .vtime .tot{display:none}
+  .vic[data-fs]{display:none}
+  .vvol{display:none}          /* 手機用實體音量鍵，不需要滑桿佔位 */
+  .vseek{height:14px;margin-bottom:0}
+  .vmenu{min-width:172px}
+  /* 章節軌與思考地圖在手機上仍要能看，但別讓單張圖撐爆版面 */
+  .chap-list{grid-template-columns:1fr}
+  .map-card{padding:12px 13px}
+  .mermaid svg{max-width:100%;height:auto}
+  .fml-body .katex{font-size:1.05em}
+  table.cmp-tb{font-size:.8rem}
+  table.cmp-tb th,table.cmp-tb td{padding:7px 9px}
+}
+/* ── 待辦：去框化，一條線不是一張卡（T05 決策 D）。
+   只露最急一件：mono 天數讀數以 status token 上色（文字本身就是訊號，
+   永不 color-alone）；其餘收進 <details>，展開態存 feb-todo-open。 ── */
+.todo{margin-bottom:2px}
+.todo-line{display:flex;align-items:baseline;gap:14px;min-height:44px;flex-wrap:wrap;
+  padding:8px 0;border-bottom:1px solid var(--line)}
+.todo-line .eyebrow{flex:none;align-self:center}
+.todo-line .t-title{font-weight:600;color:var(--ink);font-size:var(--w-body)}
+.todo-line .t-why{color:var(--ink-faint);font-size:var(--w-meta);flex:1;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.todo-line .t-due{margin-left:auto;font-family:var(--font-mono);font-size:var(--w-meta);
+  font-weight:600;color:var(--ink-dim);font-variant-numeric:tabular-nums;white-space:nowrap;
+  letter-spacing:.04em}
+.t-due.soon{color:var(--status-warn)}
+.t-due.urgent{color:var(--status-bad)}
+/* 其餘件數：details 清單走髮絲行線 */
+.todo-more{margin:0}
+.todo-more summary{cursor:pointer;font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:.06em;color:var(--ink-faint);min-height:34px;
+  display:flex;align-items:center;gap:6px;list-style:none;user-select:none}
+.todo-more summary::-webkit-details-marker{display:none}
+.todo-more summary::before{content:'▸';font-size:.7rem;transition:transform 150ms var(--ease)}
+.todo-more[open] summary::before{transform:rotate(90deg)}
+.todo-more summary:hover{color:var(--ink)}
+.todo-more ul{list-style:none;margin:0 0 4px;display:flex;flex-direction:column}
+.todo-more li{display:flex;align-items:baseline;gap:14px;padding:8px 0 8px 18px;
+  border-top:1px solid var(--line);font-size:var(--w-meta);line-height:1.6}
+.todo-more li .d{font-family:var(--font-mono);font-size:var(--w-tag);color:var(--ink-dim);
+  white-space:nowrap;flex:none;min-width:5.2em;letter-spacing:.06em;font-variant-numeric:tabular-nums}
+.todo-more li.soon .d{color:var(--status-warn);font-weight:500}
+.todo-more li.urgent .d{color:var(--status-bad);font-weight:600}
+.todo-more .tt{flex:1;min-width:0}
+.todo-more .tt b{font-weight:600;color:var(--ink)}
+.todo-more .tt span{display:block;font-size:var(--w-meta);color:var(--ink-faint);margin-top:2px}
+@media(max-width:560px){.todo-line .t-why{display:none}}
+/* ============ 觸控裝置效能：關掉即時模糊 ============
+   iPad 上換背景會延遲好幾秒，量出來是 89 個元素套 backdrop-filter
+   （.glass 與 .lq），每個都是獨立合成層並即時模糊背後內容；
+   換主題時整批重新模糊，再疊上 1.2～1.4 秒的背景過場。
+   桌面 selectBg 只要 6～10ms，瓶頸完全在合成不在 JS。
+
+   模糊拿掉之後半透明底會太透、字會糊在背景上，所以同時把玻璃底加厚。
+   桌面維持原樣，這裡只動觸控裝置。 */
+@media (hover:none) and (pointer:coarse){
+  /* 用萬用選擇器而不是逐一列舉：列舉法漏掉了 .verdict 與 section.acc，
+     22 個元素還在做即時模糊。這裡一次掃乾淨，之後新增元件也不會再漏。 */
+  *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  /* 少了模糊就要靠不透明度撐起可讀性 */
+  body{--glass:rgba(28,34,44,.82); --glass-line:rgba(255,255,255,.20)}
+  body.lt{--glass:rgba(255,255,255,.90); --glass-line:rgba(10,14,20,.16)}
+  .lq{background:var(--glass)}
+  /* 背景切換要立刻看到結果，1.4 秒的淡入在手上就像沒反應 */
+  .cbg,.bgvid,.stars,.sun2,.moon,.aurora,.dayglow,.wx,canvas.wx{
+    transition-duration:.2s!important}
+  /* ── 省電：讀書模式凍結背景氛圍動畫（T03 後大多已由 quiet 檔的
+     --ambient-play:paused 接手；這裡是觸控裝置的保險絲，連同內容區
+     還在用的 .lq 凝膠一起停）。待機畫面保留（那是它的主角）。 */
+  body[data-mode="study"] .scene *,
+  body[data-mode="study"] .lq::before,
+  body[data-mode="study"] .lq::after{animation:none!important}
+  /* 凝膠層不跑旋轉也要留著，hover/點擊時的上升動作照舊（那是有觸發的，不是常駐） */
+  body[data-mode="study"] .lq::before,
+  body[data-mode="study"] .lq::after{transition:top .5s cubic-bezier(.34,1.4,.5,1)!important}
+}
+/* 連不到電腦時的集數：點下去開隨播面板（影片在 VLC 播）。
+   要長得像可以點的，不是灰掉的死 pill。 */
+.sp-ep.need{opacity:.9}
+.sp-ep.need i{color:var(--accent)}
+/* 「要另外開播放器」的標記：原本是 🎬 emoji（彩色、跨系統長相不一），
+   改用一個小外開框，跟控制列那組細線圖示同語彙。 */
+.sp-ep.need::after{content:"";margin-left:7px;width:11px;height:11px;flex:none;align-self:center;
+  opacity:.6;background:currentColor;
+  -webkit-mask:var(--ico-ext) center/contain no-repeat;
+  mask:var(--ico-ext) center/contain no-repeat}
+:root{--ico-ext:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 4h6v6'/><path d='M20 4l-8.5 8.5'/><path d='M18 14v5a1.6 1.6 0 0 1-1.6 1.6H5A1.6 1.6 0 0 1 3.4 19V7.6A1.6 1.6 0 0 1 5 6h5'/></svg>")}
+
+/* ── 隨播面板（決策 G）：400px 窄玻璃浮層（Split View 約束）。
+   內部去框：檔名 mono＋複製鈕（copyText 邏輯原樣）、時間戳＝安靜髮絲列。 */
+#cpModal{position:fixed;inset:0;z-index:90;display:none}
+#cpModal.on{display:block}
+.modal-panel.cp-panel{position:absolute;inset:3vh 12px;width:auto;max-width:400px;
+  margin-inline:auto;max-height:none;overflow-y:auto;padding:20px 18px;
+  border-radius:var(--r-lg);-webkit-overflow-scrolling:touch}
+.cp-h{font-family:var(--font-ui);font-size:var(--w-sub);font-weight:700;
+  color:var(--ink);margin:0 44px 16px 0;line-height:1.4}
+.cp-file{background:none;border:0;border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);border-radius:0;padding:12px 2px;margin-bottom:18px}
+.cp-lb{display:block;font-family:var(--font-mono);font-size:var(--w-tag);
+  letter-spacing:var(--ls-tag);color:var(--ink-faint);margin-bottom:6px}
+.cp-file code{display:block;font-family:var(--font-mono);font-size:var(--w-meta);line-height:1.5;
+  color:var(--ink);word-break:break-all;margin-bottom:10px}
+.cp-sh{font-family:var(--font-mono);font-size:var(--w-tag);font-weight:500;
+  letter-spacing:var(--ls-tag);color:var(--ink-faint);
+  margin:18px 0 8px;display:flex;align-items:center;gap:12px}
+.cp-sh::after{content:'';flex:1;height:1px;background:var(--line)}
+.cp-list{display:flex;flex-direction:column;gap:2px}
+.cp-row{display:flex;gap:10px;align-items:baseline;text-align:left;width:100%;min-height:44px;
+  background:none;border:0;border-left:2px solid var(--line);
+  padding:8px 9px;border-radius:0;color:inherit;font:inherit;cursor:pointer;
+  transition:background-color 150ms var(--ease)}
+.cp-row:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.cp-row.key{border-left-color:var(--warm)}
+.cp-t{font-family:var(--font-mono);font-size:var(--w-tag);color:var(--accent);flex:none;
+  font-variant-numeric:tabular-nums;letter-spacing:.06em}
+.cp-n{font-size:var(--w-meta);line-height:1.5;min-width:0;color:var(--ink)}
+.cp-none{color:var(--ink-dim);font-size:var(--w-meta)}
+/* L3 Drive 區塊：不加第四個框（判例一），只用一條髮絲線與留白把它跟上面的
+   檔名區分開，跟 .cp-file 同一套語法。 */
+.cp-drive{border-top:1px solid var(--line);margin-top:14px;padding-top:12px;
+  display:flex;flex-direction:column;gap:8px}
+.cp-btns{display:flex;flex-wrap:wrap;gap:8px}
+.cp-warn{color:var(--ink-dim);font-size:var(--w-tag);font-family:var(--font-mono);
+  letter-spacing:.02em;margin:0}
+@media(max-width:560px){.cp-panel{inset:2vh 2vw;padding:16px 14px}}
+
+/* ============ T08 落後重排 modal（合法玻璃浮層；內部去框化） ============
+   結構＝eyebrow 眉標＋髮絲線分節；表格用行線不用外框；verdict 沿用
+   T04 的去框化「列」語彙（左 2px 狀態脊線＋glyph＋文字，不 color-alone）。 */
+.rp-panel{max-width:min(880px,94vw)}
+.rp-panel h3{font-family:var(--font-ui);font-weight:700;font-size:var(--w-title);
+  letter-spacing:var(--ls-title);line-height:1.15;margin:0 0 8px}
+.rp-note{font-size:var(--w-meta);color:var(--ink-dim);line-height:1.7;margin-bottom:6px}
+.rp-note b{color:var(--ink);font-weight:600}
+.rp-mark{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  margin:22px 0 14px;padding-top:14px;border-top:1px solid var(--line)}
+.rp-mark i{font-style:normal;letter-spacing:0;text-transform:none;color:var(--ink-faint)}
+/* 安靜 mono 輸入：底線一條，同 wm-srch 的語彙（玻璃面上不再疊框） */
+.rp-fields{display:flex;flex-wrap:wrap;gap:12px 26px;margin-bottom:18px}
+.rp-f{display:flex;flex-direction:column;gap:4px;font-size:var(--w-tag);color:var(--ink-dim)}
+.rp-f input{width:132px;background:none;border:0;border-bottom:1px solid var(--line-strong);
+  border-radius:0;color:var(--ink);font-size:var(--w-sub);font-weight:600;padding:6px 2px;
+  color-scheme:dark;transition:border-color 150ms var(--ease)}
+.rp-f input:focus{border-bottom-color:var(--accent)}
+.rp-f small{font-size:var(--w-tag);color:var(--ink-faint)}
+/* 章節 chips：科別分組，結構階學科色（--c 由科別行注入） */
+.rp-subj{margin-bottom:14px}
+.rp-sname{font-size:var(--w-meta);font-weight:500;color:var(--c,var(--ink-dim))}
+.rp-shint{font-size:var(--w-tag);color:var(--ink-faint);margin-left:8px}
+.rp-chiprow{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.rp-chip{display:inline-flex;align-items:center;gap:6px;min-height:var(--btn-h-sm);
+  padding:0 11px;border-radius:var(--r-sm);cursor:pointer;
+  background:none;border:1px solid var(--line);color:var(--ink-dim);
+  font-size:var(--w-meta);font-family:var(--font-ui);
+  transition:border-color 150ms var(--ease),color 150ms var(--ease),background 150ms var(--ease)}
+.rp-chip:hover{border-color:color-mix(in srgb,var(--c) 55%,transparent);color:var(--ink)}
+.rp-chip.on{border-color:color-mix(in srgb,var(--c) 60%,transparent);
+  background:color-mix(in srgb,var(--c) 13%,transparent);color:var(--c);font-weight:600}
+.rp-chip b{font-weight:700}
+.rp-chip i{font-style:normal;font-size:var(--w-tag);color:var(--ink-faint);
+  font-variant-numeric:tabular-nums}
+/* verdict：狀態脊線＋glyph＋文字（T04 verdict 列語彙；狀態 token 專用） */
+.rp-verdict{position:relative;padding-left:16px}
+.rp-verdict::before{content:"";position:absolute;left:0;top:3px;bottom:3px;width:2px;
+  background:var(--vs);border-radius:1px}
+.rp-verdict.s-ok{--vs:var(--status-good)}
+.rp-verdict.s-warn{--vs:var(--status-warn)}
+.rp-verdict.s-bad{--vs:var(--status-bad)}
+.rp-vhead{display:flex;gap:9px;align-items:baseline;font-size:var(--w-sub);
+  font-weight:700;color:var(--vs);line-height:1.4}
+.rp-vhead .vg{flex:none}
+.rp-vwhy{font-size:var(--w-meta);color:var(--ink-dim);line-height:1.7;margin-top:6px}
+.rp-vwhy b{color:var(--ink);font-weight:600}
+/* 讀數列：髮絲直線分隔的 mono 讀數（不是格子） */
+.rp-nums{display:flex;flex-wrap:wrap;margin-top:14px}
+.rp-nums>div{padding:2px 18px 2px 0;margin:0 18px 6px 0;border-right:1px solid var(--line)}
+.rp-nums>div:last-child{border-right:0;margin-right:0}
+.rp-nums b{display:block;font-size:var(--w-sub);font-weight:600;color:var(--ink);
+  font-variant-numeric:tabular-nums;line-height:1.3}
+.rp-nums span{font-size:var(--w-tag);color:var(--ink-faint)}
+.rp-nums .hi b{color:var(--accent)}
+.rp-nums .dn b{color:var(--status-bad)}
+/* 砍章表：行線分隔，無外框（去框化法）；窄幅自己捲 */
+.rp-scroll{overflow-x:auto}
+#rpCuts table{width:100%;border-collapse:collapse;font-size:var(--w-meta)}
+#rpCuts th{text-align:left;font-family:var(--font-mono);font-weight:500;
+  font-size:var(--w-tag);letter-spacing:.06em;color:var(--ink-faint);
+  padding:0 9px 7px;border-bottom:1px solid var(--line-strong);white-space:nowrap}
+#rpCuts td{padding:9px;border-bottom:1px solid var(--line);vertical-align:top}
+#rpCuts tr:last-child td{border-bottom:0}
+#rpCuts td.n{font-weight:600;color:var(--ink)}
+#rpCuts td.n div{font-size:var(--w-tag);color:var(--ink-faint);font-weight:400;margin-top:2px}
+#rpCuts td.c{color:var(--ink-dim);white-space:nowrap;font-family:var(--font-mono);
+  font-variant-numeric:tabular-nums}
+#rpCuts td.cost{white-space:nowrap}
+#rpCuts td.cost b{color:var(--status-bad);font-weight:700;font-family:var(--font-mono);
+  font-variant-numeric:tabular-nums}
+#rpCuts td.cost div{font-size:var(--w-tag);color:var(--ink-faint);font-family:var(--font-mono)}
+.rp-cutnote{font-size:var(--w-tag);color:var(--ink-dim);line-height:1.8;margin-top:13px}
+.rp-cutnote b{color:var(--ink)}
+.rp-cutnote .sv{color:var(--accent)}
+.rp-cutnote .ct{color:var(--status-bad)}
+/* 「全砍也補不平」誠實態：status-bad 全段（glyph 由文字「全砍也補不平」承載語意） */
+.rp-cutnote.bad,.rp-cutnote.bad b{color:var(--status-bad)}
+.rp-keep{margin-top:13px;padding-top:11px;border-top:1px solid var(--line);
+  font-size:var(--w-meta);color:var(--ink-dim);line-height:2}
+.rp-keep b{color:var(--ink);font-weight:600}
+.rp-lock{font-family:var(--font-mono);font-size:var(--w-tag);color:var(--accent);
+  letter-spacing:.02em;white-space:nowrap}
+.rp-empty{font-size:var(--w-meta);color:var(--ink-dim);padding:2px 0}
+.rp-note2{font-size:var(--w-tag);color:var(--ink-faint);line-height:1.8;margin-top:18px;
+  padding-top:12px;border-top:1px solid var(--line)}
+.rp-note2 b{color:var(--ink-dim);font-weight:600}
+@media(max-width:560px){
+  .rp-fields{gap:12px 18px}
+  .rp-f input{width:112px}
+  .rp-lock{white-space:normal}
+}
+
+/* ── 值夜 stamp 2026-09-01（v42）：地面材質重造（ADR-0002 修訂三 #1#2）——
+   墨水＝宣紙簾紋＋單墨暈慢滲＋右緣筆鋒、牛皮紙＝行線＋咖啡環＋左緣縫線、
+   黑板＝粉筆塵＋擦痕霧＋板緣公式塗鴉；每地面 curated 調色出廠配對
+   （02-settings.js PAL_OF_GROUND；細調步在 tokens.css）。 ── */
+
+/* ── 平板（觸控）：播放器的兩個實際回報（放在檔尾：同權重的規則後者勝，
+   .chap-list button／.vid-left 的基底規則寫在更後面，放前面會被蓋掉） ──────────────────────────────
+   1. 「會莫名滑動到背景」：iOS Safari 不理會 body{overflow:hidden} 的觸控捲動，
+      彈窗開著時手指一滑，後面的整頁跟著走。觸控裝置改用 position:fixed 把 body 釘住
+      （捲動位置由 11-boot.js 記住／還原），彈窗本身與面板加 overscroll-behavior:contain
+      切斷捲動鏈。
+   2. 「字太小」：章節、狀態列、選單這些播放時真的要讀的字，在平板上抬一階；
+      不動全站 token，免得看板與表格的版面被牽動。 */
+@media (hover:none) and (pointer:coarse){
+  body.modal-open{position:fixed;left:0;right:0;width:100%}
+  .modal{overscroll-behavior:contain}
+  .modal-panel{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+  .chap-list button{font-size:var(--w-body);min-height:48px;padding:10px 8px 10px 14px}
+  .chap-list b{font-size:var(--w-meta)}
+  .chap-note{font-size:var(--w-body)}
+  .chap-head::before,.chap-head .caret{font-size:var(--w-meta)}
+  .drive-stream-status{font-size:var(--w-body)}
+  .vid-left{font-size:var(--w-meta)}
+  .vmenu button{font-size:var(--w-body)}
+  .vmenu .rates button{min-height:44px}
+  .dv-notes{font-size:var(--w-body)}

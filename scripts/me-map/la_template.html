@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>線性代數 · 作戰地圖</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗺️</text></svg>">
+<meta name="theme-color" content="#0B0D12">
+<link rel="stylesheet" href="vendor/katex.min.css">
+<style>
+/* =====================================================================
+   作戰地圖 · A×B 融合語言（ADR-0002 / ADR-0006）
+   token 值 compiled from tokens.css 2026-08-31 —— 本頁是 2MB 單檔離線頁
+   （file:// 必須可開），故 inline 而不外連；tokens.css 改值時需回編。
+   去框化法：框是例外。結構＝眉標＋髮絲線＋左脊線＋留白＋字階。
+   ===================================================================== */
+:root{
+  /* 底色／墨階／ember 雙階／髮絲線（tokens.css 原值） */
+  --bg:#0B0D12; --bg-raise:#12151D;
+  --ink:#E9EDF4; --ink-dim:#A3ADC2; --ink-faint:#75809E;
+  --accent:#E07840; --warm:#C25E2E;
+  --line:rgba(146,162,188,.12); --line-strong:rgba(146,162,188,.28);
+  --status-good:#27BD68; --status-bad:#F16A6A;
+  /* 字階五級／圓角三級／動效（契約固定值） */
+  --w-title:2.5rem; --w-sub:1.0625rem; --w-body:.9375rem; --w-meta:.8125rem; --w-tag:.6875rem;
+  --ls-title:-.035em; --ls-tag:.16em;
+  --r-lg:18px; --r-md:12px; --r-sm:9px;
+  --dur:320ms; --ease:cubic-bezier(.22,1,.36,1);
+  /* 字體維持本頁原有堆疊（離線單檔，不新增字體下載） */
+  --sans:"Inter","Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+  /* 每張地圖一色（build 注入：la→--sc-la 族／me→--sc-math 族） */
+  --map-accent:#7FA3C9;--map-accent-hi:#6FA8E8;
+  --sc:var(--map-accent);
+  /* 舊模板相容別名（內容 payload 零改動，樣式全走 token） */
+  --night:var(--bg); --panel:var(--bg-raise); --ink-mid:var(--ink);
+  --glass:rgba(255,255,255,.04);
+  --line-soft:rgba(146,162,188,.07);
+  --ember:var(--warm); --red:var(--status-bad); --teal:var(--status-good);
+  --violet:#9F94CF; --blue:var(--map-accent);
+  --maxw:900px;
+}
+body.lt{
+  /* 描圖紙 vellum（design-system.html S-08 亮色地面；驅動 body.lt 路徑） */
+  --bg:#F2EDE2; --bg-raise:#EAE2D0;
+  --ink:#26221B; --ink-dim:#575142; --ink-faint:#6E6754;
+  --accent:#A04E14; --warm:#8F4212;
+  --line:rgba(38,34,27,.15); --line-strong:rgba(38,34,27,.34);
+  /* vellum 補階：tokens.css 未定義亮色狀態階，依 ≥4.5:1 門檻配深 */
+  --status-good:#1E7A46; --status-bad:#A93636;
+  --map-accent:#3D5E80;--map-accent-hi:#3D5E80;
+  --glass:rgba(38,34,27,.05);
+  --line-soft:rgba(38,34,27,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;background:var(--bg)}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);
+  font-weight:350;line-height:1.85;-webkit-text-size-adjust:100%}
+/* 地面：靜態安靜漸層（2MB 內容頁，無 aurora canvas——便宜、不分心）。
+   fixed 偽元素 = 視窗大小一張，不隨 2MB 長頁放大繪製成本。 */
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(1100px 520px at 85% -12%,color-mix(in srgb,var(--map-accent) 7%,transparent),transparent 70%),
+    radial-gradient(900px 480px at -8% 108%,color-mix(in srgb,var(--warm) 5%,transparent),transparent 72%),
+    linear-gradient(180deg,#0D1017,#0B0D12 45%,#0A0C10)}
+body.lt::before{background:
+    radial-gradient(900px 420px at 82% -10%,rgba(160,78,20,.07),transparent 70%),
+    linear-gradient(180deg,#F4EFE5,#F2EDE2 40%,#EDE6D6)}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+
+/* 捲動條 */
+*{scrollbar-width:thin;scrollbar-color:rgba(128,128,128,.28) transparent}
+*::-webkit-scrollbar{width:10px;height:10px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{background:rgba(128,128,128,.28);border:3px solid transparent;
+  background-clip:padding-box;border-radius:999px}
+*::-webkit-scrollbar-thumb:hover{background:rgba(128,128,128,.5);background-clip:padding-box}
+::selection{background:color-mix(in srgb,var(--map-accent) 32%,transparent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+/* ── 版面：左導覽 + 內容 ───────────────────────── */
+.wrap{display:grid;grid-template-columns:246px minmax(0,1fr);gap:0;min-height:100vh}
+.side{position:sticky;top:0;height:100vh;overflow-y:auto;padding:26px 16px 40px;
+  border-right:1px solid var(--line);background:transparent}
+.back{display:inline-block;font-family:var(--mono);font-size:var(--w-tag);letter-spacing:.08em;
+  color:var(--ink-faint);text-decoration:none;margin-bottom:16px;font-variant-numeric:tabular-nums}
+.back:hover{color:var(--ink)}
+.side h1{font-size:var(--w-sub);font-weight:600;letter-spacing:.02em;line-height:1.5;margin-bottom:4px}
+.side .sub{font-family:var(--mono);font-size:var(--w-tag);letter-spacing:.06em;
+  color:var(--ink-faint);line-height:1.7;margin-bottom:20px;font-variant-numeric:tabular-nums}
+/* 導覽＝眉標清單：脊線亮起＋色場向左淡出（nav-state-active，無框無底板） */
+.nav a{display:block;padding:6px 8px 6px 12px;color:var(--ink-dim);text-decoration:none;
+  font-size:var(--w-meta);line-height:1.5;border-left:2px solid transparent;
+  transition:color .15s,border-color .15s,background .15s}
+.nav a:hover{color:var(--ink);background:linear-gradient(90deg,var(--glass),transparent 75%)}
+.nav a.on{color:var(--map-accent-hi);border-left-color:var(--map-accent-hi);font-weight:500;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--map-accent-hi) 10%,transparent),transparent 75%)}
+.nav a .n{display:inline-block;min-width:1.6em;color:var(--ink-faint);
+  font-family:var(--mono);font-size:var(--w-tag);font-variant-numeric:tabular-nums}
+.nav a.on .n{color:var(--map-accent-hi)}
+.nav .grp{font-family:var(--mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);
+  color:var(--ink-faint);margin:20px 0 6px 12px;text-transform:uppercase}
+.tools{display:flex;gap:8px;margin-top:24px;padding-top:16px;border-top:1px solid var(--line);flex-wrap:wrap}
+.tools button{flex:1;min-width:64px;height:28px;padding:0 8px;border-radius:var(--r-sm);
+  border:1px solid var(--line-strong);background:transparent;color:var(--ink-dim);
+  font-family:var(--mono);font-size:var(--w-tag);letter-spacing:.04em;cursor:pointer;
+  transition:color .15s,border-color .15s}
+.tools button:hover{color:var(--ink);border-color:var(--ink-faint)}
+
+.main{padding:48px 42px 140px;max-width:calc(var(--maxw) + 84px);margin:0 auto;width:100%;min-width:0}
+
+/* ── 開場 ───────────────────────── */
+.hero{margin-bottom:64px}
+.hero h2{font-size:var(--w-title);font-weight:600;letter-spacing:var(--ls-title);
+  line-height:1.22;margin-bottom:12px}
+.hero .lede{font-size:var(--w-body);color:var(--ink-dim);line-height:1.8;margin-bottom:30px}
+/* tldr：去框——mono 序號＋行線分隔 */
+.tldr{list-style:none;margin:0 0 32px;counter-reset:x}
+.tldr li{position:relative;padding:12px 4px 12px 46px;border-top:1px solid var(--line);
+  font-size:var(--w-body);line-height:1.8}
+.tldr li:last-child{border-bottom:1px solid var(--line)}
+.tldr li::before{content:counter(x,decimal-leading-zero);counter-increment:x;
+  position:absolute;left:2px;top:13px;font-family:var(--mono);font-size:var(--w-meta);
+  color:var(--map-accent);font-variant-numeric:tabular-nums}
+/* 用法說明：左脊線縮排，不裝箱 */
+.howto{padding:4px 0 4px 18px;border-left:2px solid color-mix(in srgb,var(--map-accent) 45%,transparent);
+  font-size:var(--w-body);line-height:1.85;color:var(--ink-dim)}
+.howto strong{color:var(--ink);font-weight:600}
+.howto ul{padding-left:1.25em;margin:.5em 0}
+.howto li{margin:.3em 0}
+
+/* ── 章節 ───────────────────────── */
+.ch{margin:0 0 84px;scroll-margin-top:20px}
+.ch-h{border-top:1px solid var(--line-strong);padding-top:24px;margin-bottom:22px}
+.ch-no{font-family:var(--mono);font-size:var(--w-tag);letter-spacing:var(--ls-tag);
+  color:var(--map-accent);display:block;margin-bottom:8px;text-transform:uppercase;
+  font-variant-numeric:tabular-nums}
+.ch-h h3{font-size:calc(var(--w-title)*.66);font-weight:600;letter-spacing:-.02em;
+  line-height:1.3;margin-bottom:12px}
+.ch-lead{font-size:var(--w-sub);color:var(--ink);line-height:1.8;margin-bottom:11px;font-weight:400}
+.ch-why{font-size:var(--w-meta);color:var(--ink-dim);line-height:1.8;padding-left:14px;
+  border-left:2px solid var(--line-strong)}
+.ch-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+/* chip 是元件（准圓角＋摸得到的邊）。nowrap＋max-width 保險絲照舊。 */
+.chip{font-family:var(--mono);font-size:var(--w-tag);letter-spacing:.04em;padding:3px 10px;
+  border-radius:999px;border:1px solid var(--line-strong);color:var(--ink-dim);
+  white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;
+  font-variant-numeric:tabular-nums}
+/* 考古題熱區＝ember：warm 燒邊、accent 可讀字（雙階不互換） */
+.chip.hot{border-color:color-mix(in srgb,var(--warm) 60%,transparent);color:var(--accent)}
+.chip.ep{border-color:color-mix(in srgb,var(--map-accent) 45%,transparent)}
+
+/* 區塊小標＝眉標＋髮絲線 */
+.sec{font-family:var(--mono);font-size:var(--w-tag);font-weight:500;letter-spacing:var(--ls-tag);
+  color:var(--ink-faint);text-transform:uppercase;display:flex;align-items:center;gap:12px;
+  margin:38px 0 16px;font-variant-numeric:tabular-nums}
+.sec::after{content:'';flex:1;height:1px;background:var(--line)}
+
+/* ── 概念卡：去框＝行線分隔的收合列 ───────────────────────
+   髮絲頂線＋學科色 2px 左脊線；open 時脊線點亮（-hi＋柔光）。 */
+.card{background:none;border:0;border-radius:0;border-top:1px solid var(--line);
+  padding:0;margin:0;overflow:visible}
+.card>summary{padding:15px 6px 15px 16px;font-size:var(--w-sub);font-weight:600;cursor:pointer;
+  list-style:none;display:flex;align-items:baseline;gap:10px;user-select:none;
+  border-left:2px solid color-mix(in srgb,var(--map-accent) 45%,transparent);
+  transition:border-color .15s,background .15s}
+.card>summary::-webkit-details-marker{display:none}
+.card>summary::before{content:'▸';font-family:var(--mono);font-size:.8em;color:var(--ink-faint);
+  transition:transform .18s;flex:none;align-self:center}
+.card[open]>summary::before{transform:rotate(90deg)}
+.card[open]>summary{border-left-color:var(--map-accent-hi);
+  box-shadow:inset 2px 0 0 -1px transparent}
+.card>summary:hover{background:linear-gradient(90deg,var(--glass),transparent 70%)}
+.card-body{padding:2px 0 26px 18px;min-width:0}
+.card-body>*{max-width:100%}
+/* 出處＝安靜 mono 讀數，不再裝藥丸 */
+.src{font-family:var(--mono);font-size:var(--w-tag);color:var(--ink-faint);margin-left:auto;
+  flex:none;white-space:nowrap;font-weight:400;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+/* 缺口標記＝狀態字（status-bad），glyph＋文字非 color-alone */
+.gap-tag{font-family:var(--mono);font-size:var(--w-tag);letter-spacing:.06em;flex:none;
+  color:var(--status-bad);font-weight:500}
+
+/* 陷阱＝ember 左脊線帶（燒的東西 warm，字走 ink） */
+.trap{font-size:var(--w-meta);line-height:1.75;margin-top:12px;padding:9px 13px;
+  background:color-mix(in srgb,var(--warm) 9%,transparent);
+  border-left:2px solid var(--warm);color:var(--ink)}
+/* 長 LaTeX 原始碼是一整串沒有空白的英數字，渲染完成前會把容器撐破。
+   break-word 讓它先乖乖折行，KaTeX 接手後再變回正常的數學排版。 */
+/* overflow-x:auto 是最後一道防線：長的「行內」公式（$...$ 裡塞一整條推導）
+   KaTeX 不會替它換行，在 375px 手機上會撐破段落。讓它自己橫捲，不要裁掉。 */
+.md{font-size:var(--w-body);line-height:1.9;color:var(--ink);margin-top:12px;
+  overflow-wrap:break-word;word-break:break-word;min-width:0;overflow-x:auto}
+.md p{margin:.55em 0}
+/* 寬矩陣就算渲染完也可能超出：讓公式自己橫向捲，不要推擠整頁 */
+.md .katex-display{overflow-x:auto;overflow-y:hidden;padding:4px 0;max-width:100%}
+.md .katex{max-width:100%}
+/* KaTeX 會同時輸出一份給輔助技術用的 MathML。它是 position:absolute，
+   會脫離父層的 overflow 控制，長公式在窄螢幕上就靠它把整頁撐寬。
+   用標準的 visually-hidden 壓死尺寸——螢幕閱讀器仍讀得到，版面不再受影響。 */
+.katex-mathml{position:absolute!important;width:1px!important;height:1px!important;
+  padding:0!important;margin:-1px!important;overflow:hidden!important;
+  clip:rect(0 0 0 0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
+.md ul,.md ol{padding-left:1.35em;margin:.45em 0}
+.md li{margin:.22em 0}
+.md h3,.md h4{font-size:var(--w-body);font-weight:600;color:var(--ink);margin:1.2em 0 .5em}
+.md code{font-family:var(--mono);font-size:.86em;background:var(--line-soft);
+  padding:1px 5px;border-radius:4px}
+.md blockquote{border-left:2px solid var(--map-accent);padding-left:13px;margin:.8em 0;color:var(--ink-dim)}
+.md strong{color:var(--ink);font-weight:600}
+.md hr{border:0;border-top:1px solid var(--line);margin:1.4em 0}
+/* 補充＝虛線左脊線（次一級的縮排聲部） */
+.sup{font-size:var(--w-meta);line-height:1.8;color:var(--ink-dim);margin-top:12px;
+  padding:2px 0 2px 14px;border-left:2px dashed var(--line-strong)}
+.sup p{margin:.25em 0}
+.sup ul{padding-left:1.2em;margin:.25em 0}
+
+/* 公式：多欄流，但每格是「行線起頭的條目」不是面板 */
+.fml{display:grid;gap:2px 26px;margin-top:13px;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr))}
+/* min-width:0 是關鍵：grid/flex item 預設 min-width:auto，寬公式會把卡片整個撐大，
+   而不是讓 .fml-body 自己橫向捲——在 375px 手機上會直接破版。 */
+.fml-card{background:none;border:0;border-radius:0;border-top:1px solid var(--line);
+  padding:10px 0 8px;min-width:0;overflow:hidden}
+.fml-hd{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:7px;min-width:0}
+.fml-hd b{font-size:var(--w-meta);font-weight:600;color:var(--map-accent);overflow-wrap:anywhere}
+.fml-hd span{font-family:var(--mono);font-size:var(--w-tag);color:var(--ink-faint);overflow-wrap:anywhere}
+.fml-body{overflow-x:auto;overflow-y:hidden;padding:3px 0;min-width:0;max-width:100%}
+.fml-body .katex{font-size:1.06em}
+.fml-body .katex-display{margin:0}
+
+/* 比較表：行線不外框 */
+.cmp{margin-top:13px}
+.cmp-t{font-size:var(--w-meta);color:var(--map-accent);margin-bottom:7px;font-weight:600}
+.cmp-wrap{overflow-x:auto}
+table.tb{border-collapse:collapse;width:100%;font-size:var(--w-meta);min-width:min(100%,420px)}
+table.tb th,table.tb td{padding:8px 12px 8px 0;text-align:left;border-bottom:1px solid var(--line);
+  vertical-align:top;line-height:1.6}
+table.tb thead th{background:var(--bg);font-family:var(--mono);font-weight:500;
+  font-size:var(--w-tag);letter-spacing:.06em;color:var(--ink-faint);white-space:nowrap;
+  position:sticky;top:0;border-bottom:1px solid var(--line-strong);font-variant-numeric:tabular-nums}
+table.tb tbody th{font-weight:500;color:var(--ink-dim);white-space:nowrap;font-size:var(--w-meta)}
+table.tb tr:last-child td,table.tb tr:last-child th{border-bottom:0}
+table.tb td{color:var(--ink)}
+
+/* mermaid：上下行線圍出的圖帶（不是面板） */
+.mermaid{display:flex;justify-content:center;margin:16px 0;overflow-x:auto;
+  background:none;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  padding:16px 8px;font-family:var(--sans)}
+.mermaid svg{max-width:100%;height:auto}
+
+/* 深讀層：行線分隔的收合列，眉標句法（mono＋撐開字距） */
+.deep{margin-top:16px;background:none;border:0;border-radius:0;
+  border-top:1px solid var(--line);overflow:visible}
+.deep>summary{padding:11px 6px 11px 14px;cursor:pointer;list-style:none;
+  font-family:var(--mono);font-size:var(--w-tag);font-weight:500;letter-spacing:var(--ls-tag);
+  color:var(--ink-faint);display:flex;align-items:center;gap:9px;user-select:none;
+  border-left:2px solid color-mix(in srgb,var(--map-accent) 40%,transparent);
+  transition:color .15s,border-color .15s,background .15s;font-variant-numeric:tabular-nums}
+.deep>summary::-webkit-details-marker{display:none}
+.deep>summary::before{content:'▸';font-size:1em;transition:transform .18s;flex:none}
+.deep[open]>summary::before{transform:rotate(90deg)}
+.deep[open]>summary{color:var(--map-accent-hi);border-left-color:var(--map-accent-hi)}
+.deep>summary::after{content:'展開完整定義、證明骨架與例題逐步解';font-size:var(--w-tag);
+  letter-spacing:.04em;color:var(--ink-faint);font-weight:400;margin-left:auto;text-align:right}
+.deep[open]>summary::after{content:'收合'}
+.deep>summary:hover{background:linear-gradient(90deg,var(--glass),transparent 70%)}
+.deep .md{padding:2px 0 18px 16px;margin-top:0;color:var(--ink)}
+.deep .md .katex-display{overflow-x:auto;overflow-y:hidden;padding:5px 0}
+
+/* 例題：行線分隔的條目 */
+.ex{background:none;border:0;border-radius:0;border-top:1px solid var(--line);
+  padding:14px 0 14px;margin-bottom:4px}
+.ex-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:9px}
+.tag{font-family:var(--mono);font-size:var(--w-tag);letter-spacing:.04em;padding:2px 9px;
+  border-radius:999px;background:none;color:var(--ink-dim);border:1px solid var(--line-strong)}
+.trig{font-size:var(--w-meta);color:var(--ink-dim)}
+.at{font-family:var(--mono);font-size:var(--w-tag);color:var(--map-accent);
+  white-space:nowrap;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+
+/* 易錯對照：狀態左脊線（✗ bad／✓ good，glyph＋色雙通道） */
+.pit{display:grid;gap:9px;margin-top:6px}
+.pit-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.pit-x,.pit-o{padding:9px 12px;font-size:var(--w-meta);line-height:1.65}
+.pit-x{background:color-mix(in srgb,var(--status-bad) 8%,transparent);
+  border-left:2px solid var(--status-bad)}
+.pit-x::before{content:'✗ ';color:var(--status-bad);font-weight:700}
+.pit-o{background:color-mix(in srgb,var(--status-good) 8%,transparent);
+  border-left:2px solid var(--status-good)}
+.pit-o::before{content:'✓ ';color:var(--status-good);font-weight:700}
+.pit-why{font-size:var(--w-tag);color:var(--ink-dim);margin-top:5px;padding-left:3px;letter-spacing:.02em}
+
+/* 橫切索引表 */
+.idx-note{font-size:var(--w-meta);color:var(--ink-dim);margin-bottom:13px;line-height:1.75}
+.big-tb{overflow-x:auto;border-top:1px solid var(--line-strong);border-bottom:1px solid var(--line-strong);
+  max-height:74vh;overflow-y:auto}
+.big-tb table{font-size:var(--w-meta)}
+.big-tb td.src-c{font-family:var(--mono);font-size:var(--w-tag);color:var(--ink-faint);
+  white-space:nowrap;font-variant-numeric:tabular-nums}
+.n-badge{font-family:var(--mono);font-weight:600;color:var(--map-accent);font-variant-numeric:tabular-nums}
+/* 缺口盒＝狀態左脊線段落 */
+.gapbox{border:0;border-left:2px solid var(--status-bad);border-radius:0;
+  padding:2px 0 6px 18px;margin-bottom:18px;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--status-bad) 5%,transparent),transparent 72%)}
+.gapbox h4{font-size:var(--w-sub);margin:8px 0 9px;
+  color:color-mix(in srgb,var(--status-bad) 70%,var(--ink))}
+.gapbox dl{display:grid;grid-template-columns:auto 1fr;gap:5px 13px;font-size:var(--w-meta);line-height:1.7}
+.gapbox dt{color:var(--ink-dim);white-space:nowrap}
+.gapbox dd{color:var(--ink)}
+
+/* 頂部列（手機）：地面色＋髮絲底線 */
+.topbar{display:none;position:sticky;top:0;z-index:20;background:var(--bg);
+  border-bottom:1px solid var(--line);padding:11px 16px;align-items:center;gap:12px}
+.topbar .back{margin-bottom:0;flex:none}
+.topbar b{font-size:var(--w-meta);font-weight:600}
+.topbar select{margin-left:auto;background:var(--bg-raise);color:var(--ink);
+  border:1px solid var(--line-strong);border-radius:var(--r-sm);padding:6px 9px;
+  font-family:inherit;font-size:var(--w-meta);max-width:52%}
+
+@media(max-width:980px){
+  .wrap{grid-template-columns:1fr}
+  .side{display:none}
+  .topbar{display:flex}
+  .main{padding:26px 18px 110px}
+  .hero h2{font-size:calc(var(--w-title)*.66)}
+  .ch-h h3{font-size:calc(var(--w-title)*.54)}
+  .pit-row{grid-template-columns:1fr}
+  .fml{grid-template-columns:1fr}
+}
+@media print{
+  .side,.topbar,.tools,.back{display:none}
+  .wrap{grid-template-columns:1fr}
+  body{background:#fff;color:#000}
+  body::before{display:none}
+  .card,.deep{break-inside:avoid}
+  details{display:block}
+  details>summary{display:none}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back" href="index.html">← Feb</a>
+  <b>線代作戰地圖</b>
+  <select id="jump" aria-label="跳到章節"></select>
+</div>
+<div class="wrap">
+  <aside class="side">
+    <a class="back" href="index.html">← Feb</a>
+    <h1>線性代數<br>作戰地圖</h1>
+    <div class="sub">24 集 · 70 小時<br>打散重組成 7 章</div>
+    <nav class="nav" id="nav"></nav>
+    <div class="tools">
+      <button type="button" id="btnTheme">☀ 亮色</button>
+      <button type="button" id="btnAll">全部展開</button>
+    </div>
+  </aside>
+  <main class="main" id="main">
+<!--{{CONTENT}}-->
+  </main>
+</div>
+
+<script src="vendor/katex.min.js"></script>
+<script src="vendor/auto-render.min.js"></script>
+<script src="vendor/mermaid.min.js"></script>
+<script>
+/* 目錄：從 DOM 的章節標題長出來，不必另外維護一份清單 */
+(function(){
+  const nav=document.getElementById('nav'), jump=document.getElementById('jump');
+  const secs=[...document.querySelectorAll('[data-nav]')];
+  let lastGrp='';
+  secs.forEach(s=>{
+    const grp=s.dataset.grp||'';
+    if(grp&&grp!==lastGrp){
+      const g=document.createElement('div'); g.className='grp'; g.textContent=grp;
+      nav.appendChild(g); lastGrp=grp;
+    }
+    const a=document.createElement('a');
+    a.href='#'+s.id;
+    a.innerHTML=(s.dataset.no?`<span class="n">${s.dataset.no}</span>`:'')+s.dataset.nav;
+    nav.appendChild(a);
+    const o=document.createElement('option'); o.value='#'+s.id; o.textContent=s.dataset.nav;
+    jump.appendChild(o);
+  });
+  jump.onchange=()=>{location.hash=jump.value};
+  /* 捲到哪一節就亮哪一項 */
+  const links=[...nav.querySelectorAll('a')];
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{
+      if(!e.isIntersecting) return;
+      const i=secs.indexOf(e.target);
+      links.forEach((l,j)=>l.classList.toggle('on',j===i));
+      if(jump.selectedIndex!==i) jump.selectedIndex=i;
+    });
+  },{rootMargin:'-15% 0px -75% 0px'});
+  secs.forEach(s=>io.observe(s));
+})();
+
+/* 亮色／暗色：記住選擇 */
+(function(){
+  const b=document.getElementById('btnTheme');
+  const set=lt=>{document.body.classList.toggle('lt',lt);
+    b.textContent=lt?'☾ 暗色':'☀ 亮色';
+    try{localStorage.setItem('la-lt',lt?'1':'')}catch(e){}
+    /* 換膚：未畫的照常補畫（吃新主題），已畫的走離線逐張重繪 */
+    if(window.__mmReady){drawMermaid(); rethemeMermaid();}};
+  let init=false;
+  try{init=localStorage.getItem('la-lt')==='1'}catch(e){}
+  set(init);
+  b.onclick=()=>set(!document.body.classList.contains('lt'));
+})();
+
+/* 全部展開／收合：深讀層也一起 */
+(function(){
+  const b=document.getElementById('btnAll');
+  let open=false;
+  b.onclick=()=>{
+    open=!open;
+    document.querySelectorAll('details.deep').forEach(d=>d.open=open);
+    document.querySelectorAll('details.card').forEach(d=>d.open=true);
+    b.textContent=open?'收合深讀':'全部展開';
+    if(open) drawMermaid();
+  };
+})();
+
+/* KaTeX：$…$ 與 $$…$$ 走 auto-render；公式卡的 data-tex 是純內容，直接餵 katex。
+   深讀層合計上萬條公式，開頁全渲染會卡好幾秒——初次略過 .deep-body，
+   等使用者真的展開那一則時再渲染（見下方 toggle 監聽）。 */
+function renderMath(root,includeDeep){
+  const opt={delimiters:[
+      {left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
+      throwOnError:false,ignoredTags:['script','noscript','style','textarea','pre','code']};
+  if(!includeDeep) opt.ignoredClasses=['deep-body'];
+  try{ renderMathInElement(root,opt); }catch(e){console.warn('KaTeX',e);}
+  const sel=includeDeep?'[data-tex]:not([data-done])'
+                       :'[data-tex]:not([data-done]):not(.deep-body [data-tex])';
+  root.querySelectorAll(sel).forEach(el=>{
+    if(!includeDeep&&el.closest('.deep-body')) return;
+    try{katex.render(el.dataset.tex,el,{displayMode:true,throwOnError:false});}
+    catch(e){el.textContent=el.dataset.tex;}
+    el.dataset.done='1';
+  });
+}
+renderMath(document.body,false);
+
+/* mermaid：只畫「已經看得見」的圖。畫在 display:none 的容器裡會量到寬度 0，
+   出來是空圖——這是 index.html 早就踩過的坑，這裡沿用同一個解法。
+   換膚：theme:'base' 吃 token 色（讀 computed style，亮暗兩路都對色）。 */
+let mmSeq=0;
+function mmInit(){
+  mermaid.initialize({startOnLoad:false,securityLevel:'strict',
+    theme:'base',themeVariables:mmTheme(),
+    fontFamily:'Inter,"Noto Sans TC",sans-serif',fontSize:16,
+    flowchart:{nodeSpacing:32,rankSpacing:42,padding:12,curve:'basis',useMaxWidth:true}});
+}
+function mmTheme(){
+  const cs=getComputedStyle(document.body);
+  const v=n=>cs.getPropertyValue(n).trim();
+  const rgba=(hex,a)=>{const h=hex.replace('#','');const n=parseInt(h,16);
+    return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')'};
+  const lt=document.body.classList.contains('lt');
+  const acc=v('--map-accent')||'#7FA3C9';
+  return {darkMode:!lt,background:'transparent',
+    primaryColor:rgba(acc,.14),primaryTextColor:v('--ink'),primaryBorderColor:acc,
+    secondaryColor:rgba(acc,.08),tertiaryColor:'transparent',
+    lineColor:v('--ink-dim'),textColor:v('--ink'),
+    edgeLabelBackground:v('--bg-raise'),
+    clusterBkg:rgba(acc,.06),clusterBorder:v('--line-strong'),
+    noteBkgColor:v('--bg-raise'),noteTextColor:v('--ink')};
+}
+function drawMermaid(){
+  const nodes=[...document.querySelectorAll('.mermaid:not([data-done])')]
+    .filter(n=>n.offsetParent!==null);
+  if(!nodes.length) return;
+  nodes.forEach(n=>{n.dataset.done='1';
+    if(!n.dataset.src) n.dataset.src=n.textContent;
+    n.textContent=n.dataset.src; n.removeAttribute('data-processed');});
+  try{
+    mmInit();
+    /* 一次丟整批給 mermaid.run，第一張出錯會把後面全部拖死（run 批次
+       在錯誤處中止）——逐張各自 run、各自 catch，壞一張只壞一張。 */
+    nodes.reduce((p,n)=>p.then(()=>mermaid.run({nodes:[n]})).catch(e=>console.warn('Mermaid',e)),
+      Promise.resolve());
+  }catch(e){console.warn('Mermaid',e);}
+}
+/* 換膚重繪：110 張圖全清掉重排會又慢又閃原始碼（2MB 頁）——改走
+   mermaid.render 離線重繪，成功一張換入一張；失敗保留舊圖不破版。 */
+let mmReskinRun=0;
+async function rethemeMermaid(){
+  const my=++mmReskinRun;
+  try{mmInit();}catch(e){console.warn('Mermaid',e);return}
+  const done=[...document.querySelectorAll('.mermaid[data-done]')]
+    .filter(n=>n.dataset.src&&n.querySelector('svg'));
+  for(const n of done){
+    if(my!==mmReskinRun) return; /* 期間又切了一次膚：讓最新那輪接手 */
+    try{
+      const r=await mermaid.render('mm-reskin-'+(++mmSeq),n.dataset.src);
+      if(my!==mmReskinRun) return;
+      n.innerHTML=r.svg;
+    }catch(e){console.warn('Mermaid retheme',e);}
+  }
+}
+window.__mmReady=true;
+drawMermaid();
+
+/* 展開才渲染：深讀層的公式與圖到這一刻才算 */
+document.addEventListener('toggle',e=>{
+  if(e.target.tagName==='DETAILS'&&e.target.open){
+    renderMath(e.target,true); drawMermaid();
+  }
+},true);
+</script>
+</body>
+</html>
