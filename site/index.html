@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- 內嵌 YouTube 需要 Referer（否則錯誤 153）；不論從哪個伺服器或 Service Worker 快取送出都一樣 -->
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Feb · 研究所備考平台</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛰️</text></svg>">
 <!-- 裝到 iPad／iPhone 主畫面：全螢幕、無網址列、離線可開 -->

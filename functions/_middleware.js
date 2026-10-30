@@ -45,7 +45,12 @@ function hardenStatic(res, pathname) {
     ? 'private, max-age=31536000, immutable'
     : 'private, no-cache');
   out.headers.set('X-Content-Type-Options', 'nosniff');
-  out.headers.set('Referrer-Policy', 'no-referrer');
+  /* Referrer-Policy 不能是 no-referrer：index.html 內嵌 YouTube 播放器（控制系統那 46 支），
+     YouTube 自 2025 年下半年起要求內嵌請求必須帶 Referer 來辨識嵌入的網站，收不到就給
+     「影片播放器設定錯誤（錯誤 153）」。strict-origin-when-cross-origin 是瀏覽器預設值：
+     跨站只送 origin（https://feb….pages.dev），路徑與查詢字串（含 ?k= 通行碼）一律不送，
+     所以不會多洩漏任何東西。/api/* 的回應仍是 no-referrer（_lib/http.mjs），那邊沒有文件要嵌東西。 */
+  out.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   out.headers.set('X-Robots-Tag', 'noindex, nofollow');
   out.headers.set('Vary', 'Cookie, Cf-Access-Jwt-Assertion');
   return out;

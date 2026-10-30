@@ -297,7 +297,9 @@ dist/ 由 `scripts/cloud/build-dist.mjs` 組出來（site/** ＋ 白名單過的
 - `Cache-Control`：PDF `private, max-age=31536000, immutable`（考古題是歷史檔案，
   放上去就不再變）；其餘 `private, no-cache`。
   **兩者都必須 `private`**——這些 byte 只屬於當下這個登入身分。
-- `X-Content-Type-Options: nosniff`、`Referrer-Policy: no-referrer`、
+- `X-Content-Type-Options: nosniff`、`Referrer-Policy: strict-origin-when-cross-origin`
+  （**不是** no-referrer：index.html 內嵌 YouTube，沒有 Referer 會得到錯誤 153；
+  跨站只送 origin，通行碼與路徑都不會外流）、
   `X-Robots-Tag: noindex, nofollow`、`Vary: Cookie, Cf-Access-Jwt-Assertion`
 
 Range／ETag／`304` 交給 Pages 的資產層原生處理，不再自己算 `Content-Range`。
